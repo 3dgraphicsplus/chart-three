@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>three.js webgl - interactive lines</title>
+    <base href=".">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <style>
+        body {
+            background-color: #272f45;
+            color: #444;
+            overflow: hidden;
+        }
+
+        #container {
+            background-image: url("./map.png");
+            background-repeat: no-repeat;
+            background-size: 100% 100%;
+            /* background-size: 1513px 850px; */
+            /* background-position: -60px -15px; */
+            background-position-x: center;
+            background-position-y: center;
+            filter: brightness(100%);
+            /* filter: constrast(120%); */
+            position: absolute;
+            width: 1513px;
+            height: 770px;
+            left: 334px;
+            top:74px;
+            overflow: hidden;
+        }
+        #container:after {
+            opacity: 0.5;
+            overflow: hidden;
+        }
+    </style>
+    <script type="text/javascript" src="./three/build/three.min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r119/three.min.js"></script> -->
+    <!-- <script src="./node_modules/three.meshline/src/THREE.MeshLine.js"></script> -->
+    <!-- <script src="https://unpkg.com/threejs-meshline@2.0.11/src/index.js"></script> -->
+    <!-- Note the additional JS files! always need all of these for postprocessing. -->
+    <script src="./three/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="./three/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="./three/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="./three/examples/js/postprocessing/MaskPass.js"></script>
+    <script src="./three/examples/js/shaders/CopyShader.js"></script>
+
+    <!-- separate out the shaders specific to this demo -->
+    <script src="./three/examples/js/shaders/AdditiveBlendShader.js"></script>
+    <script type="x-shader/x-vertex" id="vertexshader">
+
+    uniform vec3 color;
+    varying vec3 vColor;
+    varying vec3 vPosition;
+
+    void main() {
+
+        vColor = color;
+
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+        vPosition = gl_Position.xyz;
+
+    }
+
+</script>
+
+    <script type="x-shader/x-fragment" id="fragmentshader">
+
+    uniform vec3 color;
+    varying vec3 vColor;
+    varying vec3 vPosition;
+
+    void main() {
+        float opacity = vPosition.y* 0.3 + 0.3;
+        gl_FragColor = vec4(vColor, opacity );
+
+    }
+
+</script>
+
+<script type="x-shader/x-vertex" id="vertexshaderhigher">
+
+    uniform vec3 color;
+    varying vec3 vColor;
+    varying vec3 vPosition;
+
+    void main() {
+
+        vColor = color;
+
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+        vPosition = gl_Position.xyz;
+
+    }
+
+</script>
+
+    <script type="x-shader/x-fragment" id="fragmentshaderhigher">
+
+    uniform vec3 color;
+    varying vec3 vColor;
+    varying vec3 vPosition;
+
+    void main() {
+        float opacity = -vPosition.y* 0.5 + 0.2;
+        gl_FragColor = vec4(vColor, opacity );
+
+    }
+
+</script>
+
+<script type="x-shader/x-vertex" id="vertexshaderlower">
+
+    uniform vec3 color;
+    varying vec3 vColor;
+    varying vec3 vPosition;
+
+    void main() {
+
+        vColor = color;
+
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+        vPosition = gl_Position.xyz;
+
+    }
+
+</script>
+
+    <script type="x-shader/x-fragment" id="fragmentshaderlower">
+
+    uniform vec3 color;
+    varying vec3 vColor;
+    varying vec3 vPosition;
+
+    void main() {
+        float opacity = vPosition.y* 0.5 + 0.45;
+        gl_FragColor = vec4(vColor, opacity );
+
+    }
+
+</script>
+
+<script type="x-shader/x-vertex" id="vertexshaderbg">
+
+    uniform vec3 color;
+    varying vec3 vColor;
+    varying vec3 vPosition;
+
+    void main() {
+
+        vColor = color;
+
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+        vPosition = gl_Position.xyz;
+
+    }
+
+</script>
+
+    <script type="x-shader/x-fragment" id="fragmentshaderbg">
+
+    uniform vec3 color;
+    varying vec3 vColor;
+    varying vec3 vPosition;
+
+    void main() {
+        float opacity = vPosition.y* 0.5 + 0.2;
+        gl_FragColor = vec4(vColor, opacity );
+
+    }
+
+</script>
+</head>
+
+<body>
+    <div id="container"></div>
+    <script src="./TEST_DATA.js"></script>
+    <script type="module" src="./index.js"></script>
+
+</body>
+
+</html>

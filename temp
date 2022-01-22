@@ -1,0 +1,115 @@
+diff --git a/src/index.js b/src/index.js
+index ff2729f..da6b086 100644
+--- a/src/index.js
++++ b/src/index.js
+@@ -1136,6 +1136,7 @@ function drawVerticalGrid(verticalGrids, startingLine, startingIndex, loopCount,
+ }
+ 
+ function zoom() {
++    var movedSteps = activeGroupMovement / (currentGridStep / DEFAULT_ZOOM_LEVEL[currentZoomLevel])
+     // zoom in, stretchValue is negative...
+     if (currentGridStep - (stretchValue) * 2 >= MAX_GRID_STEP) {
+         // Insert more grids                                                                    
+@@ -1158,6 +1159,7 @@ function zoom() {
+                 activeGroup.add(activeVerticalGridObjs[i].line)
+                 activeGroup.add(activeVerticalGridObjs[i].text)
+             }
++            updateCurrencyData();
+         }
+     } else if (currentGridStep + (stretchValue) * 2 < MIN_GRID_STEP) {
+         if (currentZoomLevel >= DEFAULT_ZOOM_LEVEL.length) {
+@@ -1180,6 +1182,8 @@ function zoom() {
+                 activeGroup.add(activeVerticalGridObjs[i].line)
+                 activeGroup.add(activeVerticalGridObjs[i].text)
+             }
++
++            updateCurrencyData();
+         }
+     } else {
+         // Find the position of wheel
+@@ -1209,33 +1213,19 @@ function zoom() {
+             activeVerticalGridObjs[i].line.geometry.attributes.position.needsUpdate = true;
+             activeVerticalGridObjs[i].text.sync();
+         }
+-        // Update new step
+-        currentGridStep = currentGridStep - (stretchValue) * 2;
+-    }
+ 
+-    var timeStep = currentGridStep / DEFAULT_ZOOM_LEVEL[currentZoomLevel];
+-    points = [];
+-    anotherPoints = [];
+-    // Get the data
+-    const point = new THREE.Vector3(activeVerticalGridObjs[0].line.position.x, initialValueY);
+-    points.push([parseFloat(activeVerticalGridObjs[0].line.position.x), parseFloat(initialValueY), 0]);
+-    anotherPoints.push(activeVerticalGridObjs[0].line.position.x, initialValueY, 0);
++        // Move the two closest lines
++        activeVerticalGridObjs[zoomIndex].line.position.x += stretchValue;
++        activeVerticalGridObjs[zoomIndex].text.position.x += stretchValue;
++        activeVerticalGridObjs[zoomIndex + 1].line.position.x -= stretchValue;
++        activeVerticalGridObjs[zoomIndex + 1].text.position.x -= stretchValue;
++        for (var i = 0; i < currentIndex; i++) {
+ 
+-    for (var i = 1; i < currentIndex; i++) {
+-        point.x += (timeStep);
+-        point.y = (input_value[i].price - input_value[0].price) * stepY * 1000 + initialValueY;
+-        if (Number.isNaN(parseFloat(point.x)) == true || Number.isNaN(parseFloat(point.y)) == true) {
+-            continue;
+         }
+-        points.push([point.x, point.y, 0]);
+-        anotherPoints.push(point.x, point.y, 0);
+-        
+-    }
+-    tempPos = anotherPoints.slice(-3);
+-    newPos = tempPos;
+ 
+-    const positions = [];
+-    const colors = [];
++        // Update new step
++        currentGridStep = currentGridStep - (stretchValue) * 2;
++    }
+ 
+     // Update the data line
+     updateDataLine(activeDataLineObjs, anotherPoints);
+@@ -1253,15 +1243,41 @@ function zoom() {
+     activeGroup.remove(activePurchaseLineObjs[0].stopwatch)
+ 
+     activePurchaseLineObjs = []
+-    drawPurchaseLine(activePurchaseLineObjs, anotherPoints.slice(-3), GRID_TOPLINE, timeStep, countDownTimer);
++    drawPurchaseLine(activePurchaseLineObjs, anotherPoints.slice(-3), GRID_TOPLINE, currentGridStep / DEFAULT_ZOOM_LEVEL[currentZoomLevel], countDownTimer);
+     activeGroup.add(activePurchaseLineObjs[0].purchaseLine)
+     activeGroup.add(activePurchaseLineObjs[0].purchaseText)
+     activeGroup.add(activePurchaseLineObjs[0].timeText)
+     activeGroup.add(activePurchaseLineObjs[0].countDownText)
+     activeGroup.add(activePurchaseLineObjs[0].stopwatch)
++
++    // Update moved steps
++    activeGroupMovement = movedSteps * (currentGridStep / DEFAULT_ZOOM_LEVEL[currentZoomLevel])
+     wheeling = false;
+ }
+ 
++function updateCurrencyData() {
++    var timeStep = currentGridStep / DEFAULT_ZOOM_LEVEL[currentZoomLevel];
++    points = [];
++    anotherPoints = [];
++    // Get the data
++    const point = new THREE.Vector3(activeVerticalGridObjs[0].line.position.x, initialValueY);
++    points.push([parseFloat(activeVerticalGridObjs[0].line.position.x), parseFloat(initialValueY), 0]);
++    anotherPoints.push(activeVerticalGridObjs[0].line.position.x, initialValueY, 0);
++
++    for (var i = 1; i < currentIndex; i++) {
++        point.x += (timeStep);
++        point.y = (input_value[i].price - input_value[0].price) * stepY * 1000 + initialValueY;
++        if (Number.isNaN(parseFloat(point.x)) == true || Number.isNaN(parseFloat(point.y)) == true) {
++            continue;
++        }
++        points.push([point.x, point.y, 0]);
++        anotherPoints.push(point.x, point.y, 0);
++        
++    }
++    tempPos = anotherPoints.slice(-3);
++    newPos = tempPos;
++}
++
+ function rescale() {
+     var timeStep = currentGridStep / DEFAULT_ZOOM_LEVEL[currentZoomLevel];
+     points = [];
