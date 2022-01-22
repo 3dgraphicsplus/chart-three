@@ -469,7 +469,7 @@ function drawHorizontalGrid(horizontalGrids, startingLine, gridTopBound, gridRig
 
         let priceText = new Text()
         // Set properties to configure:
-        priceText.text = '1.126' + j;
+        priceText.text = '3501' + j;
         //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
         priceText.fontSize = 12
         priceText.position.z = 0
@@ -632,16 +632,16 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
 
     // shape
     let geomShape = new THREE.ShapeBufferGeometry(new THREE.Shape(coordinatesList));
-    let matShape = new THREE.MeshBasicMaterial({ color: "white", transparent: true, opacity: 0.8 });
+    let matShape = new THREE.MeshBasicMaterial({ color: "white", transparent: true, opacity: 0.7 });
     let priceShape = new THREE.Mesh(geomShape, matShape);
-    priceShape.renderOrder = 10;
+    priceShape.renderOrder = 30;
 
     let priceText = new Text()
     priceText.renderOrder = 50;
     // activeGroup.add(priceText);
 
     // Set properties to configure:
-    priceText.text = '' + parseFloat(dataClient.getOrigin().price).toFixed(4)
+    priceText.text = '' + parseInt(dataClient.getOrigin().price*100000)
     //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
     priceText.fontSize = 12
     priceText.position.z = 0

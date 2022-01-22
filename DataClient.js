@@ -6,20 +6,6 @@ export default class DataClient {
         this.input_value = TEST_DATA;
         this.last = undefined;
         this.currentIndex = -1;
-    };
-
-    getSyncNext(now) {//FIXME will be diffirent for real data
-        if ((!this.last || now - this.last >= 1000)) {
-            this.getDataFromSocket();
-            this.last = now;
-            if (this.currentIndex < this.input_value.length - 1) {
-                // this.currentIndex++;
-                return this.input_value[this.currentIndex];
-            }
-        }
-    }
-
-    getDataFromSocket() {
         let websocket;
         websocket = new WebSocket(
             `wss://stream.binance.com:9443/ws/btcusdt@ticker`
@@ -37,14 +23,27 @@ export default class DataClient {
                 time: time
 
             }
+            console.log(input_object)
             this.input_value.push(input_object)
             // return parseFloat(data.c)
             // update graph price here
+        }
+    };
+
+    getSyncNext(now) {//FIXME will be diffirent for real data
+        if ((!this.last || now - this.last >= 1000)) {
+            // this.getDataFromSocket();
+            this.last = now;
+            if (this.currentIndex < this.input_value.length - 1) {
+                // this.currentIndex++;
+                return this.input_value[this.currentIndex];
+            }
         }
     }
 
     getNext() {
         if (this.currentIndex < this.input_value.length - 1) {
+            // this.getDataFromSocket();
             this.currentIndex++;
             return this.input_value[this.currentIndex];
         }

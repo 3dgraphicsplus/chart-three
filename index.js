@@ -17,7 +17,7 @@ const SCROLL_STEP = 1;
 
 const MIN_VIEW_Y = 300;
 const MAX_VIEW_Y = 800;
-const MIN_DIFF_Y = 200;
+const MIN_DIFF_Y = 100;
 
 
 let initialCameraPos = { x: Factory.axisXConfig.initialValueX - 50, y: 100, z: 1 }
@@ -117,7 +117,7 @@ function initScene(drawingGroup, gridStepX) {
     //FIXME
     points = [];
     Factory.drawInitialData(points, drawCount, activeGroup, activePoligonObjs);
-    console.log(points.length, dataClient.currentIndex)
+    // console.log(points.length, dataClient.currentIndex)
 
     // console.log("totalpoligons: ", activePoligonObjs.length, drawCount)
     beginViewingIndex = dataClient.currentIndex - Factory.XStepCount - 1;
@@ -451,10 +451,10 @@ function calculateAxisY(newConfig) {
         }
     }
     let newStepY = Factory.axisYConfig.stepY;
-    console.log("updateMinMaxY: max, min, maxIndex, minIndex ", maxY, minY, maxYIndex, minYIndex);
-    console.log((maxY - minY), minY, maxY)
+    let currentPos = (dataClient.input_value[dataClient.currentIndex].price - dataClient.getOrigin().price) * Factory.axisYConfig.stepY * 1000 + Factory.axisYConfig.initialValueY;
+    let prevPos = (dataClient.input_value[dataClient.currentIndex - 1].price - dataClient.getOrigin().price) * Factory.axisYConfig.stepY * 1000 + Factory.axisYConfig.initialValueY;
     // if update is needed
-    if (minY < MIN_VIEW_Y || maxY > MAX_VIEW_Y || (maxY - minY) < MIN_DIFF_Y) {
+    if (minY < MIN_VIEW_Y || maxY > MAX_VIEW_Y || (currentPos - prevPos) < MIN_DIFF_Y) {
         // console.log("Rescale needed: ", maxY, minY);
         // To calculate the newY that will fit into the view, use the predefined max, min view Y
         newStepY = ((MAX_VIEW_Y - MIN_VIEW_Y)) / 1000 / (dataClient.input_value[maxYIndex].price - dataClient.input_value[minYIndex].price);
