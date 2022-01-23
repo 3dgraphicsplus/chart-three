@@ -807,8 +807,10 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
     pricePolygon[i++] = gridRightBound - 250 + 15;
     pricePolygon[i++] = circlePos[0][1] - 15;
     pricePolygon[i++] = 0;
-    activePriceStatusObjs[0].priceShape.renderOrder = 10;
+    activePriceStatusObjs[0].priceShape.renderOrder = 30;
     activePriceStatusObjs[0].priceShape.geometry.attributes.position.needsUpdate = true;
+    activePriceStatusObjs[0].priceShape.geometry.computeBoundingBox();
+    activePriceStatusObjs[0].priceShape.geometry.computeBoundingSphere();
 
     activePriceStatusObjs[0].priceText.position.z = 0
     activePriceStatusObjs[0].priceText.position.x = gridRightBound - 250 + 22
