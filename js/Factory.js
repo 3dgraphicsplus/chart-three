@@ -1,9 +1,9 @@
 //static factory - FIXME as class later
-
-import { Text } from './troika-three-text.esm.js'
-import { Line2 } from './three/examples/jsm/lines/Line2.js';
-import { LineMaterial } from './three/examples/jsm/lines/LineMaterial.js';
-import { LineGeometry } from './three/examples/jsm/lines/LineGeometry.js';
+import * as THREE from './libs/three/build/three.module.js'
+import { Text } from './libs/troika-three-text.esm.js'
+import { Line2 } from './libs/three/examples/jsm/lines/Line2.js';
+import { LineMaterial } from './libs/three/examples/jsm/lines/LineMaterial.js';
+import { LineGeometry } from './libs/three/examples/jsm/lines/LineGeometry.js';
 
 let mouseTimeLineGeo, mousePriceLineGeo;
 
@@ -114,7 +114,7 @@ function drawHigherButton(scene, gridRightBound) {
     let upGeo = new THREE.BoxGeometry(110, 110, 1);
     let upMesh = new THREE.Mesh(upGeo, new THREE.MeshBasicMaterial(
         {
-            map: new THREE.TextureLoader().load("up.png", map => {
+            map: new THREE.TextureLoader().load("/img/up.png", map => {
                 upMesh.scale.set(map.image.width * 0.0005, map.image.height * 0.0005);
             }),
             transparent: true,
@@ -128,7 +128,7 @@ function drawHigherButton(scene, gridRightBound) {
     let upGeo2 = new THREE.BoxGeometry(110, 110, 1);
     let upMesh2 = new THREE.Mesh(upGeo2, new THREE.MeshBasicMaterial(
         {
-            map: new THREE.TextureLoader().load("upArrow.png", map => {
+            map: new THREE.TextureLoader().load("/img/upArrow.png", map => {
                 upMesh2.scale.set(map.image.width * 0.004, map.image.height * 0.004);
             }),
             transparent: true,
@@ -142,7 +142,7 @@ function drawHigherButton(scene, gridRightBound) {
     let downGeo2 = new THREE.BoxGeometry(110, 110, 1);
     let downMesh2 = new THREE.Mesh(downGeo2, new THREE.MeshBasicMaterial(
         {
-            map: new THREE.TextureLoader().load("downArrow.png", map => {
+            map: new THREE.TextureLoader().load("/img/downArrow.png", map => {
                 downMesh2.scale.set(map.image.width * 0.004, map.image.height * 0.004);
             }),
             transparent: true,
@@ -190,7 +190,7 @@ function drawLowerButton(scene, gridRightBound) {
     let downGeo = new THREE.BoxGeometry(110, 110, 1);
     let downMesh = new THREE.Mesh(downGeo, new THREE.MeshBasicMaterial(
         {
-            map: new THREE.TextureLoader().load("down.png", map => {
+            map: new THREE.TextureLoader().load("/img/down.png", map => {
                 downMesh.scale.set(map.image.width * 0.0005, map.image.height * 0.0005);
             }),
             transparent: true,
@@ -339,7 +339,7 @@ function updateMouseMoveLine(scene, posX, posY, initialValueX) {
     if (mouseAlertShape == undefined) {
         let geomShape = new THREE.PlaneGeometry(16, 16);
         let matShape = new THREE.MeshBasicMaterial({
-            map: new THREE.TextureLoader().load("custom_bell.png", map => {
+            map: new THREE.TextureLoader().load("/img/custom_bell.png", map => {
                 mouseAlertShape.scale.set(map.image.width * 0.01, map.image.height * 0.01);
             }),
             color: 0xffffff, transparent: true, opacity: 1.0
@@ -685,7 +685,7 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     // use sprite because it appears the same from all angles
     let spriteMaterial = new THREE.SpriteMaterial(
         {
-            map: new THREE.TextureLoader().load("glow2.png"),
+            map: new THREE.TextureLoader().load("/img/glow2.png"),
             color: 0x238933, transparent: false, blending: THREE.AdditiveBlending
         });
     let greenGlow = new THREE.Sprite(spriteMaterial);
@@ -732,7 +732,7 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     let upGeo2 = new THREE.BoxGeometry(80, 80, 1);
     let upMesh2 = new THREE.Mesh(upGeo2, new THREE.MeshBasicMaterial(
         {
-            map: new THREE.TextureLoader().load("upArrow.png", map => {
+            map: new THREE.TextureLoader().load("/img/upArrow.png", map => {
                 upMesh2.scale.set(map.image.width * 0.004, map.image.height * 0.004);
             }),
             transparent: true,
@@ -746,7 +746,7 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     let downGeo2 = new THREE.BoxGeometry(80, 80, 1);
     let downMesh2 = new THREE.Mesh(downGeo2, new THREE.MeshBasicMaterial(
         {
-            map: new THREE.TextureLoader().load("downArrow.png", map => {
+            map: new THREE.TextureLoader().load("/img/downArrow.png", map => {
                 downMesh2.scale.set(map.image.width * 0.004, map.image.height * 0.004);
             }),
             transparent: true,
@@ -1117,7 +1117,7 @@ function drawPurchaseLine(purchaseLineObjs, circlePos, gridTopBound, stepX, coun
     let stopwatchGeo = new THREE.CircleGeometry(12, 64);
     let stopwatchMesh = new THREE.Mesh(stopwatchGeo, new THREE.MeshBasicMaterial(
         {
-            map: new THREE.TextureLoader().load("stopwatch.png", map => {
+            map: new THREE.TextureLoader().load("/img/stopwatch.png", map => {
                 stopwatchMesh.scale.set(map.image.width * 0.012, map.image.height * 0.012);
             }),
             transparent: true,

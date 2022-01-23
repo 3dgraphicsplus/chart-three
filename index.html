@@ -14,7 +14,7 @@
         }
 
         #container {
-            background-image: url("./map.png");
+            background-image: url("/img/map.png");
             background-repeat: no-repeat;
             background-size: 100% 100%;
             /* background-size: 1513px 850px; */
@@ -35,19 +35,8 @@
             overflow: hidden;
         }
     </style>
-    <script type="text/javascript" src="./three/build/three.min.js"></script>
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r119/three.min.js"></script> -->
-    <!-- <script src="./node_modules/three.meshline/src/THREE.MeshLine.js"></script> -->
-    <!-- <script src="https://unpkg.com/threejs-meshline@2.0.11/src/index.js"></script> -->
-    <!-- Note the additional JS files! always need all of these for postprocessing. -->
-    <script src="./three/examples/js/postprocessing/EffectComposer.js"></script>
-    <script src="./three/examples/js/postprocessing/RenderPass.js"></script>
-    <script src="./three/examples/js/postprocessing/ShaderPass.js"></script>
-    <script src="./three/examples/js/postprocessing/MaskPass.js"></script>
-    <script src="./three/examples/js/shaders/CopyShader.js"></script>
 
     <!-- separate out the shaders specific to this demo -->
-    <script src="./three/examples/js/shaders/AdditiveBlendShader.js"></script>
     <script type="x-shader/x-vertex" id="vertexshader">
 
     uniform vec3 color;
@@ -175,8 +164,8 @@
 
 <body>
     <div id="container"></div>
-    <script src="./TEST_DATA.js"></script>
-    <script type="module" src="./index.js"></script>
+    <script src="./js/TEST_DATA.js"></script>
+    <script type="module" src="./js/index.js"></script>
 
 </body>
 

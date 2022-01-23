@@ -1,6 +1,7 @@
-import Stats from './stats.module.js';
-import TWEEN from './tween.esm.js';
+import Stats from './libs/stats.module.js';
+import TWEEN from './libs/tween.esm.js';
 import DataClient from './DataClient.js';
+import * as THREE from './libs/three/build/three.module.js'
 
 //FIXME
 import * as Factory from './Factory.js';
