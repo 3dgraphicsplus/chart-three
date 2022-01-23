@@ -16,7 +16,7 @@ const MIN_GRID_STEP = 150
 const SCROLL_STEP = 1;
 
 const MIN_VIEW_Y = 300;
-const MAX_VIEW_Y = 800;
+const MAX_VIEW_Y = 700;
 const MIN_DIFF_Y = 100;
 
 

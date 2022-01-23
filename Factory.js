@@ -714,8 +714,8 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     let higherAreaShape = new THREE.Shape();
     higherAreaShape.moveTo(-100, circlePos[0][1]);
     higherAreaShape.lineTo(gridRightBound - 250 + 90, circlePos[0][1]);
-    higherAreaShape.lineTo(gridRightBound - 250 + 90, container.clientHeight);
-    higherAreaShape.lineTo(-100, container.clientHeight);
+    higherAreaShape.lineTo(gridRightBound - 250 + 90, container.clientHeight*2);
+    higherAreaShape.lineTo(-100, container.clientHeight*2);
     let higherAreaGeo = new THREE.ShapeGeometry(higherAreaShape);
     let higherAreaMaterial = new THREE.ShaderMaterial({
         uniforms: {
@@ -729,7 +729,7 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     let higherArea = new THREE.Mesh(higherAreaGeo, higherAreaMaterial);
     higherArea.renderOrder = 1;
 
-    let upGeo2 = new THREE.BoxGeometry(110, 110, 1);
+    let upGeo2 = new THREE.BoxGeometry(80, 80, 1);
     let upMesh2 = new THREE.Mesh(upGeo2, new THREE.MeshBasicMaterial(
         {
             map: new THREE.TextureLoader().load("upArrow.png", map => {
@@ -743,7 +743,7 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     upMesh2.position.y = circlePos[0][1] + 40;
     upMesh2.renderOrder = 200;
 
-    let downGeo2 = new THREE.BoxGeometry(110, 110, 1);
+    let downGeo2 = new THREE.BoxGeometry(80, 80, 1);
     let downMesh2 = new THREE.Mesh(downGeo2, new THREE.MeshBasicMaterial(
         {
             map: new THREE.TextureLoader().load("downArrow.png", map => {
@@ -857,8 +857,8 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
     let higherAreaShape = new THREE.Shape();
     higherAreaShape.moveTo(-100, circlePos[0][1]);
     higherAreaShape.lineTo(gridRightBound - 250 + 90, circlePos[0][1]);
-    higherAreaShape.lineTo(gridRightBound - 250 + 90, container.clientHeight);
-    higherAreaShape.lineTo(-100, container.clientHeight);
+    higherAreaShape.lineTo(gridRightBound - 250 + 90, container.clientHeight*2);
+    higherAreaShape.lineTo(-100, container.clientHeight*2);
     let higherAreaGeo = new THREE.ShapeGeometry(higherAreaShape);
     activePriceStatusObjs[0].higherArea.geometry.dispose();
     activePriceStatusObjs[0].higherArea.geometry = higherAreaGeo;
