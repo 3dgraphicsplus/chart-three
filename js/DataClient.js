@@ -23,7 +23,7 @@ export default class DataClient {
                 time: time
 
             }
-            console.log(input_object)
+            // console.log(input_object)
             this.input_value.push(input_object)
             // return parseFloat(data.c)
             // update graph price here

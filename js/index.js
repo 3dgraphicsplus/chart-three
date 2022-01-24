@@ -293,7 +293,7 @@ function onWheel(event) {
         if (tweenZoom) {
             tweenZoom.stop();
         }
-        tweenZoom = new TWEEN.Tween(gridFrom).to(gridTo, 200).onUpdate(function (object) {
+        tweenZoom = new TWEEN.Tween(gridFrom).to(gridTo, 400).onUpdate(function (object) {
             if (event.deltaY > 0) {
                 zoom(object.x);
             } else {
@@ -306,7 +306,7 @@ function onWheel(event) {
             Factory.setXStepCount(Math.floor(Factory.GRID_RIGHTMOST_LINE / Factory.axisXConfig.stepX));
             updateView();
         })
-            .easing(TWEEN.Easing.Quadratic.InOut).start();
+            .easing(TWEEN.Easing.Linear.None).start();
     }
 }
 
@@ -496,12 +496,12 @@ function updateView(addNewData, refreshView) {
     if (need2Update) {
         // console.log("Need Update");
         new TWEEN.Tween(Factory.axisYConfig).to(newConfig, 400).onUpdate(function (object) {
-                //We also update geometry while rescale -> render is updated
-                // console.log(object)
-                rescale(object.stepY, beginViewingIndex, endViewingIndex, object.initialValueY);
-                updateGeometries(beginViewingIndex, endViewingIndex);//FIXME,so risky
-            }).easing(TWEEN.Easing.Quadratic.InOut)
-                .start();
+            //We also update geometry while rescale -> render is updated
+            // console.log(object)
+            rescale(object.stepY, beginViewingIndex, endViewingIndex, object.initialValueY);
+            updateGeometries(beginViewingIndex, endViewingIndex);//FIXME,so risky
+        }).easing(TWEEN.Easing.Quadratic.InOut)
+            .start();
         Factory.axisYConfig.stepY = newConfig.stepY;
         Factory.axisYConfig.initialValueY = newConfig.initialValueY;
     } else {
