@@ -52,6 +52,8 @@ let activePriceStatusObjs = [];
 let activePurchaseLineObjs = [];
 let activeDataLineObjs = [];
 let activePoligonObjs = [];
+
+let dataObjs = [];
 let wheeling = false;
 let noTween = true;
 let stretchValue;
@@ -61,11 +63,12 @@ let tweenZoom;
 
 let lowerButton;
 let higherButton;
+let lowerText, higherText;
 let upMesh, downMesh;
 let lowhighButtons = [];
 
 //Draw demo 100 points at start point??
-const drawCount = 100;
+const drawCount = 20;
 let beginViewingIndex = 0;
 let endViewingIndex = drawCount;
 
@@ -127,9 +130,11 @@ function initScene(drawingGroup, gridStepX) {
     let higher = Factory.drawHigherButton(scene, Factory.GRID_RIGHTMOST_LINE);
     upMesh = higher.upMesh
     higherButton = higher.higherButton
+    higherText = higher.higherText
     let lower = Factory.drawLowerButton(scene, Factory.GRID_RIGHTMOST_LINE);
     downMesh = lower.downMesh
     lowerButton = lower.lowerButton
+    lowerText = lower.lowerText
 
     // Draw the data line
     Factory.addDataLine(drawingGroup, activeDataLineObjs, points, 0, container.clientWidth, container.clientHeight);
@@ -293,7 +298,7 @@ function onWheel(event) {
         if (tweenZoom) {
             tweenZoom.stop();
         }
-        tweenZoom = new TWEEN.Tween(gridFrom).to(gridTo, 400).onUpdate(function (object) {
+        tweenZoom = new TWEEN.Tween(gridFrom).to(gridTo, 200).onUpdate(function (object) {
             if (event.deltaY > 0) {
                 zoom(object.x);
             } else {
@@ -357,7 +362,6 @@ function onPointerMove(event) {
 
         let intersects2 = raycaster.intersectObjects(lowhighButtons);
         if (intersects2.length > 0) {
-            console.log(intersects2.length);
             // updateMouseMoveLine(intersects[0].point.x, intersects[0].point.y);
             if (higherButton == intersects2[0].object) {
                 // console.log("HIGHER");
@@ -393,12 +397,70 @@ function onPointerDown(event) {
     clickMousePos.x = event.clientX;
     clickMousePos.y = event.clientY;
     mouseDown = true;
+    let mouseClick = { x: 0, y: 0 };
+    mouseClick.x = ((event.clientX - container.offsetLeft) / (container.clientWidth)) * 2 - 1;
+    mouseClick.y = - ((event.clientY - container.offsetTop) / (container.clientHeight)) * 2 + 1;
+    raycaster.setFromCamera(mouseClick, camera);
+    let intersects2 = raycaster.intersectObjects(lowhighButtons);
+    if (intersects2.length > 0) {
+        // console.log("FUCK")
+        // console.log(intersects2[0].object)
+        // intersects2[0].object.scale.setScalar(0.8);
+        if (higherButton == intersects2[0].object) {
+            let from = { x: 1, y: 1 };
+            let to = { x: 0.8, y: 0.8 };
+            let initialScale = upMesh.scale.clone();
+            new TWEEN.Tween(from).to(to, 150).onUpdate(function (object) {
+                // higherGroup.scale.set(object.x, object.y)
+                higherButton.scale.set(object.x, object.y);
+                higherText.scale.set(object.x, object.y);
+                // upMesh.scale.set(initialScale.x * object.x, initialScale.y * object.y);
+                // intersects2[0].object.scale.set(object.x, object.y);
+            }).onComplete(function () {
+                let restoreFrom = { x: 0.8, y: 0.8 };
+                let restoreTo = { x: 1, y: 1 };
+                new TWEEN.Tween(restoreFrom).to(restoreTo, 150).onUpdate(function (object) {
+                    higherButton.scale.set(object.x, object.y);
+                    higherText.scale.set(object.x, object.y);
+                    // upMesh.scale.set(initialScale.x / object.x, initialScale.y / object.y);
+                    // higherGroup.scale.set(object.x, object.y)
+                }).easing(TWEEN.Easing.Quadratic.InOut)
+                    .start();
+            })
+                .easing(TWEEN.Easing.Quadratic.InOut)
+                .start();
+        }
+
+        if (lowerButton == intersects2[0].object) {
+            let from = { x: 1, y: 1 };
+            let to = { x: 0.8, y: 0.8 };
+            let initialScale = downMesh.scale.clone();
+            new TWEEN.Tween(from).to(to, 100).onUpdate(function (object) {
+                lowerButton.scale.set(object.x, object.y);
+                lowerText.scale.set(object.x, object.y);
+                // downMesh.scale.set(initialScale.x * object.x, initialScale.y * object.y);
+                // intersects2[0].object.scale.set(object.x, object.y);
+            }).onComplete(function () {
+                let restoreFrom = { x: 0.8, y: 0.8 };
+                let restoreTo = { x: 1, y: 1 };
+                new TWEEN.Tween(restoreFrom).to(restoreTo, 100).onUpdate(function (object) {
+                    lowerButton.scale.set(object.x, object.y);
+                    lowerText.scale.set(object.x, object.y);
+                    // downMesh.scale.set(initialScale.x / object.x, initialScale.y / object.y);
+                }).easing(TWEEN.Easing.Quadratic.InOut)
+                    .start();
+            })
+                .easing(TWEEN.Easing.Quadratic.InOut)
+                .start();
+        }
+
+
+    }
 }
 
 function onPointerUp(event) {
     mouseDown = false;
 }
-
 
 // Use to rescale the data so it will fit into the view
 function rescale(newStepDelta, beginIndex, endIndex, newInitialValueYDelta) {

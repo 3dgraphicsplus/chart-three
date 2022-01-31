@@ -95,7 +95,7 @@ function drawInitialData(points, count, activeGroup, activePoligonObjs) {
 }
 
 function drawHigherButton(scene, gridRightBound) {
-    var initY = 600;
+    let initY = 600;
     let coordinatesList = [
         new THREE.Vector3(gridRightBound - 150 - 120, initY, 0),
         new THREE.Vector3(gridRightBound - 150 - 10, initY, 0),
@@ -172,12 +172,11 @@ function drawHigherButton(scene, gridRightBound) {
     scene.add(higherText);
     scene.add(upMesh);
 
-
-    return { higherButton, upMesh };
+    return { higherButton, upMesh, higherText };
 }
 
 function drawLowerButton(scene, gridRightBound) {
-    var initY = 482;
+    let initY = 482;
     // shape
     // let geomShape = new THREE.ShapeBufferGeometry(new THREE.Shape(coordinatesList));
     let geomShape = new THREE.BoxGeometry(110, 110, 1);
@@ -219,7 +218,7 @@ function drawLowerButton(scene, gridRightBound) {
     scene.add(lowerButton)
     scene.add(downMesh)
     scene.add(lowerText)
-    return { lowerButton, downMesh };
+    return { lowerButton, downMesh, lowerText };
 }
 
 // Update the position of the line at the mouse cursor    
