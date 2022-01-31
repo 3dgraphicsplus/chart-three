@@ -50,6 +50,7 @@ let activeHorizontalGridObjs = [];
 let activeVerticalGridObjs = {};
 let activePriceStatusObjs = [];
 let activePurchaseLineObjs = [];
+let activeFinishLineObjs = [];
 let activeDataLineObjs = [];
 let activePoligonObjs = [];
 
@@ -68,7 +69,7 @@ let upMesh, downMesh;
 let lowhighButtons = [];
 
 //Draw demo 100 points at start point??
-const drawCount = 20;
+const drawCount = 100;
 let beginViewingIndex = 0;
 let endViewingIndex = drawCount;
 
@@ -153,11 +154,17 @@ function initScene(drawingGroup, gridStepX) {
     // Draw the purchase line
     Factory.drawPurchaseLine(activePurchaseLineObjs, [points[points.length - 1]], Factory.GRID_TOPLINE, Factory.axisXConfig.stepX, countDownTimer);
 
+    // Draw the finish line
+    Factory.drawFinishLine(activeFinishLineObjs, [points[points.length - 1]], Factory.GRID_TOPLINE, Factory.axisXConfig.stepX, countDownTimer+10);
+
     drawingGroup.add(activePurchaseLineObjs[0].purchaseLine)
     drawingGroup.add(activePurchaseLineObjs[0].purchaseText)
     drawingGroup.add(activePurchaseLineObjs[0].timeText)
     drawingGroup.add(activePurchaseLineObjs[0].countDownText)
     drawingGroup.add(activePurchaseLineObjs[0].stopwatch)
+
+    drawingGroup.add(activeFinishLineObjs[0].finishLine)
+    drawingGroup.add(activeFinishLineObjs[0].flag)
 
     drawingGroup.add(activePriceStatusObjs[0].dashedLine)
     drawingGroup.add(activePriceStatusObjs[0].line)
@@ -616,6 +623,7 @@ function updateOtherStuff() {
     }
     Factory.drawVerticalGrid(activeGroup, activeVerticalGridObjs, points, 1, Factory.GRID_TOPLINE, Math.floor(dataClient.currentIndex / Factory.defaultZoomLevel()) * Factory.defaultZoomLevel());
     Factory.updatePurchaseLine(activeGroup, activePurchaseLineObjs, [points[points.length - 1]], Factory.GRID_TOPLINE, Factory.axisXConfig.stepX, countDownTimer);
+    Factory.updateFinishLine(activeGroup, activeFinishLineObjs, [points[points.length - 1]], Factory.GRID_TOPLINE, Factory.axisXConfig.stepX, countDownTimer+10);
 }
 
 // Fetch new data from input and draw it with animation
@@ -706,6 +714,8 @@ function updateGeometries(beginIndex, endIndex) {
     Factory.updateActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
 
     Factory.updatePurchaseLine(activeGroup, activePurchaseLineObjs, [points[points.length - 1]], Factory.GRID_TOPLINE, Factory.axisXConfig.stepX, countDownTimer);
+
+    Factory.updateFinishLine(activeGroup, activeFinishLineObjs, [points[points.length - 1]], Factory.GRID_TOPLINE, Factory.axisXConfig.stepX, countDownTimer + 10);
 }
 
 //dummy or real data from server. Should be prepared asyn into cache

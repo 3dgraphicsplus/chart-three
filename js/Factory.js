@@ -640,7 +640,7 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     // activeGroup.add(priceText);
 
     // Set properties to configure:
-    priceText.text = '' + parseInt(dataClient.getOrigin().price*100000)
+    priceText.text = '' + parseInt(dataClient.getOrigin().price * 100000)
     //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
     priceText.fontSize = 12
     priceText.position.z = 0
@@ -713,8 +713,8 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     let higherAreaShape = new THREE.Shape();
     higherAreaShape.moveTo(-100, circlePos[0][1]);
     higherAreaShape.lineTo(gridRightBound - 250 + 90, circlePos[0][1]);
-    higherAreaShape.lineTo(gridRightBound - 250 + 90, container.clientHeight*2);
-    higherAreaShape.lineTo(-100, container.clientHeight*2);
+    higherAreaShape.lineTo(gridRightBound - 250 + 90, container.clientHeight * 2);
+    higherAreaShape.lineTo(-100, container.clientHeight * 2);
     let higherAreaGeo = new THREE.ShapeGeometry(higherAreaShape);
     let higherAreaMaterial = new THREE.ShaderMaterial({
         uniforms: {
@@ -858,8 +858,8 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
     let higherAreaShape = new THREE.Shape();
     higherAreaShape.moveTo(-100, circlePos[0][1]);
     higherAreaShape.lineTo(gridRightBound - 250 + 90, circlePos[0][1]);
-    higherAreaShape.lineTo(gridRightBound - 250 + 90, container.clientHeight*2);
-    higherAreaShape.lineTo(-100, container.clientHeight*2);
+    higherAreaShape.lineTo(gridRightBound - 250 + 90, container.clientHeight * 2);
+    higherAreaShape.lineTo(-100, container.clientHeight * 2);
     let higherAreaGeo = new THREE.ShapeGeometry(higherAreaShape);
     activePriceStatusObjs[0].higherArea.geometry.dispose();
     activePriceStatusObjs[0].higherArea.geometry = higherAreaGeo;
@@ -1183,7 +1183,56 @@ function updatePurchaseLine(drawingGroup, purchaseLineObjs, circlePos, gridTopBo
     purchaseLineObjs[0].stopwatch.geometry.attributes.position.needsUpdate = true;
 }
 
+// Draw the purchase line using position of the green points and the remaining time of the countdown timer.
+// circlePos is the pos of the greenpoint
+function drawFinishLine(finishLineObjs, circlePos, gridTopBound, stepX, countDownTimer) {
+    let verticalFinishLinePos = [circlePos[0][0] + countDownTimer * axisXConfig.stepX, 150, 0, circlePos[0][0] + countDownTimer * axisXConfig.stepX, gridTopBound, 0];
 
+    const verticalFinishGeo = new LineGeometry();
+    verticalFinishGeo.setPositions(verticalFinishLinePos);
+    let verticalFinishMaterial = new LineMaterial({
+        color: LOWER_BUTTON_COLOR,
+        linewidth: PURCHASE_LINE_WIDTH, // in world units with size attenuation, pixels otherwise
+        vertexColors: false,
+        resolution: new THREE.Vector2(container.clientWidth, container.clientHeight),
+        //resolution:  // to be set by renderer, eventually
+        dashed: true,
+        dashScale: 0.4,
+    });
+
+    let verticalFinishLine = new Line2(verticalFinishGeo, verticalFinishMaterial);
+    verticalFinishLine.computeLineDistances();
+    verticalFinishLine.scale.set(1, 1, 1);
+    verticalFinishLine.renderOrder = 20;
+
+    let flagGeo = new THREE.CircleGeometry(12, 64);
+    let flagMesh = new THREE.Mesh(flagGeo, new THREE.MeshBasicMaterial(
+        {
+            map: new THREE.TextureLoader().load("/img/finishedflag.png", map => {
+                flagMesh.scale.set(map.image.width * 0.015, map.image.height * 0.015);
+            }),
+            transparent: true,
+            opacity: 1.0,
+        }));
+    flagMesh.position.set(verticalFinishLinePos[0], 160);
+    flagMesh.renderOrder = 10;
+    finishLineObjs.push({ finishLine: verticalFinishLine, flag: flagMesh })
+}
+
+// Update the geometry of the purchase line using greenpoint position
+function updateFinishLine(drawingGroup, finishLineObjs, circlePos, gridTopBound, stepX, countDownTimer) {
+    let verticalFinishLinePos = [circlePos[0][0] + countDownTimer * axisXConfig.stepX, 150, 0, circlePos[0][0] + countDownTimer * axisXConfig.stepX, gridTopBound, 0];
+
+    const verticalFinishGeo = new LineGeometry();
+    verticalFinishGeo.setPositions(verticalFinishLinePos);
+    finishLineObjs[0].finishLine.geometry.dispose();
+    finishLineObjs[0].finishLine.geometry = verticalFinishGeo;
+    finishLineObjs[0].finishLine.computeLineDistances();
+    finishLineObjs[0].finishLine.geometry.attributes.position.needsUpdate = true;
+
+    finishLineObjs[0].flag.position.set(verticalFinishLinePos[0], 160);
+    finishLineObjs[0].flag.geometry.attributes.position.needsUpdate = true;
+}
 
 function setGrid(top, right) {
     GRID_TOPLINE = top;
@@ -1244,5 +1293,7 @@ export {
     disableLowerActiveLines,
     drawLowerButton,
     updatePolygonSingle,
-    updateDataLineSingle
+    updateDataLineSingle,
+    drawFinishLine,
+    updateFinishLine
 }
