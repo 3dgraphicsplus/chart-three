@@ -176,10 +176,10 @@ function initScene(drawingGroup, gridStepX) {
 
     for (let i = 0; i < activeHorizontalGridObjs.length; i++) {
         scene.remove(activeHorizontalGridObjs[i].line)
-        scene.remove(activeHorizontalGridObjs[i].text)
+        // scene.remove(activeHorizontalGridObjs[i].text)
 
         scene.add(activeHorizontalGridObjs[i].line)
-        scene.add(activeHorizontalGridObjs[i].text)
+        // scene.add(activeHorizontalGridObjs[i].text)
     }
 
     drawingGroup.add(newbkg)
