@@ -1234,6 +1234,247 @@ function updateFinishLine(drawingGroup, finishLineObjs, circlePos, gridTopBound,
     finishLineObjs[0].flag.geometry.attributes.position.needsUpdate = true;
 }
 
+function drawMark(drawingGroup, markObjs, circlePos, isLower, index, gridRightBound, movedDistance) {
+    if (isLower == false) {
+        // Draw oval with number
+        let ovalGeo = new THREE.PlaneGeometry(16, 16);
+        let ovalMesh = new THREE.Mesh(ovalGeo, new THREE.MeshBasicMaterial(
+            {
+                map: new THREE.TextureLoader().load("/img/higherinvest.png", map => {
+                    ovalMesh.scale.set(map.image.width * 0.015, map.image.height * 0.015);
+                }),
+                transparent: true,
+                opacity: 1.0,
+                color: HIGHER_BUTTON_COLOR,
+            }));
+        ovalMesh.position.set(circlePos[0][0] - 20, circlePos[0][1] + 10);
+        ovalMesh.renderOrder = 50;
+
+        let investText = new Text()
+        investText.renderOrder = 60;
+
+        // Set properties to configure:
+        investText.text = '$1'
+        investText.font = "https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
+        investText.fontSize = 12
+        investText.position.z = 0
+        investText.position.x = circlePos[0][0] - 20 - 6
+        investText.position.y = circlePos[0][1] + 10 + 6
+        investText.color = 0xffffff
+        investText.sync();
+
+        // // Draw straigh lines
+        // let verticalInvestPos = [circlePos[0][0], circlePos[0][1], 0, circlePos[0][0], circlePos[0][1] + 10, 0];
+        // const verticalInvestGeo = new LineGeometry();
+        // verticalInvestGeo.setPositions(verticalInvestPos);
+        // let verticalInvestMaterial = new LineMaterial({
+        //     color: HIGHER_BUTTON_COLOR,
+        //     linewidth: MOUSE_MOVE_LINE_WIDTH, // in world units with size attenuation, pixels otherwise
+        //     vertexColors: false,
+        //     resolution: new THREE.Vector2(600, 400),
+        //     //resolution:  // to be set by renderer, eventually
+        //     dashed: true,
+        //     dashScale: 0.4,
+        // });
+
+        // let verticalInvestLine = new Line2(verticalInvestGeo, verticalInvestMaterial);
+        // verticalInvestLine.computeLineDistances();
+        // verticalInvestLine.scale.set(1, 1, 1);
+        // verticalInvestLine.renderOrder = 60;
+
+        // Draw horizontal lines
+        const horizontalDashed = new LineGeometry();
+        horizontalDashed.setPositions([0, circlePos[0][1], 0, circlePos[0][0], circlePos[0][1], 0]);
+        let horizontalMat = new LineMaterial({
+            color: HIGHER_BUTTON_COLOR,
+            linewidth: MOUSE_MOVE_LINE_WIDTH, // in world units with size attenuation, pixels otherwise
+            vertexColors: false,
+            resolution: new THREE.Vector2(container.clientWidth, container.clientHeight),
+            //resolution:  // to be set by renderer, eventually
+            dashed: true,
+            dashScale: 0.2,
+            alphaToCoverage: false,
+        });
+
+        let verdashedLine = new Line2(horizontalDashed, horizontalMat);
+        verdashedLine.computeLineDistances();
+        verdashedLine.scale.set(1, 1, 1);
+        verdashedLine.renderOrder = 60;
+
+        const verticalline = new LineGeometry();
+        verticalline.setPositions([circlePos[0][0], circlePos[0][1], 0, gridRightBound - 250 - movedDistance, circlePos[0][1], 0]);
+        let verlineMat = new LineMaterial({
+            color: HIGHER_BUTTON_COLOR,
+            linewidth: MOUSE_MOVE_LINE_WIDTH, // in world units with size attenuation, pixels otherwise
+            vertexColors: false,
+            resolution: new THREE.Vector2(container.clientWidth, container.clientHeight),
+            //resolution:  // to be set by renderer, eventually
+            dashed: false,
+            alphaToCoverage: false,
+        });
+        let verLine = new Line2(verticalline, verlineMat);
+        verLine.computeLineDistances();
+        verLine.scale.set(1, 1, 1);
+        verLine.renderOrder = 60;
+        // Draw marks
+        let markGeo = new THREE.CircleGeometry(12, 64);
+        let markMesh = new THREE.Mesh(markGeo, new THREE.MeshBasicMaterial(
+            {
+                map: new THREE.TextureLoader().load("/img/highermark.png", map => {
+                    markMesh.scale.set(map.image.width * 0.01, map.image.height * 0.01);
+                }),
+                transparent: true,
+                opacity: 1.0,
+            }));
+        markMesh.position.set(circlePos[0][0], circlePos[0][1]);
+        markMesh.renderOrder = 10;
+
+        drawingGroup.add(ovalMesh)
+        drawingGroup.add(investText)
+        // drawingGroup.add(verticalInvestLine)
+        drawingGroup.add(verdashedLine)
+        drawingGroup.add(verLine)
+        drawingGroup.add(markMesh)
+        markObjs.push({ ovalMesh: ovalMesh, index: index, investText: investText, verdashedLine: verdashedLine, verLine: verLine, markMesh: markMesh });
+    } else {
+        // Draw oval with number
+        let ovalGeo = new THREE.PlaneGeometry(16, 16);
+        let ovalMesh = new THREE.Mesh(ovalGeo, new THREE.MeshBasicMaterial(
+            {
+                map: new THREE.TextureLoader().load("/img/lowerinvest.png", map => {
+                    ovalMesh.scale.set(map.image.width * 0.015, map.image.height * 0.015);
+                }),
+                transparent: true,
+                opacity: 0.6,
+                color: LOWER_BUTTON_COLOR,
+            }));
+        ovalMesh.position.set(circlePos[0][0] - 20, circlePos[0][1] + 10);
+        ovalMesh.renderOrder = 50;
+
+        let investText = new Text()
+        investText.renderOrder = 60;
+        investText.text = '$1'
+        investText.font = "https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
+        investText.fontSize = 12
+        investText.position.z = 0
+        investText.position.x = circlePos[0][0] - 20 - 6
+        investText.position.y = circlePos[0][1] + 10 + 6
+        investText.color = 0xffffff
+        investText.sync();
+
+        // // Draw straigh lines
+        // let verticalInvestPos = [circlePos[0][0], circlePos[0][1], 0, circlePos[0][0], circlePos[0][1] + 10, 0];
+        // const verticalInvestGeo = new LineGeometry();
+        // verticalInvestGeo.setPositions(verticalInvestPos);
+        // let verticalInvestMaterial = new LineMaterial({
+        //     color: LOWER_BUTTON_COLOR,
+        //     linewidth: MOUSE_MOVE_LINE_WIDTH, // in world units with size attenuation, pixels otherwise
+        //     vertexColors: false,
+        //     resolution: new THREE.Vector2(600, 400),
+        //     //resolution:  // to be set by renderer, eventually
+        //     dashed: true,
+        //     dashScale: 0.4,
+        // });
+
+        // let verticalInvestLine = new Line2(verticalInvestGeo, verticalInvestMaterial);
+        // verticalInvestLine.computeLineDistances();
+        // verticalInvestLine.scale.set(1, 1, 1);
+        // verticalInvestLine.renderOrder = 60;
+
+        // Draw horizontal lines
+        const horizontalDashed = new LineGeometry();
+        horizontalDashed.setPositions([0, circlePos[0][1], 0, circlePos[0][0], circlePos[0][1], 0]);
+        let horizontalMat = new LineMaterial({
+            color: LOWER_BUTTON_COLOR,
+            linewidth: MOUSE_MOVE_LINE_WIDTH, // in world units with size attenuation, pixels otherwise
+            vertexColors: false,
+            resolution: new THREE.Vector2(container.clientWidth, container.clientHeight),
+            //resolution:  // to be set by renderer, eventually
+            dashed: true,
+            dashScale: 0.2,
+            alphaToCoverage: false,
+        });
+
+        let verdashedLine = new Line2(horizontalDashed, horizontalMat);
+        verdashedLine.computeLineDistances();
+        verdashedLine.scale.set(1, 1, 1);
+        verdashedLine.renderOrder = 60;
+
+        const verticalline = new LineGeometry();
+        verticalline.setPositions([circlePos[0][0], circlePos[0][1], 0, gridRightBound - 250 - movedDistance, circlePos[0][1], 0]);
+        let verlineMat = new LineMaterial({
+            color: LOWER_BUTTON_COLOR,
+            linewidth: MOUSE_MOVE_LINE_WIDTH, // in world units with size attenuation, pixels otherwise
+            vertexColors: false,
+            resolution: new THREE.Vector2(container.clientWidth, container.clientHeight),
+            //resolution:  // to be set by renderer, eventually
+            dashed: false,
+            alphaToCoverage: false,
+        });
+        let verLine = new Line2(verticalline, verlineMat);
+        verLine.computeLineDistances();
+        verLine.scale.set(1, 1, 1);
+        verLine.renderOrder = 60;
+        // Draw marks
+        let markGeo = new THREE.CircleGeometry(12, 64);
+        let markMesh = new THREE.Mesh(markGeo, new THREE.MeshBasicMaterial(
+            {
+                map: new THREE.TextureLoader().load("/img/lowermark.png", map => {
+                    markMesh.scale.set(map.image.width * 0.01, map.image.height * 0.01);
+                }),
+                transparent: true,
+                opacity: 1.0,
+            }));
+        markMesh.position.set(circlePos[0][0], circlePos[0][1]);
+        markMesh.renderOrder = 10;
+
+        drawingGroup.add(ovalMesh)
+        drawingGroup.add(investText)
+        // drawingGroup.add(verticalInvestLine)
+        drawingGroup.add(verdashedLine)
+        drawingGroup.add(verLine)
+        drawingGroup.add(markMesh)
+        markObjs.push({ ovalMesh: ovalMesh, index: index, investText: investText, verdashedLine: verdashedLine, verLine: verLine, markMesh: markMesh });
+    }
+}
+function updateMarks(markObjs, points, gridRightBound, movedDistance) {
+    for (let index = 0; index < markObjs.length; index++) {
+        if (markObjs[index] == undefined) {
+            continue;
+        }
+
+        if (points[markObjs[index].index] == undefined) {
+            continue;
+        }
+        let circlePos = [points[markObjs[index].index]];
+        
+        // Update oval with number
+        markObjs[index].ovalMesh.position.set(circlePos[0][0] - 20, circlePos[0][1] + 10);
+        markObjs[index].ovalMesh.geometry.attributes.position.needsUpdate = true;
+    
+        markObjs[index].investText.position.x = circlePos[0][0] - 20 - 6;
+        markObjs[index].investText.position.y = circlePos[0][1] + 10 + 6;
+        markObjs[index].investText.sync();
+        // Update horizontal lines
+        const horizontalDashed = new LineGeometry();
+        horizontalDashed.setPositions([0, circlePos[0][1], 0, circlePos[0][0], circlePos[0][1], 0]);
+        markObjs[index].verdashedLine.geometry.dispose();
+        markObjs[index].verdashedLine.geometry = horizontalDashed;
+        markObjs[index].verdashedLine.computeLineDistances();
+        markObjs[index].verdashedLine.geometry.attributes.position.needsUpdate = true;
+    
+        const verticalline = new LineGeometry();
+        verticalline.setPositions([circlePos[0][0], circlePos[0][1], 0, gridRightBound - 250 - movedDistance, circlePos[0][1], 0]);
+        markObjs[index].verLine.geometry.dispose();
+        markObjs[index].verLine.geometry = verticalline;
+        markObjs[index].verLine.computeLineDistances();
+        markObjs[index].verLine.geometry.attributes.position.needsUpdate = true;
+        // Update marks
+        markObjs[index].markMesh.position.set(circlePos[0][0], circlePos[0][1]);
+        markObjs[index].markMesh.geometry.attributes.position.needsUpdate = true;
+    }
+}
+
 function setGrid(top, right) {
     GRID_TOPLINE = top;
     GRID_RIGHTMOST_LINE = right;
@@ -1295,5 +1536,7 @@ export {
     updatePolygonSingle,
     updateDataLineSingle,
     drawFinishLine,
-    updateFinishLine
+    updateFinishLine,
+    drawMark,
+    updateMarks
 }

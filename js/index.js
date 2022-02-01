@@ -53,6 +53,7 @@ let activePurchaseLineObjs = [];
 let activeFinishLineObjs = [];
 let activeDataLineObjs = [];
 let activePoligonObjs = [];
+let activeMarkObjs = [];
 
 let dataObjs = [];
 let wheeling = false;
@@ -417,6 +418,7 @@ function onPointerDown(event) {
             let from = { x: 1, y: 1 };
             let to = { x: 0.8, y: 0.8 };
             let initialScale = upMesh.scale.clone();
+            Factory.drawMark(activeGroup, activeMarkObjs, [points[points.length - 1]], false, points.length - 1, Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
             new TWEEN.Tween(from).to(to, 150).onUpdate(function (object) {
                 // higherGroup.scale.set(object.x, object.y)
                 higherButton.scale.set(object.x, object.y);
@@ -436,12 +438,14 @@ function onPointerDown(event) {
             })
                 .easing(TWEEN.Easing.Quadratic.InOut)
                 .start();
+            
         }
 
         if (lowerButton == intersects2[0].object) {
             let from = { x: 1, y: 1 };
             let to = { x: 0.8, y: 0.8 };
             let initialScale = downMesh.scale.clone();
+            Factory.drawMark(activeGroup, activeMarkObjs, [points[points.length - 1]], true, points.length - 1, Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
             new TWEEN.Tween(from).to(to, 100).onUpdate(function (object) {
                 lowerButton.scale.set(object.x, object.y);
                 lowerText.scale.set(object.x, object.y);
@@ -460,8 +464,6 @@ function onPointerDown(event) {
                 .easing(TWEEN.Easing.Quadratic.InOut)
                 .start();
         }
-
-
     }
 }
 
@@ -716,6 +718,8 @@ function updateGeometries(beginIndex, endIndex) {
     Factory.updatePurchaseLine(activeGroup, activePurchaseLineObjs, [points[points.length - 1]], Factory.GRID_TOPLINE, Factory.axisXConfig.stepX, countDownTimer);
 
     Factory.updateFinishLine(activeGroup, activeFinishLineObjs, [points[points.length - 1]], Factory.GRID_TOPLINE, Factory.axisXConfig.stepX, countDownTimer + 10);
+
+    Factory.updateMarks(activeMarkObjs, points, Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
 }
 
 //dummy or real data from server. Should be prepared asyn into cache
