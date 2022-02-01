@@ -156,7 +156,7 @@ function initScene(drawingGroup, gridStepX) {
     Factory.drawPurchaseLine(activePurchaseLineObjs, [points[points.length - 1]], Factory.GRID_TOPLINE, Factory.axisXConfig.stepX, countDownTimer);
 
     // Draw the finish line
-    Factory.drawFinishLine(activeFinishLineObjs, [points[points.length - 1]], Factory.GRID_TOPLINE, Factory.axisXConfig.stepX, countDownTimer+10);
+    Factory.drawFinishLine(activeFinishLineObjs, [points[points.length - 1]], Factory.GRID_TOPLINE, Factory.axisXConfig.stepX, countDownTimer + 10);
 
     drawingGroup.add(activePurchaseLineObjs[0].purchaseLine)
     drawingGroup.add(activePurchaseLineObjs[0].purchaseText)
@@ -438,31 +438,51 @@ function onPointerDown(event) {
             })
                 .easing(TWEEN.Easing.Quadratic.InOut)
                 .start();
-            
+
         }
 
         if (lowerButton == intersects2[0].object) {
             let from = { x: 1, y: 1 };
             let to = { x: 0.8, y: 0.8 };
             let initialScale = downMesh.scale.clone();
+
             Factory.drawMark(activeGroup, activeMarkObjs, [points[points.length - 1]], true, points.length - 1, Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
-            new TWEEN.Tween(from).to(to, 100).onUpdate(function (object) {
+            let initialMarkScale = activeMarkObjs.slice(-1)[0].ovalMesh.scale
+            let investTextScale = activeMarkObjs.slice(-1)[0].investText.scale
+            new TWEEN.Tween(from).to(to, 200).onUpdate(function (object) { // zoom out button
                 lowerButton.scale.set(object.x, object.y);
                 lowerText.scale.set(object.x, object.y);
                 // downMesh.scale.set(initialScale.x * object.x, initialScale.y * object.y);
                 // intersects2[0].object.scale.set(object.x, object.y);
-            }).onComplete(function () {
+            }).onComplete(function () { // restore button
                 let restoreFrom = { x: 0.8, y: 0.8 };
                 let restoreTo = { x: 1, y: 1 };
-                new TWEEN.Tween(restoreFrom).to(restoreTo, 100).onUpdate(function (object) {
+                new TWEEN.Tween(restoreFrom).to(restoreTo, 200).onUpdate(function (object) {
                     lowerButton.scale.set(object.x, object.y);
                     lowerText.scale.set(object.x, object.y);
                     // downMesh.scale.set(initialScale.x / object.x, initialScale.y / object.y);
-                }).easing(TWEEN.Easing.Quadratic.InOut)
+                })
+                    .easing(TWEEN.Easing.Quadratic.InOut)
                     .start();
             })
-                .easing(TWEEN.Easing.Quadratic.InOut)
-                .start();
+
+            let biggerFrom = { x: 1, y: 1 };
+            let biggerTo = { x: 2, y: 2 };
+            let map = activeMarkObjs.slice(-1)[0].ovalMesh.material.map
+            new TWEEN.Tween(biggerFrom).to(biggerTo, 200).onUpdate(function (object) {
+                activeMarkObjs.slice(-1)[0].ovalMesh.scale.set(object.x*2,object.y*1.5);
+                activeMarkObjs.slice(-1)[0].investText.scale.set(object.x, object.y);
+            }).onComplete(function () {
+                let restoreFrom = { x: 2, y: 2 };
+                let restoreTo = { x: 1, y: 1 };
+                new TWEEN.Tween(restoreFrom).to(restoreTo, 200).onUpdate(function (object) {
+                    activeMarkObjs.slice(-1)[0].ovalMesh.scale.set(object.x*2, object.y*1.5);
+                    activeMarkObjs.slice(-1)[0].investText.scale.set(object.x, object.y);
+                })
+                    .easing(TWEEN.Easing.Quadratic.InOut)
+                    .start();
+            }).easing(TWEEN.Easing.Quadratic.InOut)
+            .start();
         }
     }
 }
@@ -625,7 +645,7 @@ function updateOtherStuff() {
     }
     Factory.drawVerticalGrid(activeGroup, activeVerticalGridObjs, points, 1, Factory.GRID_TOPLINE, Math.floor(dataClient.currentIndex / Factory.defaultZoomLevel()) * Factory.defaultZoomLevel());
     Factory.updatePurchaseLine(activeGroup, activePurchaseLineObjs, [points[points.length - 1]], Factory.GRID_TOPLINE, Factory.axisXConfig.stepX, countDownTimer);
-    Factory.updateFinishLine(activeGroup, activeFinishLineObjs, [points[points.length - 1]], Factory.GRID_TOPLINE, Factory.axisXConfig.stepX, countDownTimer+10);
+    Factory.updateFinishLine(activeGroup, activeFinishLineObjs, [points[points.length - 1]], Factory.GRID_TOPLINE, Factory.axisXConfig.stepX, countDownTimer + 10);
 }
 
 // Fetch new data from input and draw it with animation
