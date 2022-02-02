@@ -411,7 +411,6 @@ function onPointerDown(event) {
     raycaster.setFromCamera(mouseClick, camera);
     let intersects2 = raycaster.intersectObjects(lowhighButtons);
     if (intersects2.length > 0) {
-        // console.log("FUCK")
         // console.log(intersects2[0].object)
         // intersects2[0].object.scale.setScalar(0.8);
         if (higherButton == intersects2[0].object) {
@@ -465,6 +464,8 @@ function onPointerDown(event) {
                     .easing(TWEEN.Easing.Quadratic.InOut)
                     .start();
             })
+            .easing(TWEEN.Easing.Quadratic.InOut)
+            .start();
 
             let biggerFrom = { x: 1, y: 1 };
             let biggerTo = { x: 2, y: 2 };
