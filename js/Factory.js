@@ -637,12 +637,15 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     let priceShape = new THREE.Mesh(geomShape, matShape);
     priceShape.renderOrder = 30;
 
+    let currentValue = dataClient.convertToDisplay((circlePos[0][1] - axisYConfig.initialValueY) / axisYConfig.stepY / 1000 + dataClient.getOrigin().price)
+    let prevValue = dataClient.convertToDisplay(dataClient.input_value[dataClient.currentIndex - 1].price)
+
     let priceText = new Text()
     priceText.renderOrder = 50;
     // activeGroup.add(priceText);
 
     // Set properties to configure:
-    priceText.text = '' + parseInt(dataClient.getOrigin().price * 100000)
+    priceText.text = '' + currentValue
     //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
     priceText.fontSize = 12
     priceText.position.z = 0
@@ -657,22 +660,22 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     // Update the rendering:
     priceText.sync()
 
-    let i = Math.floor(Math.random() * 100);
     let priceActiveText = new Text()
     priceActiveText.renderOrder = 50;
 
     // Set properties to configure:
-    priceActiveText.text = '' + i
+
+    priceActiveText.text = '' + Math.abs(currentValue - prevValue)
     //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
     priceActiveText.fontSize = 18
     priceActiveText.position.z = 0
     priceActiveText.position.x = gridRightBound - 250 + 60
     priceActiveText.position.y = circlePos[0][1] + 12
-    priceActiveText.color = i % 2 == 0 ? GREEN_COLOR : 'red'
+    priceActiveText.color = (currentValue - prevValue) >= 0 ? GREEN_COLOR : 'red'
     if (enableHigherActive == true || enableLowerActive == true) {
         priceActiveText.color = "white"
     } else {
-        priceActiveText.color = i % 2 == 0 ? GREEN_COLOR : 'red'
+        priceActiveText.color = (currentValue - prevValue) > 0 ? GREEN_COLOR : 'red'
     }
     // Update the rendering:
     priceActiveText.sync()
@@ -813,6 +816,10 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
     activePriceStatusObjs[0].priceShape.geometry.computeBoundingBox();
     activePriceStatusObjs[0].priceShape.geometry.computeBoundingSphere();
 
+    let currentValue = dataClient.convertToDisplay((circlePos[0][1] - axisYConfig.initialValueY) / axisYConfig.stepY / 1000 + dataClient.getOrigin().price)
+    let prevValue = dataClient.convertToDisplay(dataClient.input_value[dataClient.currentIndex - 1].price)
+
+    activePriceStatusObjs[0].priceText.text = '' + currentValue
     activePriceStatusObjs[0].priceText.position.z = 0
     activePriceStatusObjs[0].priceText.position.x = gridRightBound - 250 + 22
     activePriceStatusObjs[0].priceText.position.y = circlePos[0][1] + 7
@@ -824,16 +831,17 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
     // Update the rendering:
     activePriceStatusObjs[0].priceText.sync()
 
-    i = Math.floor(Math.random() * 100);
+
+    activePriceStatusObjs[0].priceActiveText.color = (currentValue - prevValue) >= 0 ? GREEN_COLOR : 'red'
     activePriceStatusObjs[0].priceActiveText.position.z = 0
     activePriceStatusObjs[0].priceActiveText.position.x = gridRightBound - 250 + 60
     activePriceStatusObjs[0].priceActiveText.position.y = circlePos[0][1] + 12
     if (enableHigherActive == true || enableLowerActive == true) {
         activePriceStatusObjs[0].priceActiveText.color = "white"
     } else {
-        activePriceStatusObjs[0].priceActiveText.color = i % 2 == 0 ? GREEN_COLOR : 'red'
+        activePriceStatusObjs[0].priceActiveText.color = (currentValue - prevValue) >= 0 ? GREEN_COLOR : 'red'
     }
-    activePriceStatusObjs[0].priceActiveText.text = '' + i
+    activePriceStatusObjs[0].priceActiveText.text = '' + Math.abs(currentValue - prevValue)
 
     // Update the rendering:
     activePriceStatusObjs[0].priceActiveText.sync()
@@ -1269,7 +1277,7 @@ function drawMark(drawingGroup, markObjs, circlePos, isLower, index, gridRightBo
         let coordinatesList = [
             new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20, circlePos[0][1] + 10, 0),
             new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20 + 50, circlePos[0][1] + 10, 0),
-            new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance -20+ 50, circlePos[0][1] - 10, 0),
+            new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20 + 50, circlePos[0][1] - 10, 0),
             new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20, circlePos[0][1] - 10, 0)
         ];
 
@@ -1285,7 +1293,7 @@ function drawMark(drawingGroup, markObjs, circlePos, isLower, index, gridRightBo
         priceText.font = "https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
         priceText.fontSize = 11
         priceText.position.z = 0
-        priceText.position.x = GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance -20 + 5
+        priceText.position.x = GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20 + 5
         priceText.position.y = circlePos[0][1] + 5
         priceText.color = 0xffffff
         priceText.sync();
@@ -1447,9 +1455,9 @@ function drawMark(drawingGroup, markObjs, circlePos, isLower, index, gridRightBo
         // Draw price shape
         let coordinatesList = [
             new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20, circlePos[0][1] + 10, 0),
-            new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance -20 + 60, circlePos[0][1] + 10, 0),
-            new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance -20 + 60, circlePos[0][1] - 10, 0),
-            new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance-20, circlePos[0][1] - 10, 0)
+            new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20 + 60, circlePos[0][1] + 10, 0),
+            new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20 + 60, circlePos[0][1] - 10, 0),
+            new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20, circlePos[0][1] - 10, 0)
         ];
 
         // shape
@@ -1464,7 +1472,7 @@ function drawMark(drawingGroup, markObjs, circlePos, isLower, index, gridRightBo
         priceText.font = "https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
         priceText.fontSize = 11
         priceText.position.z = 0
-        priceText.position.x = GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance -20+ 5
+        priceText.position.x = GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20 + 5
         priceText.position.y = circlePos[0][1] + 5
         priceText.color = 0xffffff
         priceText.sync();
@@ -1503,16 +1511,16 @@ function updateMarks(markObjs, points, gridRightBound, movedDistance) {
             continue;
         }
         let circlePos = [points[markObjs[index].index]];
-        
+
         // Update oval with number
         markObjs[index].ovalMesh.position.set(circlePos[0][0] - 20, circlePos[0][1] + 10);
         markObjs[index].ovalMesh.geometry.attributes.position.needsUpdate = true;
-    
+
         markObjs[index].investText.position.x = circlePos[0][0] - 20 - 6;
         markObjs[index].investText.position.y = circlePos[0][1] + 10 + 6;
         markObjs[index].investText.sync();
         // Update price shape
-        markObjs[index].priceText.position.x = GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance -20 + 5;
+        markObjs[index].priceText.position.x = GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20 + 5;
         markObjs[index].priceText.position.y = circlePos[0][1] + 5;
         markObjs[index].priceText.sync();
 
@@ -1539,7 +1547,7 @@ function updateMarks(markObjs, points, gridRightBound, movedDistance) {
         markObjs[index].verdashedLine.geometry = horizontalDashed;
         markObjs[index].verdashedLine.computeLineDistances();
         markObjs[index].verdashedLine.geometry.attributes.position.needsUpdate = true;
-    
+
         const verticalline = new LineGeometry();
         verticalline.setPositions([circlePos[0][0], circlePos[0][1], 0, GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance, circlePos[0][1], 0]);
         markObjs[index].verLine.geometry.dispose();

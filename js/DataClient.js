@@ -14,7 +14,8 @@ export default class DataClient {
 
         websocket.onmessage = (event) => {
             let data = JSON.parse(event.data);
-            let datetime = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60 * 1000).toISOString().substring(0, 19).replace('T', ' ');
+            let datetime = new Date(data.E).toISOString().substring(0, 19).replace('T', ' ')
+            // console.log(datetime)
             let date = datetime.substring(0, 11)
             let time = datetime.substring(11, datetime.length)
 
@@ -25,11 +26,47 @@ export default class DataClient {
 
             }
             // console.log(input_object)
+            console.log(data)
             this.input_value.push(input_object)
             // return parseFloat(data.c)
             // update graph price here
         }
     };
+
+    getHistoricalData(totalData) {
+        var xmlHttp = new XMLHttpRequest();
+        let results = this.input_value;
+        xmlHttp.onreadystatechange = function () {
+            if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+                let MAXSLICE = parseInt(totalData / 60, 10) + 1;
+                let data = JSON.parse(xmlHttp.responseText).slice(MAXSLICE*-1)
+                // console.log(data)
+
+                // Get the data in the time order
+                for (let i = data.length-1; i >= 0; i--) {
+                    for (let j = 0; j < 60; j++) {
+                        if (results.length >= totalData) {
+                            return;
+                        }
+                        let datetime = new Date(data[i][0]).toISOString().substring(0, 19).replace('T', ' ')
+                        // console.log(datetime)
+                        let date = datetime.substring(0, 11)
+                        let time = datetime.substring(11, datetime.length)
+
+                        let input_object = {
+                            price: (parseFloat(data[i][1]) / 100000),
+                            date: date,
+                            time: time
+
+                        }
+                        results.push(input_object)
+                    }
+                }
+            }
+        }
+        xmlHttp.open("GET", 'https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1m', true); // true for asynchronous 
+        xmlHttp.send(null);
+    }
 
     getSyncNext(now) {//FIXME will be diffirent for real data
         if ((!this.last || now - this.last >= 1000)) {
@@ -60,10 +97,10 @@ export default class DataClient {
     }
 
     convertToDisplay(x) {
-        return (parseFloat(x)*100000).toFixed(0)
+        return (parseFloat(x) * 100000).toFixed(0)
     }
 
     convertToData(x) {
-        return (parseFloat(x)/100000)
+        return (parseFloat(x) / 100000)
     }
 }

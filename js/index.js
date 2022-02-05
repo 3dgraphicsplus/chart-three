@@ -76,6 +76,7 @@ let endViewingIndex = drawCount;
 let currentProgress = 0;
 
 showProgress();
+dataClient.getHistoricalData(drawCount);
 
 function init() {
 
