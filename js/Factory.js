@@ -390,7 +390,8 @@ function updateMouseMoveLine(scene, posX, posY, initialValueX) {
     }
 
     if (mousePriceText != undefined) {
-        mousePriceText.text = '1.13208'
+        let priceValue = dataClient.convertToDisplay((posY - axisYConfig.initialValueY) / axisYConfig.stepY / 1000 + dataClient.getOrigin().price);
+        mousePriceText.text = '' + priceValue;
         mousePriceText.position.z = 0
         mousePriceText.position.x = GRID_RIGHTMOST_LINE - 205 - 120
         mousePriceText.position.y = posY + 6
@@ -405,7 +406,8 @@ function updateMouseMoveLine(scene, posX, posY, initialValueX) {
         // scene.add(priceText)
 
         // Set properties to configure:
-        mousePriceText.text = '1.13208'
+        let priceValue = dataClient.convertToDisplay((posY - axisYConfig.initialValueY) / axisYConfig.stepY / 1000 + dataClient.getOrigin().price);
+        mousePriceText.text = '' + priceValue;
         //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
         mousePriceText.fontSize = 12
         mousePriceText.position.z = 0

@@ -4,6 +4,7 @@ export default class DataClient {
         // Dummy Data
         // Line Step
         this.input_value = [];
+        // this.input_value = TEST_DATA;
         this.last = undefined;
         this.currentIndex = -1;
         let websocket;
@@ -18,7 +19,7 @@ export default class DataClient {
             let time = datetime.substring(11, datetime.length)
 
             let input_object = {
-                price: parseFloat(data.c)/100000,
+                price: this.convertToData(data.c),
                 date: date,
                 time: time
 
@@ -45,7 +46,7 @@ export default class DataClient {
         if (this.currentIndex < this.input_value.length - 1) {
             // this.getDataFromSocket();
             this.currentIndex++;
-            console.log(this.currentIndex);
+            // console.log(this.currentIndex);
             return this.input_value[this.currentIndex];
         }
     }
@@ -56,5 +57,13 @@ export default class DataClient {
 
     getOrigin() {
         return this.input_value[0];
+    }
+
+    convertToDisplay(x) {
+        return (parseFloat(x)*100000).toFixed(0)
+    }
+
+    convertToData(x) {
+        return (parseFloat(x)/100000)
     }
 }

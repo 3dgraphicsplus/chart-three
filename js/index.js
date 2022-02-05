@@ -70,7 +70,7 @@ let upMesh, downMesh;
 let lowhighButtons = [];
 
 //Draw demo 100 points at start point??
-const drawCount = 99;
+const drawCount = 100;
 let beginViewingIndex = 0;
 let endViewingIndex = drawCount;
 let currentProgress = 0;
@@ -196,14 +196,16 @@ function showProgress() {
         var width = currentProgress;
         var id = setInterval(frame, currentProgress);
         function frame() {
-            if (width >= 100) {
+            if (width > 100) {
                 clearInterval(id);
-                elem.remove()
+                elem.remove();
+                var progressElem = document.getElementById("myProgress");
+                progressElem.remove();
                 init();
                 animate();
             } else {
                 // console.log(dataClient.input_value.length)
-                width = dataClient.input_value.length;
+                width = (dataClient.input_value.length / drawCount * 100).toFixed(0);
                 elem.style.width = width + "%";
                 elem.innerHTML = width + "%";
             }
