@@ -70,12 +70,12 @@ let upMesh, downMesh;
 let lowhighButtons = [];
 
 //Draw demo 100 points at start point??
-const drawCount = 100;
+const drawCount = 99;
 let beginViewingIndex = 0;
 let endViewingIndex = drawCount;
+let currentProgress = 0;
 
-init();
-animate();
+showProgress();
 
 function init() {
 
@@ -187,6 +187,28 @@ function initScene(drawingGroup, gridStepX) {
     lowhighButtons.push(higherButton);
     lowhighButtons.push(lowerButton);
     scene.add(newbkg);
+}
+
+function showProgress() {
+    if (currentProgress == 0) {
+        currentProgress = dataClient.input_value.length;
+        var elem = document.getElementById("myBar");
+        var width = currentProgress;
+        var id = setInterval(frame, currentProgress);
+        function frame() {
+            if (width >= 100) {
+                clearInterval(id);
+                elem.remove()
+                init();
+                animate();
+            } else {
+                // console.log(dataClient.input_value.length)
+                width = dataClient.input_value.length;
+                elem.style.width = width + "%";
+                elem.innerHTML = width + "%";
+            }
+        }
+    }
 }
 
 function onWindowResize() {
@@ -464,26 +486,26 @@ function onPointerDown(event) {
                     .easing(TWEEN.Easing.Quadratic.InOut)
                     .start();
             })
-            .easing(TWEEN.Easing.Quadratic.InOut)
-            .start();
+                .easing(TWEEN.Easing.Quadratic.InOut)
+                .start();
 
             let biggerFrom = { x: 1, y: 1 };
             let biggerTo = { x: 2, y: 2 };
             let map = activeMarkObjs.slice(-1)[0].ovalMesh.material.map
             new TWEEN.Tween(biggerFrom).to(biggerTo, 200).onUpdate(function (object) {
-                activeMarkObjs.slice(-1)[0].ovalMesh.scale.set(object.x*2,object.y*1.5);
+                activeMarkObjs.slice(-1)[0].ovalMesh.scale.set(object.x * 2, object.y * 1.5);
                 activeMarkObjs.slice(-1)[0].investText.scale.set(object.x, object.y);
             }).onComplete(function () {
                 let restoreFrom = { x: 2, y: 2 };
                 let restoreTo = { x: 1, y: 1 };
                 new TWEEN.Tween(restoreFrom).to(restoreTo, 200).onUpdate(function (object) {
-                    activeMarkObjs.slice(-1)[0].ovalMesh.scale.set(object.x*2, object.y*1.5);
+                    activeMarkObjs.slice(-1)[0].ovalMesh.scale.set(object.x * 2, object.y * 1.5);
                     activeMarkObjs.slice(-1)[0].investText.scale.set(object.x, object.y);
                 })
                     .easing(TWEEN.Easing.Quadratic.InOut)
                     .start();
             }).easing(TWEEN.Easing.Quadratic.InOut)
-            .start();
+                .start();
         }
     }
 }

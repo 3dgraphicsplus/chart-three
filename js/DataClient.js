@@ -3,7 +3,7 @@ export default class DataClient {
 
         // Dummy Data
         // Line Step
-        this.input_value = TEST_DATA;
+        this.input_value = [];
         this.last = undefined;
         this.currentIndex = -1;
         let websocket;
@@ -45,6 +45,7 @@ export default class DataClient {
         if (this.currentIndex < this.input_value.length - 1) {
             // this.getDataFromSocket();
             this.currentIndex++;
+            console.log(this.currentIndex);
             return this.input_value[this.currentIndex];
         }
     }
