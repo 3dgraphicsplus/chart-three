@@ -14,7 +14,7 @@ export default class DataClient {
 
         websocket.onmessage = (event) => {
             let data = JSON.parse(event.data);
-            let datetime = new Date(data.E).toISOString().substring(0, 19).replace('T', ' ')
+            let datetime =  new Date(new Date(data.E).getTime() - new Date(data.E).getTimezoneOffset() * 60 * 1000).toISOString().substring(0, 19).replace('T', ' ');
             // console.log(datetime)
             let date = datetime.substring(0, 11)
             let time = datetime.substring(11, datetime.length)
@@ -25,8 +25,8 @@ export default class DataClient {
                 time: time
 
             }
-            // console.log(input_object)
-            console.log(data)
+            // console.log(data.c)
+            console.log(input_object.price)
             this.input_value.push(input_object)
             // return parseFloat(data.c)
             // update graph price here
@@ -48,7 +48,8 @@ export default class DataClient {
                         if (results.length >= totalData) {
                             return;
                         }
-                        let datetime = new Date(data[i][0]).toISOString().substring(0, 19).replace('T', ' ')
+                        let miliseconds = data[i][0] + j*1000
+                        let datetime = new Date(new Date(miliseconds).getTime() - new Date(miliseconds).getTimezoneOffset() * 60 * 1000).toISOString().substring(0, 19).replace('T', ' ');
                         // console.log(datetime)
                         let date = datetime.substring(0, 11)
                         let time = datetime.substring(11, datetime.length)
@@ -97,10 +98,10 @@ export default class DataClient {
     }
 
     convertToDisplay(x) {
-        return (parseFloat(x) * 100000).toFixed(0)
+        return (parseFloat(x)).toFixed(0)
     }
 
     convertToData(x) {
-        return (parseFloat(x) / 100000)
+        return (parseFloat(x))
     }
 }
