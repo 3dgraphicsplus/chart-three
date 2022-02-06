@@ -894,8 +894,12 @@ function enableHigherActiveLines(higherButton, activePriceStatusObjs) {
     activePriceStatusObjs[0].priceShape.material.needsUpdate = true;
 }
 
-function disableHigherActiveLines(higherButton, activePriceStatusObjs) {
-    higherButton.material.color.setHex(HIGHER_BUTTON_COLOR);
+function disableHigherActiveLines(higherButton, activePriceStatusObjs, disabledCorlor) {
+    if (disabledCorlor == undefined) {
+        higherButton.material.color.setHex(HIGHER_BUTTON_COLOR);
+    } else {
+        higherButton.material.color.setHex(disabledCorlor);
+    }
 
     enableHigherActive = false;
 
@@ -920,8 +924,13 @@ function enableLowerActiveLines(lowerButton, activePriceStatusObjs) {
     activePriceStatusObjs[0].priceShape.material.needsUpdate = true;
 }
 
-function disableLowerActiveLines(lowerButton, activePriceStatusObjs) {
-    lowerButton.material.color.setHex(LOWER_BUTTON_COLOR);
+function disableLowerActiveLines(lowerButton, activePriceStatusObjs, disabledCorlor) {
+    if (disabledCorlor == undefined) {
+        lowerButton.material.color.setHex(LOWER_BUTTON_COLOR);
+    } else {
+        lowerButton.material.color.setHex(disabledCorlor);
+    }
+    
 
     enableLowerActive = false;
 

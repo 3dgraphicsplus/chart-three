@@ -677,8 +677,8 @@ function updateOtherStuff() {
     if (countDownTimer == 0) {
         // Greyout buttons
         enablePriceMark = false;
-        Factory.disableHigherActiveLines(higherButton, activePriceStatusObjs);
-        Factory.disableLowerActiveLines(lowerButton, activePriceStatusObjs);
+        Factory.disableHigherActiveLines(higherButton, activePriceStatusObjs, 0x1a6625);
+        Factory.disableLowerActiveLines(lowerButton, activePriceStatusObjs, 0x782719);
         // Draw new PurchaseLine
         countDownTimer = 60;
     }
