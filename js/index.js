@@ -532,7 +532,7 @@ function rescale(newStepDelta, beginIndex, endIndex, newInitialValueYDelta) {
         if (points[i] == undefined) {
             continue;
         }
-        points[i][1] = (dataClient.input_value[i].price - dataClient.getOrigin().price) * newStepDelta * 1000 + newInitialValueYDelta;
+        points[i][1] = (dataClient.input_value[i].price - dataClient.input_value[beginIndex].price) * newStepDelta + newInitialValueYDelta;
     }
 }
 
@@ -576,8 +576,8 @@ function calculateAxisY(newConfig) {
         }
     }
     let newStepY = Factory.axisYConfig.stepY;
-    let currentPos = (dataClient.input_value[dataClient.currentIndex].price - dataClient.getOrigin().price) * Factory.axisYConfig.stepY * 1000 + Factory.axisYConfig.initialValueY;
-    let prevPos = (dataClient.input_value[dataClient.currentIndex - 1].price - dataClient.getOrigin().price) * Factory.axisYConfig.stepY * 1000 + Factory.axisYConfig.initialValueY;
+    let currentPos = (dataClient.input_value[dataClient.currentIndex].price - dataClient.input_value[beginViewingIndex].price) * Factory.axisYConfig.stepY + Factory.axisYConfig.initialValueY;
+    let prevPos = (dataClient.input_value[dataClient.currentIndex - 1].price - dataClient.input_value[beginViewingIndex].price) * Factory.axisYConfig.stepY + Factory.axisYConfig.initialValueY;
     // if update is needed
     if (minY < MIN_VIEW_Y || maxY > MAX_VIEW_Y || (currentPos - prevPos) < MIN_DIFF_Y) {
         // console.log("Rescale needed: ", maxY, minY);
@@ -586,11 +586,11 @@ function calculateAxisY(newConfig) {
         let newInitialValueY = Factory.axisYConfig.initialValueY;
         if (minY < MIN_VIEW_Y) {
             // console.log("Rescale needed MIN_VIEW: ", input_value[maxYIndex].price - input_value[minYIndex].price);
-            newInitialValueY = (MIN_VIEW_Y - (dataClient.input_value[minYIndex].price - dataClient.getOrigin().price) * newStepY * 1000);
+            newInitialValueY = (MIN_VIEW_Y - (dataClient.input_value[minYIndex].price - dataClient.input_value[beginViewingIndex].price) * newStepY);
             // console.log("newInitialValueY: ", newInitialValueY);
         } else if (maxY > MAX_VIEW_Y) {
             // console.log("Rescale needed MAX_VIEW: ", input_value[maxYIndex].price - input_value[minYIndex].price);
-            newInitialValueY = (MAX_VIEW_Y - (dataClient.input_value[maxYIndex].price - dataClient.getOrigin().price) * newStepY * 1000);
+            newInitialValueY = (MAX_VIEW_Y - (dataClient.input_value[maxYIndex].price - dataClient.input_value[beginViewingIndex].price) * newStepY);
             // console.log("newInitialValueY: ", newInitialValueY);
         }
         newConfig.stepY = newStepY;
@@ -756,7 +756,7 @@ function updateGreenPoint(now) {
             lastBlink = now;
             let percent = 1;
             let tempPos = [points[points.length - 1]];
-            let newY = (dataClient.input_value[dataClient.currentIndex].price - dataClient.getOrigin().price) * Factory.axisYConfig.stepY * 1000 + Factory.axisYConfig.initialValueY;//????FIXME
+            let newY = (dataClient.input_value[dataClient.currentIndex].price - dataClient.input_value[beginViewingIndex].price) * Factory.axisYConfig.stepY + Factory.axisYConfig.initialValueY;//????FIXME
             let newPos = [tempPos[0][0] + Factory.axisXConfig.stepX, newY, 0];
             let tweenFrom = ({ x: tempPos[0][0], y: tempPos[0][1], z: 0 });
             let tweenTo = ({ x: newPos[0], y: newPos[1], z: 0 });
@@ -803,7 +803,9 @@ function update(now) {
     let newVal = getNewY(now);
     if (newVal) {//???WHAT IS FOR
         // console.log("before", Factory.axisYConfig.stepY, Factory.axisYConfig.initialValueY)
-        let newY = (newVal.price - dataClient.getOrigin().price) * Factory.axisYConfig.stepY * 1000 + Factory.axisYConfig.initialValueY;
+        let newY = (newVal.price - dataClient.input_value[beginViewingIndex].price) * Factory.axisYConfig.stepY + Factory.axisYConfig.initialValueY;
+        // console.log(newY);
+        // console.log((newVal.price - dataClient.input_value[beginViewingIndex].price), newVal.price, dataClient.input_value[beginViewingIndex].price)
         drawNewData(newY);
         updateView(false, false);
         // console.log("after", Factory.axisYConfig.stepY, Factory.axisYConfig.initialValueY)

@@ -56,7 +56,7 @@ const MIN_DIFF_Y = 200;
 let XStepCount = 50;
 let axisXConfig = { stepX: 30, initialValueX: 0 }
 let axisYConfig = {
-    stepY: 30, initialValueY: 1400,
+    stepY: 100, initialValueY: 14,
     clone: function () { return { stepY: this.stepY, initialValueY: this.initialValueY }; }
 }
 
@@ -72,7 +72,7 @@ function drawInitialData(points, count, activeGroup, activePoligonObjs) {
     for (let i = 0; i < count; i++) {
         let currentIndex = dataClient.currentIndex;
         point.x += (axisXConfig.stepX);
-        point.y = (parseFloat(dataClient.getNext().price) - originY.price) * axisYConfig.stepY * 1000 + axisYConfig.initialValueY;
+        point.y = (parseFloat(dataClient.getNext().price) - originY.price) * axisYConfig.stepY + axisYConfig.initialValueY;
 
         if (Number.isNaN((point.x)) == true || Number.isNaN((point.y)) == true) {
             continue;
@@ -1298,7 +1298,7 @@ function drawMark(drawingGroup, markObjs, circlePos, isLower, index, gridRightBo
 
         let priceText = new Text()
         priceText.renderOrder = 60
-        priceText.text = '' + dataClient.input_value[index].price * 100000
+        priceText.text = '' + dataClient.convertToDisplay(dataClient.input_value[index].price)
         priceText.font = "https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
         priceText.fontSize = 11
         priceText.position.z = 0
