@@ -1501,6 +1501,7 @@ function drawMark(drawingGroup, markObjs, circlePos, isLower, index, gridRightBo
         markObjs.push({ ovalMesh: ovalMesh, index: index, investText: investText, priceText: priceText, markPriceShape: markPriceShape, verdashedLine: verdashedLine, verLine: verLine, markMesh: markMesh });
     }
 }
+
 function updateMarks(markObjs, points, gridRightBound, movedDistance) {
     for (let index = 0; index < markObjs.length; index++) {
         if (markObjs[index] == undefined) {
@@ -1557,6 +1558,18 @@ function updateMarks(markObjs, points, gridRightBound, movedDistance) {
         // Update marks
         markObjs[index].markMesh.position.set(circlePos[0][0], circlePos[0][1]);
         markObjs[index].markMesh.geometry.attributes.position.needsUpdate = true;
+    }
+}
+
+function removeMarks(drawingGroup, markObjs) {
+    for (let i = 0; i < markObjs.length; i++) {
+        drawingGroup.remove(markObjs[i].ovalMesh)
+        drawingGroup.remove(markObjs[i].investText)
+        drawingGroup.remove(markObjs[i].priceText)
+        drawingGroup.remove(markObjs[i].markPriceShape)
+        drawingGroup.remove(markObjs[i].verdashedLine)
+        drawingGroup.remove(markObjs[i].verLine)
+        drawingGroup.remove(markObjs[i].markMesh)
     }
 }
 
@@ -1623,5 +1636,6 @@ export {
     drawFinishLine,
     updateFinishLine,
     drawMark,
-    updateMarks
+    updateMarks,
+    removeMarks
 }
