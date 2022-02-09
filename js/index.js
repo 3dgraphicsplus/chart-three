@@ -122,7 +122,6 @@ function init() {
     document.addEventListener('wheel', onWheel);
 }
 
-
 function initScene(drawingGroup, gridStepX) {
     //FIXME
     points = [];
@@ -228,7 +227,6 @@ function onWindowResize() {
     // bkg.position.set(container.clientWidth / 2, container.clientHeight / 2)
 
 }
-
 
 // Called when zoomint/out, in onWheel function
 function zoom(zoomValue) {
@@ -351,7 +349,6 @@ function onWheel(event) {
     }
 }
 
-
 // Event mouse move, use this for both drag and drawing the line at the mouse cursor
 function onPointerMove(event) {
     event.preventDefault();
@@ -429,6 +426,71 @@ function onPointerMove(event) {
     }
 }
 
+function handleHigherButtonClick(higherCallback) {
+    let from = { x: 1, y: 1 };
+    let to = { x: 0.8, y: 0.8 };
+    let initialScale = upMesh.scale.clone();
+    Factory.drawMark(activeGroup, activeMarkObjs, [points[points.length - 1]], false, points.length - 1, Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
+    new TWEEN.Tween(from).to(to, 150).onUpdate(function (object) {
+        // higherGroup.scale.set(object.x, object.y)
+        higherButton.scale.set(object.x, object.y);
+        higherText.scale.set(object.x, object.y);
+        // upMesh.scale.set(initialScale.x * object.x, initialScale.y * object.y);
+        // intersects2[0].object.scale.set(object.x, object.y);
+    }).onComplete(function () {
+        let restoreFrom = { x: 0.8, y: 0.8 };
+        let restoreTo = { x: 1, y: 1 };
+        new TWEEN.Tween(restoreFrom).to(restoreTo, 150).onUpdate(function (object) {
+            higherButton.scale.set(object.x, object.y);
+            higherText.scale.set(object.x, object.y);
+            // upMesh.scale.set(initialScale.x / object.x, initialScale.y / object.y);
+            // higherGroup.scale.set(object.x, object.y)
+        }).onComplete(function () {
+            if (typeof higherCallback == "function") {
+                higherCallback("no problem");
+            }
+        })
+            .easing(TWEEN.Easing.Quadratic.InOut)
+            .start();
+    })
+        .easing(TWEEN.Easing.Quadratic.InOut)
+        .start();
+}
+
+function higherButtonClickCallback(value) {
+    console.log("Callback when click on HigherButton with ", value)
+}
+
+function lowerButtonClickCallback(value) {
+    console.log("Callback when click on LowerButton with ", value)
+}
+
+function handleLowerButtonClick(lowerCallback) {
+    let from = { x: 1, y: 1 };
+    let to = { x: 0.8, y: 0.8 };
+
+    Factory.drawMark(activeGroup, activeMarkObjs, [points[points.length - 1]], true, points.length - 1, Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
+    new TWEEN.Tween(from).to(to, 200).onUpdate(function (object) { // zoom out button
+        lowerButton.scale.set(object.x, object.y);
+        lowerText.scale.set(object.x, object.y);
+    }).onComplete(function () { // restore button
+        let restoreFrom = { x: 0.8, y: 0.8 };
+        let restoreTo = { x: 1, y: 1 };
+        new TWEEN.Tween(restoreFrom).to(restoreTo, 200).onUpdate(function (object) {
+            lowerButton.scale.set(object.x, object.y);
+            lowerText.scale.set(object.x, object.y);
+        }).onComplete(function () {
+            if (typeof higherCallback == "function") {
+                lowerCallback("no problem");
+            }
+        })
+            .easing(TWEEN.Easing.Quadratic.InOut)
+            .start();
+    })
+        .easing(TWEEN.Easing.Quadratic.InOut)
+        .start();
+}
+
 // Mouse down event to detect if it is a drag or not
 function onPointerDown(event) {
     event.preventDefault();
@@ -445,77 +507,28 @@ function onPointerDown(event) {
             // console.log(intersects2[0].object)
             // intersects2[0].object.scale.setScalar(0.8);
             if (higherButton == intersects2[0].object) {
-                let from = { x: 1, y: 1 };
-                let to = { x: 0.8, y: 0.8 };
-                let initialScale = upMesh.scale.clone();
-                Factory.drawMark(activeGroup, activeMarkObjs, [points[points.length - 1]], false, points.length - 1, Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
-                new TWEEN.Tween(from).to(to, 150).onUpdate(function (object) {
-                    // higherGroup.scale.set(object.x, object.y)
-                    higherButton.scale.set(object.x, object.y);
-                    higherText.scale.set(object.x, object.y);
-                    // upMesh.scale.set(initialScale.x * object.x, initialScale.y * object.y);
-                    // intersects2[0].object.scale.set(object.x, object.y);
-                }).onComplete(function () {
-                    let restoreFrom = { x: 0.8, y: 0.8 };
-                    let restoreTo = { x: 1, y: 1 };
-                    new TWEEN.Tween(restoreFrom).to(restoreTo, 150).onUpdate(function (object) {
-                        higherButton.scale.set(object.x, object.y);
-                        higherText.scale.set(object.x, object.y);
-                        // upMesh.scale.set(initialScale.x / object.x, initialScale.y / object.y);
-                        // higherGroup.scale.set(object.x, object.y)
-                    }).easing(TWEEN.Easing.Quadratic.InOut)
-                        .start();
-                })
-                    .easing(TWEEN.Easing.Quadratic.InOut)
-                    .start();
-
+                handleHigherButtonClick(higherButtonClickCallback);
             }
 
             if (lowerButton == intersects2[0].object) {
-                let from = { x: 1, y: 1 };
-                let to = { x: 0.8, y: 0.8 };
-                let initialScale = downMesh.scale.clone();
-
-                Factory.drawMark(activeGroup, activeMarkObjs, [points[points.length - 1]], true, points.length - 1, Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
-                let initialMarkScale = activeMarkObjs.slice(-1)[0].ovalMesh.scale
-                let investTextScale = activeMarkObjs.slice(-1)[0].investText.scale
-                new TWEEN.Tween(from).to(to, 200).onUpdate(function (object) { // zoom out button
-                    lowerButton.scale.set(object.x, object.y);
-                    lowerText.scale.set(object.x, object.y);
-                    // downMesh.scale.set(initialScale.x * object.x, initialScale.y * object.y);
-                    // intersects2[0].object.scale.set(object.x, object.y);
-                }).onComplete(function () { // restore button
-                    let restoreFrom = { x: 0.8, y: 0.8 };
-                    let restoreTo = { x: 1, y: 1 };
-                    new TWEEN.Tween(restoreFrom).to(restoreTo, 200).onUpdate(function (object) {
-                        lowerButton.scale.set(object.x, object.y);
-                        lowerText.scale.set(object.x, object.y);
-                        // downMesh.scale.set(initialScale.x / object.x, initialScale.y / object.y);
-                    })
-                        .easing(TWEEN.Easing.Quadratic.InOut)
-                        .start();
+                handleLowerButtonClick(lowerButtonClickCallback);
+            }
+            let biggerFrom = { x: 1, y: 1 };
+            let biggerTo = { x: 2, y: 2 };
+            new TWEEN.Tween(biggerFrom).to(biggerTo, 200).onUpdate(function (object) {
+                activeMarkObjs.slice(-1)[0].ovalMesh.scale.set(object.x * 2, object.y * 1.5);
+                activeMarkObjs.slice(-1)[0].investText.scale.set(object.x, object.y);
+            }).onComplete(function () {
+                let restoreFrom = { x: 2, y: 2 };
+                let restoreTo = { x: 1, y: 1 };
+                new TWEEN.Tween(restoreFrom).to(restoreTo, 200).onUpdate(function (object) {
+                    activeMarkObjs.slice(-1)[0].ovalMesh.scale.set(object.x * 2, object.y * 1.5);
+                    activeMarkObjs.slice(-1)[0].investText.scale.set(object.x, object.y);
                 })
                     .easing(TWEEN.Easing.Quadratic.InOut)
                     .start();
-
-                let biggerFrom = { x: 1, y: 1 };
-                let biggerTo = { x: 2, y: 2 };
-                let map = activeMarkObjs.slice(-1)[0].ovalMesh.material.map
-                new TWEEN.Tween(biggerFrom).to(biggerTo, 200).onUpdate(function (object) {
-                    activeMarkObjs.slice(-1)[0].ovalMesh.scale.set(object.x * 2, object.y * 1.5);
-                    activeMarkObjs.slice(-1)[0].investText.scale.set(object.x, object.y);
-                }).onComplete(function () {
-                    let restoreFrom = { x: 2, y: 2 };
-                    let restoreTo = { x: 1, y: 1 };
-                    new TWEEN.Tween(restoreFrom).to(restoreTo, 200).onUpdate(function (object) {
-                        activeMarkObjs.slice(-1)[0].ovalMesh.scale.set(object.x * 2, object.y * 1.5);
-                        activeMarkObjs.slice(-1)[0].investText.scale.set(object.x, object.y);
-                    })
-                        .easing(TWEEN.Easing.Quadratic.InOut)
-                        .start();
-                }).easing(TWEEN.Easing.Quadratic.InOut)
-                    .start();
-            }
+            }).easing(TWEEN.Easing.Quadratic.InOut)
+                .start();
         }
     }
 }
@@ -670,8 +683,16 @@ function updateActiveGroup(newY) {
     return newPos;
 }
 
+function triggerAtPurchaseTime(value) {
+    console.log("Reach purchase time with ", value)
+}
+
+function triggerAtFinishingTime(value) {
+    console.log("Reach finishing time with ", value)
+}
+
 //FIXME????
-function updateOtherStuff() {
+function updateOtherStuff(triggerAtPurchaseCallback, triggerAtFinishingCallback) {
     countDownTimer--;
     finishTimer--;
     if (countDownTimer == 0) {
@@ -681,6 +702,10 @@ function updateOtherStuff() {
         Factory.disableLowerActiveLines(lowerButton, activePriceStatusObjs, 0x782719);
         // Draw new PurchaseLine
         countDownTimer = 60;
+
+        if (typeof triggerAtPurchaseCallback == "function") {
+            triggerAtPurchaseCallback("no problem")
+        }
     }
     if (finishTimer == 0) {
         // Remove all marks
@@ -691,6 +716,10 @@ function updateOtherStuff() {
         enablePriceMark = true;
         countDownTimer = 60;
         finishTimer = 70;
+
+        if (typeof triggerAtFinishingCallback == "function") {
+            triggerAtFinishingCallback("no problem")
+        }
     }
     Factory.drawVerticalGrid(activeGroup, activeVerticalGridObjs, points, 1, Factory.GRID_TOPLINE, Math.floor(dataClient.currentIndex / Factory.defaultZoomLevel()) * Factory.defaultZoomLevel());
     Factory.updatePurchaseLine(activeGroup, activePurchaseLineObjs, [points[points.length - 1]], Factory.GRID_TOPLINE, Factory.axisXConfig.stepX, countDownTimer);
@@ -744,7 +773,7 @@ function drawNewData(newY) {
         //currentIndex++; // increase the current index of the data//????FIXME
 
 
-        updateOtherStuff();
+        updateOtherStuff(triggerAtPurchaseTime, triggerAtFinishingTime);
     })
         .easing(TWEEN.Easing.Quadratic.InOut)
         .start();
