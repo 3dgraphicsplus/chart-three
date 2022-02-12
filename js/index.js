@@ -117,6 +117,9 @@ function init() {
     document.addEventListener('pointerdown', onPointerDown);
     document.addEventListener('pointerup', onPointerUp);
     document.addEventListener('wheel', onWheel);
+
+    //show css overlay
+    showOverlay();
 }
 
 
@@ -351,7 +354,7 @@ function onWheel(event) {
 
 // Event mouse move, use this for both drag and drawing the line at the mouse cursor
 function onPointerMove(event) {
-    event.preventDefault();
+    //event.preventDefault();
 
     // If mouse is down, then it is drag
     if (mouseDown == true) {
@@ -426,7 +429,7 @@ function onPointerMove(event) {
 
 // Mouse down event to detect if it is a drag or not
 function onPointerDown(event) {
-    event.preventDefault();
+    //event.preventDefault();
     clickMousePos.x = event.clientX;
     clickMousePos.y = event.clientY;
     mouseDown = true;
@@ -811,4 +814,8 @@ function animate() {
     stats.update();
 
     requestAnimationFrame(animate);
+}
+
+function showOverlay(){
+    document.getElementById("overlay").style.display="block";
 }

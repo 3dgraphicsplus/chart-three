@@ -6,56 +6,7 @@
     <base href=".">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <style>
-        body {
-            background-color: #272f45;
-            color: #444;
-            overflow: hidden;
-        }
-
-        #container {
-            background-image: url("/img/map.png");
-            background-repeat: no-repeat;
-            background-size: 100% 100%;
-            /* background-size: 1513px 850px; */
-            /* background-position: -60px -15px; */
-            background-position-x: center;
-            background-position-y: center;
-            filter: brightness(100%);
-            /* filter: constrast(120%); */
-            position: absolute;
-            width: 1513px;
-            height: 770px;
-            left: 334px;
-            top: 74px;
-            overflow: hidden;
-        }
-
-        #container:after {
-            opacity: 0.5;
-            overflow: hidden;
-        }
-
-        #myProgress {
-            width: 50%;
-            position: absolute;
-            height: 770px;
-            left: 400px;
-            top: 500px;
-            height: 30px;
-            background-color: grey;
-            z-index: 100;
-        }
-
-        #myBar {
-            width: 10%;
-            background-color: #04AA6D;
-            text-align: center;
-            line-height: 30px;
-            color: white;
-            z-index: 200;
-        }
-    </style>
+    <link rel="stylesheet" href="css/graph.css">
 
     <!-- separate out the shaders specific to this demo -->
     <script type="x-shader/x-vertex" id="vertexshader">
@@ -188,6 +139,52 @@
         <div id="myBar">10%</div>
     </div>
     <div id="container"></div>
+    <div id ="overlay">
+    <table>
+    <tbody>
+    <tr>
+    <th>
+    <table id="left">
+    <tbody>
+    <tr id="l1">
+    <th>Amount</th>
+    <th><img id="helpicon" src="https://img.icons8.com/material-outlined/24/000000/help.png"/></th>
+    </tr>
+    <tr id="l2">
+    <th>
+      $ <input id="price" type="text" value="40000" />
+      </th>
+    </tr>
+    </tbody>
+    </table>
+    </th>
+    <th>
+    <table id="right">
+    <tbody>
+    <tr>
+    <th id="plus">+</th>
+    </tr>
+    <tr>
+    <th id="minus">-</th>
+    </tr>
+    </tbody>
+    </table>
+    </th>
+    </tr>
+    </tbody>
+    </table>
+    <div id="centergroup">
+    <div id="profit">
+    Profit <img id="helpicon" src="https://img.icons8.com/material-outlined/24/000000/help.png"/>
+    </div>
+    <div id="profit-per" class="green">
+    +85%
+    </div>
+    <div id="profit-val" class="green">
+    +0.85$
+    </div>
+    </div>
+    </div>
     <script src="./js/TEST_DATA.js"></script>
     <script type="module" src="./js/index.js"></script>
 
