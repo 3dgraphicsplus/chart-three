@@ -55,7 +55,7 @@ export default class DataClient {
                         let time = datetime.substring(11, datetime.length)
 
                         let input_object = {
-                            price: (parseFloat(data[i][1]) / 100000),
+                            price: (parseFloat(data[i][1])),// / 100000),
                             date: date,
                             time: time
 
