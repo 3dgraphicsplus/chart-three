@@ -91,6 +91,14 @@ dataClient.getHistoricalData(drawCount);
 
 function init() {
 
+    let profitPercent = document.getElementById('profit-per').textContent.replace(/\D/g, '')
+    let investTotal = document.getElementById('price').value
+    let profitVal = document.getElementById('profit-val')
+
+    let calculatedProfit = parseFloat(profitPercent) * parseFloat(investTotal) / 100
+    console.log(profitPercent, investTotal, calculatedProfit)
+    profitVal.innerHTML = '+' + calculatedProfit + '$'
+
     container = document.getElementById('container');
     camera = new THREE.OrthographicCamera(0, container.clientWidth,
         container.clientHeight, 0, -1, 1);
