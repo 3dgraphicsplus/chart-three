@@ -54,9 +54,9 @@ const MIN_VIEW_Y = 300;
 const MAX_VIEW_Y = 800;
 const MIN_DIFF_Y = 200;
 let XStepCount = 50;
-let axisXConfig = { stepX: 30, initialValueX: 0 }
+let axisXConfig = { stepX: 20, initialValueX: 0 }
 let axisYConfig = {
-    stepY: 30, initialValueY: 1400,
+    stepY: 0.03, initialValueY: 100,
     clone: function () { return { stepY: this.stepY, initialValueY: this.initialValueY }; }
 }
 
@@ -930,7 +930,7 @@ function disableLowerActiveLines(lowerButton, activePriceStatusObjs, disabledCor
     } else {
         lowerButton.material.color.setHex(disabledCorlor);
     }
-    
+
 
     enableLowerActive = false;
 
@@ -1150,56 +1150,83 @@ function drawPurchaseLine(purchaseLineObjs, circlePos, gridTopBound, stepX, coun
 }
 
 // Update the geometry of the purchase line using greenpoint position
-function updatePurchaseLine(drawingGroup, purchaseLineObjs, circlePos, gridTopBound, stepX, countDownTimer) {
-    let verticalPurchaseLinePos = [circlePos[0][0] + countDownTimer * axisXConfig.stepX, 150, 0, circlePos[0][0] + countDownTimer * axisXConfig.stepX, gridTopBound, 0];
+function updatePurchaseLine(drawingGroup, purchaseLineObjs, circlePos, gridTopBound, stepX, countDownTimer, redraw) {
+    if (redraw == true) {
+        let verticalPurchaseLinePos = [circlePos[0][0] + countDownTimer * axisXConfig.stepX, 150, 0, circlePos[0][0] + countDownTimer * axisXConfig.stepX, gridTopBound, 0];
 
-    const verticalPurchaseGeo = new LineGeometry();
-    verticalPurchaseGeo.setPositions(verticalPurchaseLinePos);
-    purchaseLineObjs[0].purchaseLine.geometry.dispose();
-    purchaseLineObjs[0].purchaseLine.geometry = verticalPurchaseGeo;
-    purchaseLineObjs[0].purchaseLine.computeLineDistances();
-    purchaseLineObjs[0].purchaseLine.geometry.attributes.position.needsUpdate = true;
+        const verticalPurchaseGeo = new LineGeometry();
+        verticalPurchaseGeo.setPositions(verticalPurchaseLinePos);
+        purchaseLineObjs[0].purchaseLine.geometry.dispose();
+        purchaseLineObjs[0].purchaseLine.geometry = verticalPurchaseGeo;
+        purchaseLineObjs[0].purchaseLine.computeLineDistances();
+        purchaseLineObjs[0].purchaseLine.geometry.attributes.position.needsUpdate = true;
 
-    purchaseLineObjs[0].purchaseText.position.z = 0
-    purchaseLineObjs[0].purchaseText.position.x = verticalPurchaseLinePos[0] - 95
-    purchaseLineObjs[0].purchaseText.position.y = gridTopBound - 40
-
-    // Update the rendering:
-    purchaseLineObjs[0].purchaseText.sync()
-
-    purchaseLineObjs[0].timeText.position.z = 0
-    purchaseLineObjs[0].timeText.position.x = verticalPurchaseLinePos[0] - 65
-    purchaseLineObjs[0].timeText.position.y = gridTopBound - 55
-
-    // Update the rendering:
-    purchaseLineObjs[0].timeText.sync()
-
-    if (countDownTimer <= 3) {
-        let countDownText = new Text()
-        countDownText.renderOrder = 10;
-
-        // Set properties to configure:
-        countDownText.text = (countDownTimer == 60 ? '01:00' : (countDownTimer < 10 ? '00:' + '0' + countDownTimer : '00:' + countDownTimer))
-        countDownText.font = "https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
-        countDownText.fontSize = 25
-        countDownText.position.z = 0
-        countDownText.position.x = verticalPurchaseLinePos[0] - 32
-        countDownText.position.y = gridTopBound - 35
-        countDownText.color = 0xffffff
+        purchaseLineObjs[0].purchaseText.position.z = 0
+        purchaseLineObjs[0].purchaseText.position.x = verticalPurchaseLinePos[0] - 95
+        purchaseLineObjs[0].purchaseText.position.y = gridTopBound - 40
 
         // Update the rendering:
-        countDownText.sync()
-        drawingGroup.remove(purchaseLineObjs[0].countDownText)
-        purchaseLineObjs[0].countDownText = countDownText;
-        drawingGroup.add(purchaseLineObjs[0].countDownText)
+        purchaseLineObjs[0].purchaseText.sync()
+
+        purchaseLineObjs[0].timeText.position.z = 0
+        purchaseLineObjs[0].timeText.position.x = verticalPurchaseLinePos[0] - 65
+        purchaseLineObjs[0].timeText.position.y = gridTopBound - 55
+
+        // Update the rendering:
+        purchaseLineObjs[0].timeText.sync()
+
+        if (countDownTimer <= 3) {
+            let countDownText = new Text()
+            countDownText.renderOrder = 10;
+
+            // Set properties to configure:
+            countDownText.text = (countDownTimer == 60 ? '01:00' : (countDownTimer < 10 ? '00:' + '0' + countDownTimer : '00:' + countDownTimer))
+            countDownText.font = "https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
+            countDownText.fontSize = 25
+            countDownText.position.z = 0
+            countDownText.position.x = verticalPurchaseLinePos[0] - 32
+            countDownText.position.y = gridTopBound - 35
+            countDownText.color = 0xffffff
+
+            // Update the rendering:
+            countDownText.sync()
+            drawingGroup.remove(purchaseLineObjs[0].countDownText)
+            purchaseLineObjs[0].countDownText = countDownText;
+            drawingGroup.add(purchaseLineObjs[0].countDownText)
+        } else {
+            purchaseLineObjs[0].countDownText.position.x = verticalPurchaseLinePos[0] - 32
+            purchaseLineObjs[0].countDownText.text = (countDownTimer == 60 ? '1:00' : (countDownTimer < 10 ? '00:' + '0' + countDownTimer : '00:' + countDownTimer))
+            // Update the rendering:
+            purchaseLineObjs[0].countDownText.sync()
+        }
+        purchaseLineObjs[0].stopwatch.position.set(verticalPurchaseLinePos[0], 160);
+        purchaseLineObjs[0].stopwatch.geometry.attributes.position.needsUpdate = true;
     } else {
-        purchaseLineObjs[0].countDownText.position.x = verticalPurchaseLinePos[0] - 32
-        purchaseLineObjs[0].countDownText.text = (countDownTimer == 60 ? '1:00' : (countDownTimer < 10 ? '00:' + '0' + countDownTimer : '00:' + countDownTimer))
-        // Update the rendering:
-        purchaseLineObjs[0].countDownText.sync()
+        if (countDownTimer <= 3) {
+            let countDownText = new Text()
+            countDownText.renderOrder = 10;
+
+            // Set properties to configure:
+            countDownText.text = (countDownTimer == 60 ? '01:00' : (countDownTimer < 10 ? '00:' + '0' + countDownTimer : '00:' + countDownTimer))
+            countDownText.font = "https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
+            countDownText.fontSize = 25
+            countDownText.position.z = 0
+            countDownText.position.x = purchaseLineObjs[0].countDownText.position.x
+            countDownText.position.y = gridTopBound - 35
+            countDownText.color = 0xffffff
+
+            // Update the rendering:
+            countDownText.sync();
+            drawingGroup.remove(purchaseLineObjs[0].countDownText);
+            purchaseLineObjs[0].countDownText = countDownText;
+            drawingGroup.add(purchaseLineObjs[0].countDownText);
+        } else {
+            // purchaseLineObjs[0].countDownText.position.x = verticalPurchaseLinePos[0] - 32
+            purchaseLineObjs[0].countDownText.text = (countDownTimer == 60 ? '1:00' : (countDownTimer < 10 ? '00:' + '0' + countDownTimer : '00:' + countDownTimer))
+            // Update the rendering:
+            purchaseLineObjs[0].countDownText.sync()
+        }
     }
-    purchaseLineObjs[0].stopwatch.position.set(verticalPurchaseLinePos[0], 160);
-    purchaseLineObjs[0].stopwatch.geometry.attributes.position.needsUpdate = true;
 }
 
 // Draw the purchase line using position of the green points and the remaining time of the countdown timer.
@@ -1239,8 +1266,8 @@ function drawFinishLine(finishLineObjs, circlePos, gridTopBound, stepX, countDow
 }
 
 // Update the geometry of the purchase line using greenpoint position
-function updateFinishLine(drawingGroup, finishLineObjs, circlePos, gridTopBound, stepX, countDownTimer) {
-    let verticalFinishLinePos = [circlePos[0][0] + countDownTimer * axisXConfig.stepX, 150, 0, circlePos[0][0] + countDownTimer * axisXConfig.stepX, gridTopBound, 0];
+function updateFinishLine(drawingGroup, finishLineObjs, circlePos, gridTopBound, stepX, finishTimer) {
+    let verticalFinishLinePos = [circlePos[0][0] + finishTimer * axisXConfig.stepX, 150, 0, circlePos[0][0] + finishTimer * axisXConfig.stepX, gridTopBound, 0];
 
     const verticalFinishGeo = new LineGeometry();
     verticalFinishGeo.setPositions(verticalFinishLinePos);
