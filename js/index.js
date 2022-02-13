@@ -40,11 +40,12 @@ let groupTo = { x: 0, y: 0, z: 0 };
 
 // Initial number of second to trigger count down, for example: graph drawing at 13:05:15, if countDownTimer 
 // is set 15, then the countdown will be at 13:05:30
-let countDownTimer = 15
+let countDownTimer = 15;
 
+let fromCountDownToFinish = 30;
 // Initial number of second to trigger finish timer, for example: graph drawing at 13:05:15, if finishTimer
 // is set at 45, then the finishing timer will be at 13:06:00
-let finishTimer = 45
+let finishTimer = countDownTimer + fromCountDownToFinish;
 
 let mouseDown = false;
 let clickMousePos = { x: 0, y: 0 };
@@ -725,7 +726,7 @@ function updateOtherStuff(triggerAtPurchaseCallback, triggerAtFinishingCallback)
         Factory.enableLowerActiveLines(lowerButton, activePriceStatusObjs);
         enablePriceMark = true;
         countDownTimer = 60;
-        finishTimer = 70;
+        finishTimer = countDownTimer + fromCountDownToFinish;
 
         if (typeof triggerAtFinishingCallback == "function") {
             triggerAtFinishingCallback("no problem")
