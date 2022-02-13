@@ -83,6 +83,8 @@ let currentProgress = 0;
 
 let enablePriceMark = true;
 
+let lastDraw = { newY: 0, count: 0 };
+
 showProgress();
 dataClient.getHistoricalData(drawCount);
 
@@ -745,11 +747,8 @@ function drawNewData(newY) {
     let tempPos = [points[points.length - 1]];
     let tweenFrom = ({ x: tempPos[0][0], y: tempPos[0][1], z: 0 });
     let tweenTo = ({ x: newPos[0], y: newPos[1], z: 0 });
-    //tempPolyPoints.push([tweenFrom.x, tweenFrom.y, 0]);
-    //points.push([tweenFrom.x, tweenFrom.y, 0]);
 
     //Just push new and updating value in real-time
-
     points.push([tweenFrom.x, tweenFrom.y, 0]);
     Factory.addPolygon(activeGroup, activePoligonObjs, points, points.length - 2);
     Factory.addDataLine(activeGroup, activeDataLineObjs, points, points.length - 2, container.clientWidth, container.clientHeight)
@@ -841,8 +840,17 @@ function update(now) {
     if (newVal) {//???WHAT IS FOR
         // console.log("before", Factory.axisYConfig.stepY, Factory.axisYConfig.initialValueY)
         let newY = (newVal.price - dataClient.getOrigin().price) * Factory.axisYConfig.stepY * 1000 + Factory.axisYConfig.initialValueY;
-        drawNewData(newY);
-        updateView(false, false);
+        console.log(newY)
+        if (Math.floor(newY) != Math.floor(lastDraw.newY) || lastDraw.count >= 3) {
+            drawNewData(newY);
+            updateView(false, false);
+            lastDraw.newY = newY;
+            lastDraw.count = 0;
+        } else {
+            updateOtherStuff(triggerAtPurchaseTime, triggerAtFinishingTime);
+            lastDraw.count++;
+        }
+
         // console.log("after", Factory.axisYConfig.stepY, Factory.axisYConfig.initialValueY)
     }
     //updateView(newY);
@@ -858,7 +866,6 @@ function animate() {
     TWEEN.update();
     let now = Date.now();
 
-
     //FIXME green point is also in view
     update(now);
 
@@ -873,6 +880,6 @@ function animate() {
     requestAnimationFrame(animate);
 }
 
-function showOverlay(){
-    document.getElementById("overlay").style.display="block";
+function showOverlay() {
+    document.getElementById("overlay").style.display = "block";
 }
