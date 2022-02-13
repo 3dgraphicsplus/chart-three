@@ -38,8 +38,13 @@ let activeGroup = new THREE.Group();
 
 let groupTo = { x: 0, y: 0, z: 0 };
 
-let countDownTimer = 6
-let finishTimer = 16
+// Initial number of second to trigger count down, for example: graph drawing at 13:05:15, if countDownTimer 
+// is set 15, then the countdown will be at 13:05:30
+let countDownTimer = 15
+
+// Initial number of second to trigger finish timer, for example: graph drawing at 13:05:15, if finishTimer
+// is set at 45, then the finishing timer will be at 13:06:00
+let finishTimer = 45
 
 let mouseDown = false;
 let clickMousePos = { x: 0, y: 0 };
