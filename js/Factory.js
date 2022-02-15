@@ -1280,262 +1280,143 @@ function updateFinishLine(drawingGroup, finishLineObjs, circlePos, gridTopBound,
     finishLineObjs[0].flag.geometry.attributes.position.needsUpdate = true;
 }
 
-function drawMark(drawingGroup, markObjs, circlePos, isLower, index, gridRightBound, movedDistance) {
-    if (isLower == false) {
-        // Draw oval with number
-        let ovalGeo = new THREE.PlaneGeometry(16, 16);
-        let ovalMesh = new THREE.Mesh(ovalGeo, new THREE.MeshBasicMaterial(
-            {
-                map: new THREE.TextureLoader().load("/img/higherinvest.png", map => {
-                    ovalMesh.scale.set(map.image.width * 0.015, map.image.height * 0.015);
-                }),
-                transparent: true,
-                opacity: 1.0,
-                color: HIGHER_BUTTON_COLOR,
-            }));
-        ovalMesh.position.set(circlePos[0][0] - 20, circlePos[0][1] + 10);
-        ovalMesh.renderOrder = 50;
+function drawMark(drawingGroup, markObjs, circlePos, isLower, index, gridRightBound, movedDistance, invest, onloaded) {
+    let w = 16, h = 16;
+    let color = isLower ? LOWER_BUTTON_COLOR : HIGHER_BUTTON_COLOR;
+    let markImage =  isLower ? "/img/lowermark.png": "/img/highermark.png"
+    // Draw oval with number
+    let ovalGeo = new THREE.PlaneGeometry(w, h);
+    let ovalMesh = new THREE.Mesh(ovalGeo, new THREE.MeshBasicMaterial(
+        {
+            map: new THREE.TextureLoader().load("/img/higherinvest.png", map => {
+                ovalMesh.scale.set(map.image.width * 0.015 * invest.length / 3.0, map.image.height * 0.015);
+                if (onloaded) {
+                    onloaded(ovalMesh);
+                    onloaded(investText);
+                }
 
-        let investText = new Text()
-        investText.renderOrder = 60;
+            }),
+            transparent: true,
+            opacity: 0.2,
+            color: color,
+        }));
+    ovalMesh.position.set(circlePos[0][0], circlePos[0][1] + 10);
+    ovalMesh.renderOrder = 50;
 
-        // Set properties to configure:
-        investText.text = '$1'
-        investText.font = "https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
-        investText.fontSize = 12
-        investText.position.z = 0
-        investText.position.x = circlePos[0][0] - 20 - 6
-        investText.position.y = circlePos[0][1] + 10 + 6
-        investText.color = 0xffffff
-        investText.sync();
+    let investText = new Text()
+    investText.renderOrder = 60;
 
-        // Draw price shape
-        let coordinatesList = [
-            new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20, circlePos[0][1] + 10, 0),
-            new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20 + 50, circlePos[0][1] + 10, 0),
-            new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20 + 50, circlePos[0][1] - 10, 0),
-            new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20, circlePos[0][1] - 10, 0)
-        ];
+    // Set properties to configure:
+    investText.text = '$' + invest;
+    investText.font = "https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
+    investText.fontSize = 12
+    investText.position.z = 0
+    investText.position.x = circlePos[0][0] - investText.fontSize / 2 * investText.text.length / 2
+    investText.position.y = circlePos[0][1] + 16
+    investText.color = 0xffffff
+    investText.sync();
 
-        // shape
-        let geomShape = new THREE.ShapeBufferGeometry(new THREE.Shape(coordinatesList));
-        let matShape = new THREE.MeshBasicMaterial({ color: HIGHER_BUTTON_COLOR, transparent: true, opacity: 0.9 });
-        let markPriceShape = new THREE.Mesh(geomShape, matShape);
-        markPriceShape.renderOrder = 50;
+    // Draw price shape
+    let coordinatesList = [
+        new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20, circlePos[0][1] + 10, 0),
+        new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20 + 50, circlePos[0][1] + 10, 0),
+        new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20 + 50, circlePos[0][1] - 10, 0),
+        new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20, circlePos[0][1] - 10, 0)
+    ];
 
-        let priceText = new Text()
-        priceText.renderOrder = 60
-        priceText.text = '' + dataClient.input_value[index].price * 100000
-        priceText.font = "https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
-        priceText.fontSize = 11
-        priceText.position.z = 0
-        priceText.position.x = GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20 + 5
-        priceText.position.y = circlePos[0][1] + 5
-        priceText.color = 0xffffff
-        priceText.sync();
+    // shape
+    let geomShape = new THREE.ShapeBufferGeometry(new THREE.Shape(coordinatesList));
+    let matShape = new THREE.MeshBasicMaterial({ color: HIGHER_BUTTON_COLOR, transparent: true, opacity: 0.9 });
+    let markPriceShape = new THREE.Mesh(geomShape, matShape);
+    markPriceShape.renderOrder = 50;
 
-        // // Draw straigh lines
-        // let verticalInvestPos = [circlePos[0][0], circlePos[0][1], 0, circlePos[0][0], circlePos[0][1] + 10, 0];
-        // const verticalInvestGeo = new LineGeometry();
-        // verticalInvestGeo.setPositions(verticalInvestPos);
-        // let verticalInvestMaterial = new LineMaterial({
-        //     color: HIGHER_BUTTON_COLOR,
-        //     linewidth: MOUSE_MOVE_LINE_WIDTH, // in world units with size attenuation, pixels otherwise
-        //     vertexColors: false,
-        //     resolution: new THREE.Vector2(600, 400),
-        //     //resolution:  // to be set by renderer, eventually
-        //     dashed: true,
-        //     dashScale: 0.4,
-        // });
+    let priceText = new Text()
+    priceText.renderOrder = 60
+    priceText.text = '' + dataClient.input_value[index].price * 100000
+    priceText.font = "https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
+    priceText.fontSize = 11
+    priceText.position.z = 0
+    priceText.position.x = GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20 + 5
+    priceText.position.y = circlePos[0][1] + 5
+    priceText.color = 0xffffff
+    priceText.sync();
 
-        // let verticalInvestLine = new Line2(verticalInvestGeo, verticalInvestMaterial);
-        // verticalInvestLine.computeLineDistances();
-        // verticalInvestLine.scale.set(1, 1, 1);
-        // verticalInvestLine.renderOrder = 60;
+    // // Draw straigh lines
+    // let verticalInvestPos = [circlePos[0][0], circlePos[0][1], 0, circlePos[0][0], circlePos[0][1] + 10, 0];
+    // const verticalInvestGeo = new LineGeometry();
+    // verticalInvestGeo.setPositions(verticalInvestPos);
+    // let verticalInvestMaterial = new LineMaterial({
+    //     color: HIGHER_BUTTON_COLOR,
+    //     linewidth: MOUSE_MOVE_LINE_WIDTH, // in world units with size attenuation, pixels otherwise
+    //     vertexColors: false,
+    //     resolution: new THREE.Vector2(600, 400),
+    //     //resolution:  // to be set by renderer, eventually
+    //     dashed: true,
+    //     dashScale: 0.4,
+    // });
 
-        // Draw horizontal lines
-        const horizontalDashed = new LineGeometry();
-        horizontalDashed.setPositions([0, circlePos[0][1], 0, circlePos[0][0], circlePos[0][1], 0]);
-        let horizontalMat = new LineMaterial({
-            color: HIGHER_BUTTON_COLOR,
-            linewidth: MOUSE_MOVE_LINE_WIDTH, // in world units with size attenuation, pixels otherwise
-            vertexColors: false,
-            resolution: new THREE.Vector2(container.clientWidth, container.clientHeight),
-            //resolution:  // to be set by renderer, eventually
-            dashed: true,
-            dashScale: 0.2,
-            alphaToCoverage: false,
-        });
+    // let verticalInvestLine = new Line2(verticalInvestGeo, verticalInvestMaterial);
+    // verticalInvestLine.computeLineDistances();
+    // verticalInvestLine.scale.set(1, 1, 1);
+    // verticalInvestLine.renderOrder = 60;
 
-        let verdashedLine = new Line2(horizontalDashed, horizontalMat);
-        verdashedLine.computeLineDistances();
-        verdashedLine.scale.set(1, 1, 1);
-        verdashedLine.renderOrder = 60;
+    // Draw horizontal lines
+    const horizontalDashed = new LineGeometry();
+    horizontalDashed.setPositions([0, circlePos[0][1], 0, circlePos[0][0], circlePos[0][1], 0]);
+    let horizontalMat = new LineMaterial({
+        color: color,
+        linewidth: MOUSE_MOVE_LINE_WIDTH, // in world units with size attenuation, pixels otherwise
+        vertexColors: false,
+        resolution: new THREE.Vector2(container.clientWidth, container.clientHeight),
+        //resolution:  // to be set by renderer, eventually
+        dashed: true,
+        dashScale: 0.2,
+        alphaToCoverage: false,
+    });
 
-        const verticalline = new LineGeometry();
-        verticalline.setPositions([circlePos[0][0], circlePos[0][1], 0, gridRightBound - 250 - movedDistance, circlePos[0][1], 0]);
-        let verlineMat = new LineMaterial({
-            color: HIGHER_BUTTON_COLOR,
-            linewidth: MOUSE_MOVE_LINE_WIDTH, // in world units with size attenuation, pixels otherwise
-            vertexColors: false,
-            resolution: new THREE.Vector2(container.clientWidth, container.clientHeight),
-            //resolution:  // to be set by renderer, eventually
-            dashed: false,
-            alphaToCoverage: false,
-        });
-        let verLine = new Line2(verticalline, verlineMat);
-        verLine.computeLineDistances();
-        verLine.scale.set(1, 1, 1);
-        verLine.renderOrder = 60;
-        // Draw marks
-        let markGeo = new THREE.CircleGeometry(12, 64);
-        let markMesh = new THREE.Mesh(markGeo, new THREE.MeshBasicMaterial(
-            {
-                map: new THREE.TextureLoader().load("/img/highermark.png", map => {
-                    markMesh.scale.set(map.image.width * 0.01, map.image.height * 0.01);
-                }),
-                transparent: true,
-                opacity: 1.0,
-            }));
-        markMesh.position.set(circlePos[0][0], circlePos[0][1]);
-        markMesh.renderOrder = 10;
+    let verdashedLine = new Line2(horizontalDashed, horizontalMat);
+    verdashedLine.computeLineDistances();
+    verdashedLine.scale.set(1, 1, 1);
+    verdashedLine.renderOrder = 60;
 
-        drawingGroup.add(ovalMesh)
-        drawingGroup.add(investText)
-        // drawingGroup.add(verticalInvestLine)
-        drawingGroup.add(priceText)
-        drawingGroup.add(markPriceShape)
-        drawingGroup.add(verdashedLine)
-        drawingGroup.add(verLine)
-        drawingGroup.add(markMesh)
-        markObjs.push({ ovalMesh: ovalMesh, index: index, investText: investText, priceText: priceText, markPriceShape: markPriceShape, verdashedLine: verdashedLine, verLine: verLine, markMesh: markMesh });
-    } else {
-        // Draw oval with number
-        let ovalGeo = new THREE.PlaneGeometry(16, 16);
-        let ovalMesh = new THREE.Mesh(ovalGeo, new THREE.MeshBasicMaterial(
-            {
-                map: new THREE.TextureLoader().load("/img/lowerinvest.png", map => {
-                    ovalMesh.scale.set(map.image.width * 0.015, map.image.height * 0.015);
-                }),
-                transparent: true,
-                opacity: 0.6,
-                color: LOWER_BUTTON_COLOR,
-            }));
-        ovalMesh.position.set(circlePos[0][0] - 20, circlePos[0][1] + 10);
-        ovalMesh.renderOrder = 50;
+    const verticalline = new LineGeometry();
+    verticalline.setPositions([circlePos[0][0], circlePos[0][1], 0, gridRightBound - 250 - movedDistance, circlePos[0][1], 0]);
+    let verlineMat = new LineMaterial({
+        color: HIGHER_BUTTON_COLOR,
+        linewidth: MOUSE_MOVE_LINE_WIDTH, // in world units with size attenuation, pixels otherwise
+        vertexColors: false,
+        resolution: new THREE.Vector2(container.clientWidth, container.clientHeight),
+        //resolution:  // to be set by renderer, eventually
+        dashed: false,
+        alphaToCoverage: false,
+    });
+    let verLine = new Line2(verticalline, verlineMat);
+    verLine.computeLineDistances();
+    verLine.scale.set(1, 1, 1);
+    verLine.renderOrder = 60;
+    // Draw marks
+    let markGeo = new THREE.CircleGeometry(12, 64);
+    let markMesh = new THREE.Mesh(markGeo, new THREE.MeshBasicMaterial(
+        {
+            map: new THREE.TextureLoader().load(markImage, map => {
+                markMesh.scale.set(map.image.width * 0.01, map.image.height * 0.01);
+            }),
+            transparent: true,
+            opacity: 1.0,
+        }));
+    markMesh.position.set(circlePos[0][0], circlePos[0][1]);
+    markMesh.renderOrder = 10;
 
-        let investText = new Text()
-        investText.renderOrder = 60;
-        investText.text = '$1'
-        investText.font = "https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
-        investText.fontSize = 12
-        investText.position.z = 0
-        investText.position.x = circlePos[0][0] - 20 - 6
-        investText.position.y = circlePos[0][1] + 10 + 6
-        investText.color = 0xffffff
-        investText.sync();
+    drawingGroup.add(ovalMesh)
+    drawingGroup.add(investText)
+    // drawingGroup.add(verticalInvestLine)
+    drawingGroup.add(priceText)
+    drawingGroup.add(markPriceShape)
+    drawingGroup.add(verdashedLine)
+    drawingGroup.add(verLine)
+    drawingGroup.add(markMesh)
+    markObjs.push({ ovalMesh: ovalMesh, index: index, investText: investText, priceText: priceText, markPriceShape: markPriceShape, verdashedLine: verdashedLine, verLine: verLine, markMesh: markMesh });
 
-        // // Draw straigh lines
-        // let verticalInvestPos = [circlePos[0][0], circlePos[0][1], 0, circlePos[0][0], circlePos[0][1] + 10, 0];
-        // const verticalInvestGeo = new LineGeometry();
-        // verticalInvestGeo.setPositions(verticalInvestPos);
-        // let verticalInvestMaterial = new LineMaterial({
-        //     color: LOWER_BUTTON_COLOR,
-        //     linewidth: MOUSE_MOVE_LINE_WIDTH, // in world units with size attenuation, pixels otherwise
-        //     vertexColors: false,
-        //     resolution: new THREE.Vector2(600, 400),
-        //     //resolution:  // to be set by renderer, eventually
-        //     dashed: true,
-        //     dashScale: 0.4,
-        // });
-
-        // let verticalInvestLine = new Line2(verticalInvestGeo, verticalInvestMaterial);
-        // verticalInvestLine.computeLineDistances();
-        // verticalInvestLine.scale.set(1, 1, 1);
-        // verticalInvestLine.renderOrder = 60;
-
-        // Draw horizontal lines
-        const horizontalDashed = new LineGeometry();
-        horizontalDashed.setPositions([0, circlePos[0][1], 0, circlePos[0][0], circlePos[0][1], 0]);
-        let horizontalMat = new LineMaterial({
-            color: LOWER_BUTTON_COLOR,
-            linewidth: MOUSE_MOVE_LINE_WIDTH, // in world units with size attenuation, pixels otherwise
-            vertexColors: false,
-            resolution: new THREE.Vector2(container.clientWidth, container.clientHeight),
-            //resolution:  // to be set by renderer, eventually
-            dashed: true,
-            dashScale: 0.2,
-            alphaToCoverage: false,
-        });
-
-        let verdashedLine = new Line2(horizontalDashed, horizontalMat);
-        verdashedLine.computeLineDistances();
-        verdashedLine.scale.set(1, 1, 1);
-        verdashedLine.renderOrder = 60;
-
-        const verticalline = new LineGeometry();
-        verticalline.setPositions([circlePos[0][0], circlePos[0][1], 0, GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance, circlePos[0][1], 0]);
-        let verlineMat = new LineMaterial({
-            color: LOWER_BUTTON_COLOR,
-            linewidth: MOUSE_MOVE_LINE_WIDTH, // in world units with size attenuation, pixels otherwise
-            vertexColors: false,
-            resolution: new THREE.Vector2(container.clientWidth, container.clientHeight),
-            //resolution:  // to be set by renderer, eventually
-            dashed: false,
-            alphaToCoverage: false,
-        });
-        let verLine = new Line2(verticalline, verlineMat);
-        verLine.computeLineDistances();
-        verLine.scale.set(1, 1, 1);
-        verLine.renderOrder = 60;
-        // Draw price shape
-        let coordinatesList = [
-            new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20, circlePos[0][1] + 10, 0),
-            new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20 + 60, circlePos[0][1] + 10, 0),
-            new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20 + 60, circlePos[0][1] - 10, 0),
-            new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20, circlePos[0][1] - 10, 0)
-        ];
-
-        // shape
-        let geomShape = new THREE.ShapeBufferGeometry(new THREE.Shape(coordinatesList));
-        let matShape = new THREE.MeshBasicMaterial({ color: LOWER_BUTTON_COLOR, transparent: true, opacity: 0.9 });
-        let markPriceShape = new THREE.Mesh(geomShape, matShape);
-        markPriceShape.renderOrder = 50;
-
-        let priceText = new Text()
-        priceText.renderOrder = 60
-        priceText.text = '' + dataClient.input_value[index].price * 100000
-        priceText.font = "https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
-        priceText.fontSize = 11
-        priceText.position.z = 0
-        priceText.position.x = GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20 + 5
-        priceText.position.y = circlePos[0][1] + 5
-        priceText.color = 0xffffff
-        priceText.sync();
-
-        // Draw marks
-        let markGeo = new THREE.CircleGeometry(12, 64);
-        let markMesh = new THREE.Mesh(markGeo, new THREE.MeshBasicMaterial(
-            {
-                map: new THREE.TextureLoader().load("/img/lowermark.png", map => {
-                    markMesh.scale.set(map.image.width * 0.01, map.image.height * 0.01);
-                }),
-                transparent: true,
-                opacity: 1.0,
-            }));
-        markMesh.position.set(circlePos[0][0], circlePos[0][1]);
-        markMesh.renderOrder = 10;
-
-        drawingGroup.add(ovalMesh)
-        drawingGroup.add(investText)
-        // drawingGroup.add(verticalInvestLine)
-        drawingGroup.add(priceText)
-        drawingGroup.add(markPriceShape)
-        drawingGroup.add(verdashedLine)
-        drawingGroup.add(verLine)
-        drawingGroup.add(markMesh)
-        markObjs.push({ ovalMesh: ovalMesh, index: index, investText: investText, priceText: priceText, markPriceShape: markPriceShape, verdashedLine: verdashedLine, verLine: verLine, markMesh: markMesh });
-    }
 }
 
 function updateMarks(markObjs, points, gridRightBound, movedDistance) {
@@ -1550,10 +1431,10 @@ function updateMarks(markObjs, points, gridRightBound, movedDistance) {
         let circlePos = [points[markObjs[index].index]];
 
         // Update oval with number
-        markObjs[index].ovalMesh.position.set(circlePos[0][0] - 20, circlePos[0][1] + 10);
+        markObjs[index].ovalMesh.position.set(circlePos[0][0], circlePos[0][1] + 10);
         markObjs[index].ovalMesh.geometry.attributes.position.needsUpdate = true;
 
-        markObjs[index].investText.position.x = circlePos[0][0] - 20 - 6;
+        markObjs[index].investText.position.x = circlePos[0][0] - parseInt(markObjs[index].investText.fontSize) / 2 * markObjs[index].investText.text.length / 2;
         markObjs[index].investText.position.y = circlePos[0][1] + 10 + 6;
         markObjs[index].investText.sync();
         // Update price shape

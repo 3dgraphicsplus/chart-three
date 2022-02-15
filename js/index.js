@@ -134,7 +134,7 @@ function init() {
     document.addEventListener('pointerdown', onPointerDown);
     document.addEventListener('pointerup', onPointerUp);
     document.addEventListener('wheel', onWheel);
-    document.addEventListener('visibilitychange',function() {
+    document.addEventListener('visibilitychange', function () {
         //no need, we will get all latest data
         //last = 0;
     });
@@ -415,6 +415,7 @@ function onPointerMove(event) {
         raycaster.setFromCamera(mouse, camera);
         let intersects = raycaster.intersectObjects(bkgObjs);
         if (intersects.length > 0) {
+            console.log(intersects[0].point.x)
             Factory.updateMouseMoveLine(scene, intersects[0].point.x, intersects[0].point.y, Factory.axisXConfig.initialValueX);
         }
 
@@ -451,11 +452,11 @@ function onPointerMove(event) {
     }
 }
 
-function handleHigherButtonClick(higherCallback) {
+function handleHigherButtonClick(higherCallback, invest) {
     let from = { x: 1, y: 1 };
     let to = { x: 0.8, y: 0.8 };
     let initialScale = upMesh.scale.clone();
-    Factory.drawMark(activeGroup, activeMarkObjs, [points[points.length - 1]], false, points.length - 1, Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
+    Factory.drawMark(activeGroup, activeMarkObjs, [points[points.length - 1]], false, points.length - 1, Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x, invest,flipflop);
     new TWEEN.Tween(from).to(to, 150).onUpdate(function (object) {
         // higherGroup.scale.set(object.x, object.y)
         higherButton.scale.set(object.x, object.y);
@@ -472,7 +473,7 @@ function handleHigherButtonClick(higherCallback) {
             // higherGroup.scale.set(object.x, object.y)
         }).onComplete(function () {
             if (typeof higherCallback == "function") {
-                higherCallback("no problem");
+                higherCallback(activeMarkObjs);
             }
         })
             .easing(TWEEN.Easing.Quadratic.InOut)
@@ -490,11 +491,11 @@ function lowerButtonClickCallback(value) {
     console.log("Callback when click on LowerButton with ", value)
 }
 
-function handleLowerButtonClick(lowerCallback) {
+function handleLowerButtonClick(lowerCallback, invest) {
     let from = { x: 1, y: 1 };
     let to = { x: 0.8, y: 0.8 };
 
-    Factory.drawMark(activeGroup, activeMarkObjs, [points[points.length - 1]], true, points.length - 1, Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
+    Factory.drawMark(activeGroup, activeMarkObjs, [points[points.length - 1]], true, points.length - 1, Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x, invest,flipflop);
     new TWEEN.Tween(from).to(to, 200).onUpdate(function (object) { // zoom out button
         lowerButton.scale.set(object.x, object.y);
         lowerText.scale.set(object.x, object.y);
@@ -506,7 +507,7 @@ function handleLowerButtonClick(lowerCallback) {
             lowerText.scale.set(object.x, object.y);
         }).onComplete(function () {
             if (typeof higherCallback == "function") {
-                lowerCallback("no problem");
+                lowerCallback(activeMarkObjs);
             }
         })
             .easing(TWEEN.Easing.Quadratic.InOut)
@@ -532,30 +533,30 @@ function onPointerDown(event) {
             // console.log(intersects2[0].object)
             // intersects2[0].object.scale.setScalar(0.8);
             if (higherButton == intersects2[0].object) {
-                handleHigherButtonClick(higherButtonClickCallback);
+                handleHigherButtonClick(higherButtonClickCallback, $("#price").val());
             }
 
             if (lowerButton == intersects2[0].object) {
-                handleLowerButtonClick(lowerButtonClickCallback);
+                handleLowerButtonClick(lowerButtonClickCallback, $("#price").val());
             }
-            let biggerFrom = { x: 1, y: 1 };
-            let biggerTo = { x: 2, y: 2 };
-            new TWEEN.Tween(biggerFrom).to(biggerTo, 200).onUpdate(function (object) {
-                activeMarkObjs.slice(-1)[0].ovalMesh.scale.set(object.x * 2, object.y * 1.5);
-                activeMarkObjs.slice(-1)[0].investText.scale.set(object.x, object.y);
-            }).onComplete(function () {
-                let restoreFrom = { x: 2, y: 2 };
-                let restoreTo = { x: 1, y: 1 };
-                new TWEEN.Tween(restoreFrom).to(restoreTo, 200).onUpdate(function (object) {
-                    activeMarkObjs.slice(-1)[0].ovalMesh.scale.set(object.x * 2, object.y * 1.5);
-                    activeMarkObjs.slice(-1)[0].investText.scale.set(object.x, object.y);
-                })
-                    .easing(TWEEN.Easing.Quadratic.InOut)
-                    .start();
-            }).easing(TWEEN.Easing.Quadratic.InOut)
-                .start();
         }
     }
+}
+function flipflop(obj) {
+    let biggerFrom = { x: obj.scale.x, y: obj.scale.y };
+    let biggerTo = { x: obj.scale.x * 2, y: obj.scale.y * 2 };
+    new TWEEN.Tween(biggerFrom).to(biggerTo, 200).onUpdate(function (object) {
+        obj.scale.set(object.x, object.y);
+    }).onComplete(function () {
+        let restoreFrom = { x: obj.scale.x, y: obj.scale.y };
+        let restoreTo = { x: obj.scale.x / 2, y: obj.scale.y / 2 };
+        new TWEEN.Tween(restoreFrom).to(restoreTo, 200).onUpdate(function (object) {
+            obj.scale.set(object.x, object.y);//BAD
+        })
+            .easing(TWEEN.Easing.Quadratic.InOut)
+            .start();
+    }).easing(TWEEN.Easing.Quadratic.InOut)
+        .start();
 }
 
 function onPointerUp(event) {
@@ -839,8 +840,7 @@ function update(now) {
         let newY = (newVal.price - dataClient.getOrigin().price) * Factory.axisYConfig.stepY * 1000 + Factory.axisYConfig.initialValueY;
 
         //disable 
-        if (1 ||Math.floor(newY) != Math.floor(lastDraw.newY) || lastDraw.count >= 3) 
-        {
+        if (1 || Math.floor(newY) != Math.floor(lastDraw.newY) || lastDraw.count >= 3) {
             drawNewData(newY, lastDraw.count);
             updateView(false, false);
             lastDraw.newY = newY;
@@ -887,4 +887,19 @@ function animate() {
 
 function showOverlay() {
     document.getElementById("overlay").style.display = "block";
+    //setup gui event
+    let step = parseFloat($("#price").val()) * 0.01;//TODO upon specs
+    $("#plus").click(function (e) {
+        let step = parseFloat($("#price").val()) * 0.01;
+        $("#price").val((parseFloat($("#price").val()) + step).toFixed(1));
+        console.log("Plus " + $("#price").val())
+    })
+    $("#minus").click(function (e) {
+        let step = parseFloat($("#price").val()) * 0.01;
+        $("#price").val((parseFloat($("#price").val()) - step).toFixed(1));
+        console.log("minus " + $("#price").val())
+    })
+    $("#price").change(function (e) {
+        console.log("price " + $("#price").val())
+    })
 }
