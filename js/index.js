@@ -134,6 +134,10 @@ function init() {
     document.addEventListener('pointerdown', onPointerDown);
     document.addEventListener('pointerup', onPointerUp);
     document.addEventListener('wheel', onWheel);
+    document.addEventListener('visibilitychange',function() {
+        //no need, we will get all latest data
+        //last = 0;
+    });
 
     //show css overlay
     showOverlay();
@@ -207,6 +211,10 @@ function initScene(drawingGroup, gridStepX) {
     lowhighButtons.push(higherButton);
     lowhighButtons.push(lowerButton);
     scene.add(newbkg);
+}
+
+function triggerAtPurchaseTime(value) {
+    console.log("Reach purchase time with ", value)
 }
 
 function showProgress() {
@@ -670,7 +678,7 @@ function updateActiveGroup(now, last) {
     let newPos = [tempPos[0][0] + Factory.axisXConfig.stepX, 0, 0];
     // console.log("newPos: ", newPos)
     // console.log("Factory.axisXConfig.stepX: ", Factory.axisXConfig.stepX)
-    let moveInOneFrame = Factory.axisXConfig.stepX * (now - last) / 1000
+    let moveInOneFrame = Factory.axisXConfig.stepX * (now - last) / 1000.0
 
     groupTo = ({ x: activeGroup.position.x - moveInOneFrame, y: activeGroup.position.y, z: 0 });
 
@@ -693,9 +701,6 @@ function updateActiveGroup(now, last) {
     return newPos;
 }
 
-function triggerAtPurchaseTime(value) {
-    console.log("Reach purchase time with ", value)
-}
 
 function triggerAtFinishingTime(value) {
     console.log("Reach finishing time with ", value)
@@ -755,7 +760,6 @@ function drawNewData(newY, count) {
     points.push([tweenFrom.x, tweenFrom.y, 0]);
     Factory.addPolygon(activeGroup, activePoligonObjs, points, points.length - 2);
     Factory.addDataLine(activeGroup, activeDataLineObjs, points, points.length - 2, container.clientWidth, container.clientHeight)
-    dataClient.updateSequence();
     let lastX = tempPos[0][0];
     let lastY = tempPos[0][1];
     let newDataInterpolate = new TWEEN.Tween(tweenFrom).to(tweenTo, 400).onUpdate(function (object) {
@@ -834,7 +838,9 @@ function update(now) {
         // console.log("before", Factory.axisYConfig.stepY, Factory.axisYConfig.initialValueY)
         let newY = (newVal.price - dataClient.getOrigin().price) * Factory.axisYConfig.stepY * 1000 + Factory.axisYConfig.initialValueY;
 
-        if (Math.floor(newY) != Math.floor(lastDraw.newY) || lastDraw.count >= 3) {
+        //disable 
+        if (1 ||Math.floor(newY) != Math.floor(lastDraw.newY) || lastDraw.count >= 3) 
+        {
             drawNewData(newY, lastDraw.count);
             updateView(false, false);
             lastDraw.newY = newY;

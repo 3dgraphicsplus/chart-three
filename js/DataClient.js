@@ -1,6 +1,12 @@
 export default class DataClient {
     constructor() {
 
+        //detect inactive view
+        let isActive = true;
+        document.addEventListener("visibilitychange", event=>{
+            isActive = !document.hidden;
+            console.log("Tab visibility changed " + isActive);
+        });
         // Dummy Data
         // Line Step
         this.input_value = [];
@@ -13,6 +19,10 @@ export default class DataClient {
         );
 
         websocket.onmessage = (event) => {
+
+            //no need if tab is invisiable
+            //if(!isActive)return;
+
             let data = JSON.parse(event.data);
             let datetime =  new Date(new Date(data.E).getTime() - new Date(data.E).getTimezoneOffset() * 60 * 1000).toISOString().substring(0, 19).replace('T', ' ');
             // console.log(datetime)
@@ -26,16 +36,19 @@ export default class DataClient {
 
             }
             // console.log(data.c)
-            console.log(input_object.price)
+            console.log(input_object.time +": "+ input_object.price)
             this.input_value.push(input_object)
             // return parseFloat(data.c)
             // update graph price here
         }
+
+        this._lastTimestamp = 0;
     };
 
     getHistoricalData(totalData) {
         var xmlHttp = new XMLHttpRequest();
         let results = this.input_value;
+        let self = this;
         xmlHttp.onreadystatechange = function () {
             if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
                 let MAXSLICE = parseInt(totalData / 60, 10) + 1;
@@ -60,7 +73,8 @@ export default class DataClient {
                             time: time
 
                         }
-                        results.push(input_object)
+                        results.push(input_object);
+                        self._internalIndex++;
                     }
                 }
             }
@@ -70,12 +84,16 @@ export default class DataClient {
     }
 
     getSyncNext(now) {//FIXME will be diffirent for real data
-        if ((!this.last || now - this.last >= 1000)) {
+        if (this.input_value.length > this.currentIndex+1) {
             // this.getDataFromSocket();
-            this.last = now;
             if (this.currentIndex < this.input_value.length - 1) {
                 // this.currentIndex++;
-                return this.input_value[this.currentIndex];
+                if(this.input_value[this.currentIndex].time != this._lastTimestamp){
+                    this._lastTimestamp = this.input_value[this.currentIndex].time ;
+
+                    this.last = now;
+                    return this.input_value[this.currentIndex++];
+                }
             }
         }
     }
