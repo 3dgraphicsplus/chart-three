@@ -253,6 +253,20 @@ function onWindowResize() {
 
 }
 
+function x2DataIndex(x) {
+    let dataIndex = points.length - 1;
+    let xLine = x - activeGroup.position.x;
+
+    // Find the point at which the zoom happens
+    for (let i = 0; i < points.length - 1; i++) {
+        if (points[i][0] <= xLine && points[i + 1][0] >= xLine) {
+            dataIndex = i;
+            break;
+        }
+    }
+    return dataIndex
+}
+
 // Called when zoomint/out, in onWheel function
 function zoom(zoomValue) {
     // Find the position of wheel
@@ -283,16 +297,7 @@ function zoom(zoomValue) {
     Factory.setXStepCount(Math.floor(Factory.GRID_RIGHTMOST_LINE / Factory.axisXConfig.stepX));
 
     // Init the index of point where the zoom happens
-    let dataIndex = points.length - 1;
-    let xLine = zoomPoint.x - activeGroup.position.x;
-
-    // Find the point at which the zoom happens
-    for (let i = 0; i < points.length - 1; i++) {
-        if (points[i][0] <= xLine && points[i + 1][0] >= xLine) {
-            dataIndex = i;
-            break;
-        }
-    }
+    let dataIndex = x2DataIndex(zoomPoint.x);
 
     // Zoom in/out at the found data point
     for (let i = 0; i < points.length; i++) {
@@ -416,7 +421,9 @@ function onPointerMove(event) {
         let intersects = raycaster.intersectObjects(bkgObjs);
         if (intersects.length > 0) {
             console.log(intersects[0].point.x)
-            Factory.updateMouseMoveLine(scene, intersects[0].point.x, intersects[0].point.y, Factory.axisXConfig.initialValueX);
+            let dataIndex = x2DataIndex(intersects[0].point.x);
+            let val = dataClient.input_value[dataIndex].time;
+            Factory.updateMouseMoveLine(scene, intersects[0].point.x, intersects[0].point.y, Factory.axisXConfig.initialValueX,val);
         }
 
         if (enablePriceMark == true) {
@@ -452,11 +459,11 @@ function onPointerMove(event) {
     }
 }
 
-function handleHigherButtonClick(higherCallback, invest) {
+function handleHigherButtonClick(invest) {
     let from = { x: 1, y: 1 };
     let to = { x: 0.8, y: 0.8 };
     let initialScale = upMesh.scale.clone();
-    Factory.drawMark(activeGroup, activeMarkObjs, [points[points.length - 1]], false, points.length - 1, Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x, invest,flipflop);
+    Factory.drawMark(activeGroup, activeMarkObjs, [points[points.length - 1]], false, points.length - 1, Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x, invest, flipflop);
     new TWEEN.Tween(from).to(to, 150).onUpdate(function (object) {
         // higherGroup.scale.set(object.x, object.y)
         higherButton.scale.set(object.x, object.y);
@@ -472,9 +479,7 @@ function handleHigherButtonClick(higherCallback, invest) {
             // upMesh.scale.set(initialScale.x / object.x, initialScale.y / object.y);
             // higherGroup.scale.set(object.x, object.y)
         }).onComplete(function () {
-            if (typeof higherCallback == "function") {
-                higherCallback(activeMarkObjs);
-            }
+
         })
             .easing(TWEEN.Easing.Quadratic.InOut)
             .start();
@@ -483,19 +488,19 @@ function handleHigherButtonClick(higherCallback, invest) {
         .start();
 }
 
-function higherButtonClickCallback(value) {
+function higherButtonClickCallback(value, price) {
     console.log("Callback when click on HigherButton with ", value)
 }
 
-function lowerButtonClickCallback(value) {
+function lowerButtonClickCallback(value, price) {
     console.log("Callback when click on LowerButton with ", value)
 }
 
-function handleLowerButtonClick(lowerCallback, invest) {
+function handleLowerButtonClick(invest) {
     let from = { x: 1, y: 1 };
     let to = { x: 0.8, y: 0.8 };
 
-    Factory.drawMark(activeGroup, activeMarkObjs, [points[points.length - 1]], true, points.length - 1, Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x, invest,flipflop);
+    Factory.drawMark(activeGroup, activeMarkObjs, [points[points.length - 1]], true, points.length - 1, Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x, invest, flipflop);
     new TWEEN.Tween(from).to(to, 200).onUpdate(function (object) { // zoom out button
         lowerButton.scale.set(object.x, object.y);
         lowerText.scale.set(object.x, object.y);
@@ -506,9 +511,7 @@ function handleLowerButtonClick(lowerCallback, invest) {
             lowerButton.scale.set(object.x, object.y);
             lowerText.scale.set(object.x, object.y);
         }).onComplete(function () {
-            if (typeof higherCallback == "function") {
-                lowerCallback(activeMarkObjs);
-            }
+
         })
             .easing(TWEEN.Easing.Quadratic.InOut)
             .start();
@@ -533,11 +536,13 @@ function onPointerDown(event) {
             // console.log(intersects2[0].object)
             // intersects2[0].object.scale.setScalar(0.8);
             if (higherButton == intersects2[0].object) {
-                handleHigherButtonClick(higherButtonClickCallback, $("#price").val());
+                handleHigherButtonClick($("#price").val());
+                higherButtonClickCallback($("#price").val(), dataClient.input_value[dataClient.input_value.length - 1]);
             }
 
             if (lowerButton == intersects2[0].object) {
-                handleLowerButtonClick(lowerButtonClickCallback, $("#price").val());
+                handleLowerButtonClick($("#price").val());
+                lowerButtonClickCallback($("#price").val(), dataClient.input_value[dataClient.input_value.length - 1]);
             }
         }
     }
@@ -696,8 +701,23 @@ function updateActiveGroup(now, last) {
         //     .easing(TWEEN.Easing.Quadratic.InOut)
         //     .start();
     }
+
     Factory.updateActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
     // }
+
+    //udpate hover line
+    raycaster.setFromCamera(mouse, camera);
+    let intersects = raycaster.intersectObjects(bkgObjs);
+    if (intersects.length) {
+        let dataIndex = x2DataIndex(intersects[0].point.x);
+        let val = dataClient.input_value[dataIndex].time;
+        //console.log("hover point " + dataIndex + " " + val);
+        if (intersects.length > 0) {
+            console.log(intersects[0].point.x)
+            Factory.updateMouseMoveLine(scene, intersects[0].point.x, intersects[0].point.y, Factory.axisXConfig.initialValueX, val);
+        }
+    }
+
 
     return newPos;
 }

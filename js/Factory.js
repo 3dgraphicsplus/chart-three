@@ -225,7 +225,7 @@ function drawLowerButton(scene, gridRightBound) {
 let mousePriceLineMat = null;
 let mouseTimeLineMat = null;
 let matShape = new THREE.MeshBasicMaterial({ color: 0x525a71, transparent: false });
-function updateMouseMoveLine(scene, posX, posY, initialValueX) {
+function updateMouseMoveLine(scene, posX, posY, initialValueX,timestamp) {
     scene.remove(mouseTimeLine);
     scene.remove(mousePriceLine);
     mousePriceLineGeo = new LineGeometry();
@@ -308,7 +308,7 @@ function updateMouseMoveLine(scene, posX, posY, initialValueX) {
         // console.log(priceShape.geometry.attributes.position.array)
     }
     let currentdate = new Date();
-    let datetime = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60 * 1000).toISOString().substring(0, 19).replace('T', ' ');
+    let datetime = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60 * 1000).toISOString().substring(0, 11).replace('T', ' ') + timestamp;
     if (timestampText != undefined) {
         timestampText.text = datetime
         timestampText.position.z = 0
