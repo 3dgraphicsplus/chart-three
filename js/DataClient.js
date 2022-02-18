@@ -40,6 +40,11 @@ export default class DataClient {
             this.input_value.push(input_object)
             // return parseFloat(data.c)
             // update graph price here
+
+            //limit cache
+            if(this.input_value.length > 500){
+                this.input_value.shift();
+            }
         }
 
         this._lastTimestamp = 0;
@@ -72,7 +77,7 @@ export default class DataClient {
                         let time = datetime.substring(11, datetime.length)
 
                         let input_object = {
-                            price: (parseFloat(data[i][1])),// / 100000),
+                            price: (parseFloat(data[i][1])).toFixed(2),// / 100000),
                             date: date,
                             time: time
 
@@ -120,7 +125,7 @@ export default class DataClient {
     }
 
     convertToDisplay(x) {
-        return (parseFloat(x)).toFixed(0)
+        return (parseFloat(x))
     }
 
     convertToData(x) {

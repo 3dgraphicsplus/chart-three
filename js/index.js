@@ -780,12 +780,6 @@ function drawNewData(newY, count) {
     //Just push new and updating value in real-time
     points.push([tweenFrom.x, tweenFrom.y, 0]);
 
-    //fix max number of point for rendering
-    if(points.length > 500) {
-        points.shift();
-        dataClient.shift();
-    }
-
     Factory.addPolygon(activeGroup, activePoligonObjs, points, points.length - 2);
     Factory.addDataLine(activeGroup, activeDataLineObjs, points, points.length - 2, container.clientWidth, container.clientHeight)
     let lastX = tempPos[0][0];

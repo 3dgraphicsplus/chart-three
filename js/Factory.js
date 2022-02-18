@@ -391,7 +391,7 @@ function updateMouseMoveLine(scene, posX, posY, initialValueX,timestamp) {
 
     if (mousePriceText != undefined) {
         let priceValue = dataClient.convertToDisplay((posY - axisYConfig.initialValueY) / axisYConfig.stepY / 1000 + dataClient.getOrigin().price);
-        mousePriceText.text = '' + priceValue;
+        mousePriceText.text = '' + priceValue.toFixed(2);
         mousePriceText.position.z = 0
         mousePriceText.position.x = GRID_RIGHTMOST_LINE - 205 - 120
         mousePriceText.position.y = posY + 6
@@ -407,7 +407,7 @@ function updateMouseMoveLine(scene, posX, posY, initialValueX,timestamp) {
 
         // Set properties to configure:
         let priceValue = dataClient.convertToDisplay((posY - axisYConfig.initialValueY) / axisYConfig.stepY / 1000 + dataClient.getOrigin().price);
-        mousePriceText.text = '' + priceValue;
+        mousePriceText.text = '' + priceValue.toFixed(2);
         //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
         mousePriceText.fontSize = 12
         mousePriceText.position.z = 0
@@ -819,29 +819,31 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
     let currentValue = dataClient.convertToDisplay((circlePos[0][1] - axisYConfig.initialValueY) / axisYConfig.stepY / 1000 + dataClient.getOrigin().price)
     let prevValue = dataClient.convertToDisplay(dataClient.input_value[dataClient.currentIndex - 1].price)
 
-    activePriceStatusObjs[0].priceText.text = '' + currentValue
+    const isChanged = (currentValue - prevValue).toFixed(2)
+    activePriceStatusObjs[0].priceText.text = '' + (currentValue).toFixed(0)
     activePriceStatusObjs[0].priceText.position.z = 0
     activePriceStatusObjs[0].priceText.position.x = gridRightBound - 250 + 22
     activePriceStatusObjs[0].priceText.position.y = circlePos[0][1] + 7
     if (enableHigherActive == true || enableLowerActive == true) {
         activePriceStatusObjs[0].priceText.color = "white"
     } else {
-        activePriceStatusObjs[0].priceText.color = 0x000000;
+        activePriceStatusObjs[0].priceText.color = isChanged == 0?0x000000:(isChanged >= 0 ? GREEN_COLOR : 'red');
     }
+
+
     // Update the rendering:
     activePriceStatusObjs[0].priceText.sync()
 
 
-    activePriceStatusObjs[0].priceActiveText.color = (currentValue - prevValue) >= 0 ? GREEN_COLOR : 'red'
     activePriceStatusObjs[0].priceActiveText.position.z = 0
     activePriceStatusObjs[0].priceActiveText.position.x = gridRightBound - 250 + 60
     activePriceStatusObjs[0].priceActiveText.position.y = circlePos[0][1] + 12
     if (enableHigherActive == true || enableLowerActive == true) {
         activePriceStatusObjs[0].priceActiveText.color = "white"
     } else {
-        activePriceStatusObjs[0].priceActiveText.color = (currentValue - prevValue) >= 0 ? GREEN_COLOR : 'red'
+        activePriceStatusObjs[0].priceActiveText.color = isChanged == 0?0x000000:(isChanged >= 0 ? GREEN_COLOR : 'red');
     }
-    activePriceStatusObjs[0].priceActiveText.text = '' + Math.abs(currentValue - prevValue)
+    activePriceStatusObjs[0].priceActiveText.text = ('' + Math.abs(currentValue - prevValue).toFixed(2)).substr(2)
 
     // Update the rendering:
     activePriceStatusObjs[0].priceActiveText.sync()
@@ -1334,7 +1336,7 @@ function drawMark(drawingGroup, markObjs, circlePos, isLower, index, gridRightBo
 
     let priceText = new Text()
     priceText.renderOrder = 60
-    priceText.text = '' + dataClient.input_value[index].price * 100000
+    priceText.text = '' + parseFloat(dataClient.input_value[index].price).toFixed(2);// * 100000
     priceText.font = "https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
     priceText.fontSize = 11
     priceText.position.z = 0
