@@ -102,6 +102,8 @@ export default class DataClient {
 
                     this.last = now;
                     return this.input_value[this.currentIndex++];
+                }else{
+                    this.currentIndex += (this.currentIndex < this.input_value.length - 1?1:0);
                 }
             }
         }
