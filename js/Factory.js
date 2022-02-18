@@ -846,9 +846,9 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
     // Update the rendering:
     activePriceStatusObjs[0].priceActiveText.sync()
 
-    let geometry = new THREE.CircleGeometry(3, 50);
-    let material = new THREE.MeshBasicMaterial({ color: GREEN_COLOR, transparent: true, opacity: 1.0 });
-    let greenDot = new THREE.Mesh(geometry, material);
+    //let geometry = new THREE.CircleGeometry(3, 50);
+    //let material = new THREE.MeshBasicMaterial({ color: GREEN_COLOR, transparent: true, opacity: 1.0 });
+    //let greenDot = new THREE.Mesh(geometry, material);
     activePriceStatusObjs[0].greenDot.renderOrder = 100;
     activePriceStatusObjs[0].greenDot.onBeforeRender = function (renderer) { renderer.clearDepth(); };
 
@@ -1191,6 +1191,7 @@ function updatePurchaseLine(drawingGroup, purchaseLineObjs, circlePos, gridTopBo
             // Update the rendering:
             countDownText.sync()
             drawingGroup.remove(purchaseLineObjs[0].countDownText)
+            purchaseLineObjs[0].countDownText.dispose();
             purchaseLineObjs[0].countDownText = countDownText;
             drawingGroup.add(purchaseLineObjs[0].countDownText)
         } else {
@@ -1218,6 +1219,7 @@ function updatePurchaseLine(drawingGroup, purchaseLineObjs, circlePos, gridTopBo
             // Update the rendering:
             countDownText.sync();
             drawingGroup.remove(purchaseLineObjs[0].countDownText);
+            purchaseLineObjs[0].countDownText.dispose();
             purchaseLineObjs[0].countDownText = countDownText;
             drawingGroup.add(purchaseLineObjs[0].countDownText);
         } else {
@@ -1481,12 +1483,19 @@ function updateMarks(markObjs, points, gridRightBound, movedDistance) {
 function removeMarks(drawingGroup, markObjs) {
     for (let i = 0; i < markObjs.length; i++) {
         drawingGroup.remove(markObjs[i].ovalMesh)
+        markObjs[i].ovalMesh.dispose();
         drawingGroup.remove(markObjs[i].investText)
+        markObjs[i].investText.dispose();
         drawingGroup.remove(markObjs[i].priceText)
+        markObjs[i].priceText.dispose();
         drawingGroup.remove(markObjs[i].markPriceShape)
+        markObjs[i].markPriceShape.dispose();
         drawingGroup.remove(markObjs[i].verdashedLine)
+        markObjs[i].verdashedLine.dispose();
         drawingGroup.remove(markObjs[i].verLine)
+        markObjs[i].verLine.dispose();
         drawingGroup.remove(markObjs[i].markMesh)
+        markObjs[i].markMesh.dispose();
     }
 }
 

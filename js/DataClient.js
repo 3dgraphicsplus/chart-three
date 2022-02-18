@@ -45,6 +45,10 @@ export default class DataClient {
         this._lastTimestamp = 0;
     };
 
+    shift(){
+        this.input_value.shift();
+    }
+
     getHistoricalData(totalData) {
         var xmlHttp = new XMLHttpRequest();
         let results = this.input_value;
