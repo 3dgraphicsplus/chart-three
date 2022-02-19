@@ -638,14 +638,16 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     priceShape.renderOrder = 30;
 
     let currentValue = dataClient.convertToDisplay((circlePos[0][1] - axisYConfig.initialValueY) / axisYConfig.stepY / 1000 + dataClient.getOrigin().price)
-    let prevValue = dataClient.convertToDisplay(dataClient.input_value[dataClient.currentIndex - 1].price)
+    let prevValue = dataClient.convertToDisplay(dataClient.input_value[dataClient.currentIndex - 2].price)
+
+    const isChanged = Math.round( (currentValue - prevValue) * 1e2 ) / 1e2;
 
     let priceText = new Text()
     priceText.renderOrder = 50;
     // activeGroup.add(priceText);
 
     // Set properties to configure:
-    priceText.text = '' + currentValue
+    priceText.text = '' + (currentValue).toFixed(0)
     //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
     priceText.fontSize = 12
     priceText.position.z = 0
@@ -675,7 +677,7 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     if (enableHigherActive == true || enableLowerActive == true) {
         priceActiveText.color = "white"
     } else {
-        priceActiveText.color = (currentValue - prevValue) > 0 ? GREEN_COLOR : 'red'
+        priceActiveText.color = isChanged == 0?0x000000:(isChanged >= 0 ? GREEN_COLOR : 'red');
     }
     // Update the rendering:
     priceActiveText.sync()
@@ -817,9 +819,9 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
     activePriceStatusObjs[0].priceShape.geometry.computeBoundingSphere();
 
     let currentValue = dataClient.convertToDisplay((circlePos[0][1] - axisYConfig.initialValueY) / axisYConfig.stepY / 1000 + dataClient.getOrigin().price)
-    let prevValue = dataClient.convertToDisplay(dataClient.input_value[dataClient.currentIndex - 1].price)
+    let prevValue = dataClient.convertToDisplay(dataClient.input_value[dataClient.currentIndex - 2].price)
 
-    const isChanged = (currentValue - prevValue).toFixed(2)
+    const isChanged = Math.round( (currentValue - prevValue) * 1e2 ) / 1e2;
     activePriceStatusObjs[0].priceText.text = '' + (currentValue).toFixed(0)
     activePriceStatusObjs[0].priceText.position.z = 0
     activePriceStatusObjs[0].priceText.position.x = gridRightBound - 250 + 22
