@@ -267,6 +267,15 @@ function x2DataIndex(x) {
     return dataIndex
 }
 
+function zoomFrom(x,zoomValue) {
+    let xLine = x - activeGroup.position.x;
+
+    // Find the point at which the zoom happens
+    for (let i = 0; i < points.length; i++) {
+        points[i][0] += (zoomValue) * (points[i][0] - xLine);
+    }
+}
+
 // Called when zoomint/out, in onWheel function
 function zoom(zoomValue) {
     // Find the position of wheel
@@ -276,7 +285,7 @@ function zoom(zoomValue) {
     // Check if need to update grid, remove or add new grid
     if (newGridStep > MAX_GRID_STEP) {
         // zoom in at max for current level, need to change level of zoom
-        if (Factory.currentZoom() < Factory.listZoomLevel().length - 1 && Factory.currentZoom() > 0) {
+        if (Factory.currentZoom() < Factory.listZoomLevel().length - 1 && lastZoomLevel > 0.5) {//avoid float accuracy
             Factory.currentZoom(Factory.currentZoom() - 1);
             zoomChange = true;
         } else {
@@ -284,7 +293,7 @@ function zoom(zoomValue) {
         }
     } else if (newGridStep < MIN_GRID_STEP) {
         // zoom out at max for current level, need to change level of zoom
-        if (Factory.currentZoom() >= 0 && Factory.currentZoom() < Factory.listZoomLevel().length - 1 - 1) {
+        if (lastZoomLevel >= 0 && Factory.currentZoom() < Factory.listZoomLevel().length - 1 - 1) {
             Factory.currentZoom(Factory.currentZoom() + 1);
             zoomChange = true;
         } else {
@@ -297,16 +306,8 @@ function zoom(zoomValue) {
     Factory.setXStepCount(Math.floor(Factory.GRID_RIGHTMOST_LINE / Factory.axisXConfig.stepX));
 
     // Init the index of point where the zoom happens
-    let dataIndex = x2DataIndex(zoomPoint.x);
+     zoomFrom(zoomPoint.x,-zoomValue/10.0);
 
-    // Zoom in/out at the found data point
-    for (let i = 0; i < points.length; i++) {
-        if (i < dataIndex) {
-            points[i][0] += (zoomValue) * (dataIndex - i);
-        } else if (i > dataIndex) {
-            points[i][0] -= (zoomValue) * (i - dataIndex);
-        }
-    }
 
     // Update the data line
     Factory.updateDataLine(activeDataLineObjs, points, 0, points.length - 1);
@@ -362,7 +363,7 @@ function onWheel(event) {
         if (tweenZoom) {
             tweenZoom.stop();
         }
-        tweenZoom = new TWEEN.Tween(gridFrom).to(gridTo, 200).onUpdate(function (object) {
+        tweenZoom = new TWEEN.Tween(gridFrom).to(gridTo, 100).onUpdate(function (object) {
             if (event.deltaY > 0) {
                 zoom(object.x);
             } else {
@@ -420,7 +421,7 @@ function onPointerMove(event) {
         raycaster.setFromCamera(mouse, camera);
         let intersects = raycaster.intersectObjects(bkgObjs);
         if (intersects.length > 0) {
-            console.log(intersects[0].point.x)
+            //console.log(intersects[0].point.x)
             let dataIndex = x2DataIndex(intersects[0].point.x);
             let val = dataClient.input_value[dataIndex].time;
             Factory.updateMouseMoveLine(scene, intersects[0].point.x, intersects[0].point.y, Factory.axisXConfig.initialValueX,val);
@@ -713,7 +714,7 @@ function updateActiveGroup(now, last) {
         let val = dataClient.input_value[dataIndex].time;
         //console.log("hover point " + dataIndex + " " + val);
         if (intersects.length > 0) {
-            console.log(intersects[0].point.x)
+            //console.log(intersects[0].point.x)
             Factory.updateMouseMoveLine(scene, intersects[0].point.x, intersects[0].point.y, Factory.axisXConfig.initialValueX, val);
         }
     }

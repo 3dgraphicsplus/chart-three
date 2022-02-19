@@ -560,6 +560,7 @@ function removeRedundantVerticalGrid(drawingGroup, verticalGrids) {
 
 // Update geometry of the vertical grid using updated points data
 function updateVerticalGrid(verticalGrids, data, lastZoomLevel, gridTopBound) {
+    let prevX = undefined;
     for (const [key, value] of Object.entries(verticalGrids)) {
         let i = key / DEFAULT_ZOOM_LEVEL[lastZoomLevel]
 
@@ -582,6 +583,17 @@ function updateVerticalGrid(verticalGrids, data, lastZoomLevel, gridTopBound) {
         // value.line.geometry = currencyLineGeo;
         value.line.geometry.attributes.position.needsUpdate = true;
         value.text.sync()
+
+        //clean visual after zoom to avoif text is occluded
+        const minTextSize = 12*8
+        if(prevX !== undefined && Math.abs(currentPos - prevX) < minTextSize){
+            value.text.visible = false
+            value.line.visible = false
+        }else{
+            value.text.visible = true
+            value.line.visible = true
+            prevX = currentPos;
+        }
     }
 }
 
