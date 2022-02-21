@@ -267,7 +267,7 @@ function x2DataIndex(x) {
     return dataIndex
 }
 
-function zoomFrom(x,zoomValue) {
+function zoomFrom(x, zoomValue) {
     let xLine = x - activeGroup.position.x;
 
     // Find the point at which the zoom happens
@@ -306,7 +306,7 @@ function zoom(zoomValue) {
     Factory.setXStepCount(Math.floor(Factory.GRID_RIGHTMOST_LINE / Factory.axisXConfig.stepX));
 
     // Init the index of point where the zoom happens
-     zoomFrom(zoomPoint.x,-zoomValue/10.0);
+    zoomFrom(zoomPoint.x, -zoomValue / 10.0);
 
 
     // Update the data line
@@ -424,7 +424,7 @@ function onPointerMove(event) {
             //console.log(intersects[0].point.x)
             let dataIndex = x2DataIndex(intersects[0].point.x);
             let val = dataClient.input_value[dataIndex].time;
-            Factory.updateMouseMoveLine(scene, intersects[0].point.x, intersects[0].point.y, Factory.axisXConfig.initialValueX,val);
+            Factory.updateMouseMoveLine(scene, intersects[0].point.x, intersects[0].point.y, Factory.axisXConfig.initialValueX, val);
         }
 
         if (enablePriceMark == true) {
@@ -624,7 +624,7 @@ function calculateAxisY(newConfig) {
     let currentPos = (dataClient.input_value[dataClient.currentIndex].price - dataClient.getOrigin().price) * Factory.axisYConfig.stepY * 1000 + Factory.axisYConfig.initialValueY;
     let prevPos = (dataClient.input_value[dataClient.currentIndex - 1].price - dataClient.getOrigin().price) * Factory.axisYConfig.stepY * 1000 + Factory.axisYConfig.initialValueY;
     // if update is needed
-    if (minY < MIN_VIEW_Y || maxY > MAX_VIEW_Y) {
+    if (minY < MIN_VIEW_Y || maxY > MAX_VIEW_Y || currentPos - prevPos < MIN_DIFF_Y) {
         // console.log("Rescale needed: ", maxY, minY, currentPos, prevPos);
         // To calculate the newY that will fit into the view, use the predefined max, min view Y
         newStepY = ((MAX_VIEW_Y - MIN_VIEW_Y)) / 1000 / (dataClient.input_value[maxYIndex].price - dataClient.input_value[minYIndex].price);
@@ -730,8 +730,7 @@ function triggerAtFinishingTime(value) {
 
 //FIXME????
 function updateOtherStuff(triggerAtPurchaseCallback, triggerAtFinishingCallback) {
-    countDownTimer--;
-    finishTimer--;
+
     if (countDownTimer == 0) {
         // Greyout buttons
         enablePriceMark = false;
@@ -800,6 +799,9 @@ function drawNewData(newY, count) {
 
         Factory.updateActiveLines(activePriceStatusObjs, [[points[points.length - 1][0], points[points.length - 1][1], 0]], Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
     }).onComplete(function () {
+        countDownTimer--;
+        finishTimer--;
+        updateView(false, false);
         updateOtherStuff(triggerAtPurchaseTime, triggerAtFinishingTime);
     })
         .easing(TWEEN.Easing.Quadratic.InOut)
@@ -864,7 +866,6 @@ function update(now) {
         //disable 
         if (1 || Math.floor(newY) != Math.floor(lastDraw.newY) || lastDraw.count >= 3) {
             drawNewData(newY, lastDraw.count);
-            updateView(false, false);
             lastDraw.newY = newY;
             lastDraw.count = 1;
         } else {
