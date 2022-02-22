@@ -310,7 +310,7 @@ function zoom(zoomValue) {
 
 
     // Update the data line
-    Factory.updateDataLine(activeDataLineObjs, points, 0, points.length - 1);
+    Factory.updateDataLine(activeDataLineObjs, points, beginViewingIndex, endViewingIndex);
 
     // If need to change current zoom level then need to add/remove grids
     if (zoomChange == true) {
@@ -324,7 +324,7 @@ function zoom(zoomValue) {
     }
 
     // Draw the poligon
-    Factory.updatePolygon(activePoligonObjs, points, 0, points.length - 1);
+    Factory.updatePolygon(activePoligonObjs, points, beginViewingIndex, endViewingIndex);
 
     Factory.updateActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
 

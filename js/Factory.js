@@ -225,7 +225,7 @@ function drawLowerButton(scene, gridRightBound) {
 let mousePriceLineMat = null;
 let mouseTimeLineMat = null;
 let matShape = new THREE.MeshBasicMaterial({ color: 0x525a71, transparent: false });
-function updateMouseMoveLine(scene, posX, posY, initialValueX,timestamp) {
+function updateMouseMoveLine(scene, posX, posY, initialValueX, timestamp) {
     scene.remove(mouseTimeLine);
     scene.remove(mousePriceLine);
     mousePriceLineGeo = new LineGeometry();
@@ -482,6 +482,7 @@ function drawHorizontalGrid(horizontalGrids, startingLine, gridTopBound, gridRig
         horizontalGrids.push({ line: horizontalGridLine, text: priceText })
     }
 }
+
 let verticalGridMaterial = null;
 function drawVerticalGrid(drawingGroup, verticalGrids, dataPoints, loopCount, gridTopBound, startingIndex) {
     // console.log(startingIndex)
@@ -585,11 +586,11 @@ function updateVerticalGrid(verticalGrids, data, lastZoomLevel, gridTopBound) {
         value.text.sync()
 
         //clean visual after zoom to avoif text is occluded
-        const minTextSize = 12*8
-        if(prevX !== undefined && Math.abs(currentPos - prevX) < minTextSize){
+        const minTextSize = 12 * 8
+        if (prevX !== undefined && Math.abs(currentPos - prevX) < minTextSize) {
             value.text.visible = false
             value.line.visible = false
-        }else{
+        } else {
             value.text.visible = true
             value.line.visible = true
             prevX = currentPos;
@@ -600,6 +601,11 @@ function updateVerticalGrid(verticalGrids, data, lastZoomLevel, gridTopBound) {
 // Draw the line at the green point, circlePos is the position of the green point
 // movedDistance is the movement of the activeGroup. This function will only be called once.
 function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, movedDistance) {
+    if (Number.isNaN(circlePos[0][0]) || Number.isNaN(circlePos[0][1])) {
+        console.log(circlePos[0])
+        return;
+    }
+
     const horizontalDashed = new LineGeometry();
 
     horizontalDashed.setPositions([0, circlePos[0][1], 0, circlePos[0][0], circlePos[0][1], 0]);
@@ -652,7 +658,7 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     let currentValue = dataClient.convertToDisplay((circlePos[0][1] - axisYConfig.initialValueY) / axisYConfig.stepY / 1000 + dataClient.getOrigin().price)
     let prevValue = dataClient.convertToDisplay(dataClient.input_value[dataClient.currentIndex - 2].price)
 
-    const isChanged = Math.round( (currentValue - prevValue) * 1e2 ) / 1e2;
+    const isChanged = Math.round((currentValue - prevValue) * 1e2) / 1e2;
 
     let priceText = new Text()
     priceText.renderOrder = 50;
@@ -689,7 +695,7 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     if (enableHigherActive == true || enableLowerActive == true) {
         priceActiveText.color = "white"
     } else {
-        priceActiveText.color = isChanged == 0?0x000000:(isChanged >= 0 ? GREEN_COLOR : 'red');
+        priceActiveText.color = isChanged == 0 ? 0x000000 : (isChanged >= 0 ? GREEN_COLOR : 'red');
     }
     // Update the rendering:
     priceActiveText.sync()
@@ -789,8 +795,15 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
 // Update the geometry if the line at the green points, almost the same as drawActiveLines, only not
 // creating new objects.
 function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, movedDistance) {
+    if (circlePos == undefined || activePriceStatusObjs[0] == undefined) { return; }
+
+    if (Number.isNaN(circlePos[0][0]) || Number.isNaN(circlePos[0][1])) {
+        console.log(circlePos[0])
+        return;
+    }
     //FIXME, new in realtime?
     const horizontalDashed = new LineGeometry();
+
     horizontalDashed.setPositions([0, circlePos[0][1], 0, circlePos[0][0], circlePos[0][1], 0]);
 
     activePriceStatusObjs[0].dashedLine.geometry.dispose();
@@ -833,7 +846,7 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
     let currentValue = dataClient.convertToDisplay((circlePos[0][1] - axisYConfig.initialValueY) / axisYConfig.stepY / 1000 + dataClient.getOrigin().price)
     let prevValue = dataClient.convertToDisplay(dataClient.input_value[dataClient.currentIndex - 2].price)
 
-    const isChanged = Math.round( (currentValue - prevValue) * 1e2 ) / 1e2;
+    const isChanged = Math.round((currentValue - prevValue) * 1e2) / 1e2;
     activePriceStatusObjs[0].priceText.text = '' + (currentValue).toFixed(0)
     activePriceStatusObjs[0].priceText.position.z = 0
     activePriceStatusObjs[0].priceText.position.x = gridRightBound - 250 + 22
@@ -841,7 +854,7 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
     if (enableHigherActive == true || enableLowerActive == true) {
         activePriceStatusObjs[0].priceText.color = "white"
     } else {
-        activePriceStatusObjs[0].priceText.color = isChanged == 0?0x000000:(isChanged >= 0 ? GREEN_COLOR : 'red');
+        activePriceStatusObjs[0].priceText.color = isChanged == 0 ? 0x000000 : (isChanged >= 0 ? GREEN_COLOR : 'red');
     }
 
 
@@ -855,7 +868,7 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
     if (enableHigherActive == true || enableLowerActive == true) {
         activePriceStatusObjs[0].priceActiveText.color = "white"
     } else {
-        activePriceStatusObjs[0].priceActiveText.color = isChanged == 0?0x000000:(isChanged >= 0 ? GREEN_COLOR : 'red');
+        activePriceStatusObjs[0].priceActiveText.color = isChanged == 0 ? 0x000000 : (isChanged >= 0 ? GREEN_COLOR : 'red');
     }
     activePriceStatusObjs[0].priceActiveText.text = ('' + Math.abs(currentValue - prevValue).toFixed(2)).substr(2)
 
@@ -965,6 +978,10 @@ function updatePolygon(poligons, poly, from, to) {
         if (poly[i] == undefined || poly[i + 1] == undefined) {
             continue;
         }
+
+        if (Number.isNaN(poly[i][0]) || Number.isNaN(poly[i][1]) || Number.isNaN(poly[i + 1][0]) || Number.isNaN(poly[i + 1][1])) {
+            continue;
+        }
         let shape = new THREE.Shape();
         shape.moveTo(poly[i][0], poly[i][1]);
         shape.lineTo(poly[i + 1][0], poly[i + 1][1]);
@@ -978,6 +995,10 @@ function updatePolygon(poligons, poly, from, to) {
 }
 
 function updatePolygonSingle(poligons, x0, y0, x, y, offset) {
+    if (Number.isNaN(x0) || Number.isNaN(y0) || Number.isNaN(x) || Number.isNaN(y)) {
+        console.log(x0, y0, x, y)
+        return;
+    }
     //FIXME call this realtime is  so bad
     let i = offset;
     let shape = new THREE.Shape();
@@ -1004,9 +1025,20 @@ let polygonMaterial = new THREE.ShaderMaterial({
 function addPolygon(drawingGroup, poligons, poly, offset = 0) {
     // activeGroup.remove(poligon);
     let shape = new THREE.Shape();
+    if (Number.isNaN(parseFloat(poly[0 + offset][0])) || Number.isNaN(parseFloat(poly[0 + offset][1]))) {
+        return;
+    }
     shape.moveTo(poly[0 + offset][0], poly[0 + offset][1]);
-    for (let i = 1 + offset; i < poly.length; ++i)
+    for (let i = 1 + offset; i < poly.length; ++i) {
+        if (Number.isNaN(parseFloat(poly[i][0])) || Number.isNaN(parseFloat(poly[i][1]))) {
+            continue;
+        }
         shape.lineTo(poly[i][0], poly[i][1]);
+    }
+
+    if (Number.isNaN(parseFloat(poly[poly.length - 1][0])) || Number.isNaN(parseFloat(poly[poly.length - 1][1]))) {
+        return;
+    }
     shape.lineTo(poly[poly.length - 1][0], 0);
     shape.lineTo(poly[0 + offset][0], 0);
 
@@ -1020,7 +1052,6 @@ function addPolygon(drawingGroup, poligons, poly, offset = 0) {
 
 // Draw the data lines which map data points
 var matLine = null;
-
 function addDataLine(drawingGroup, dataLines, data, offset, width, height) {
     if (!matLine || matLine.resolution.x != width || matLine.resolution.y != height) {
         matLine = new LineMaterial({
@@ -1037,10 +1068,16 @@ function addDataLine(drawingGroup, dataLines, data, offset, width, height) {
     }
     for (let i = offset; i < data.length - 1; i++) {
         let currencyLineGeo = new LineGeometry();
-        // if (Number.isNaN(parseFloat(data[i])) == true || Number.isNaN(parseFloat(data[i + 4])) == true || Number.isNaN(parseFloat(data[i + 5])) == true) {
-        //     continue;
-        // }
-        currencyLineGeo.setPositions([parseFloat(data[i][0]), parseFloat(data[i][1]), parseFloat(data[i][2]), parseFloat(data[i + 1][0]), parseFloat(data[i + 1][1]), parseFloat(data[i + 1][2])])
+        if (data[i] == undefined || data[i + 1] == undefined) {
+            continue;
+        }
+        if (Number.isNaN((data[i][0])) || Number.isNaN((data[i][1])) || Number.isNaN((data[i][2]))) {
+            continue;
+        }
+        if (Number.isNaN((data[i + 1][0])) || Number.isNaN((data[i + 1][1])) || Number.isNaN((data[i + 1][2]))) {
+            continue;
+        }
+        currencyLineGeo.setPositions([(data[i][0]), (data[i][1]), (data[i][2]), (data[i + 1][0]), (data[i + 1][1]), (data[i + 1][2])])
 
         let currencyLine = new Line2(currencyLineGeo, matLine);
         // currencyLine.computeLineDistances();
@@ -1057,6 +1094,14 @@ function updateDataLine(dataLines, data, from, to) {
         if (data[i] == undefined || data[i + 1] == undefined) {
             continue;
         }
+        if (Number.isNaN(parseFloat(data[i][0])) || Number.isNaN(parseFloat(data[i][1])) || Number.isNaN(parseFloat(data[i][2]))) {
+            console.log(data[i][0], data[i][1], data[i][2]);
+            continue;
+        }
+        if (Number.isNaN(parseFloat(data[i + 1][0])) || Number.isNaN(parseFloat(data[i + 1][1])) || Number.isNaN(parseFloat(data[i + 1][2]))) {
+            console.log(data[i + 1][0], data[i + 1][1], data[i + 1][2]);
+            continue;
+        }
         let currencyLineGeo = new LineGeometry();
         currencyLineGeo.setPositions([parseFloat(data[i][0]), parseFloat(data[i][1]), parseFloat(data[i][2]), parseFloat(data[i + 1][0]), parseFloat(data[i + 1][1]), parseFloat(data[i + 1][2])])
         dataLines[i].geometry.dispose();
@@ -1068,6 +1113,10 @@ function updateDataLine(dataLines, data, from, to) {
 
 // Update the geometry of created data lines
 function updateDataLineSingle(dataLines, x0, y0, x, y, offset) {
+    if (Number.isNaN(x0) || Number.isNaN(y0) || Number.isNaN(x) || Number.isNaN(y)) {
+        console.log(x0, y0, x, y)
+        return;
+    }
     let i = offset;
     let currencyLineGeo = new LineGeometry();
     currencyLineGeo.setPositions([x0, y0, 0, x, y, 0])
@@ -1079,6 +1128,10 @@ function updateDataLineSingle(dataLines, x0, y0, x, y, offset) {
 // Draw the purchase line using position of the green points and the remaining time of the countdown timer.
 // circlePos is the pos of the greenpoint
 function drawPurchaseLine(purchaseLineObjs, circlePos, gridTopBound, stepX, countDownTimer) {
+    if (Number.isNaN(circlePos[0][0]) || Number.isNaN(circlePos[0][1])) {
+        console.log(circlePos[0])
+        return;
+    }
     let verticalPurchaseLinePos = [circlePos[0][0] + countDownTimer * axisXConfig.stepX, 150, 0, circlePos[0][0] + countDownTimer * axisXConfig.stepX, gridTopBound, 0];
 
     const verticalPurchaseGeo = new LineGeometry();
@@ -1167,6 +1220,10 @@ function drawPurchaseLine(purchaseLineObjs, circlePos, gridTopBound, stepX, coun
 
 // Update the geometry of the purchase line using greenpoint position
 function updatePurchaseLine(drawingGroup, purchaseLineObjs, circlePos, gridTopBound, stepX, countDownTimer, redraw) {
+    if (Number.isNaN(circlePos[0][0]) || Number.isNaN(circlePos[0][1])) {
+        console.log(circlePos[0])
+        return;
+    }
     if (redraw == true) {
         let verticalPurchaseLinePos = [circlePos[0][0] + countDownTimer * axisXConfig.stepX, 150, 0, circlePos[0][0] + countDownTimer * axisXConfig.stepX, gridTopBound, 0];
 
@@ -1250,6 +1307,10 @@ function updatePurchaseLine(drawingGroup, purchaseLineObjs, circlePos, gridTopBo
 // Draw the purchase line using position of the green points and the remaining time of the countdown timer.
 // circlePos is the pos of the greenpoint
 function drawFinishLine(finishLineObjs, circlePos, gridTopBound, stepX, countDownTimer) {
+    if (Number.isNaN(circlePos[0][0]) || Number.isNaN(circlePos[0][1])) {
+        console.log(circlePos[0])
+        return;
+    }
     let verticalFinishLinePos = [circlePos[0][0] + countDownTimer * axisXConfig.stepX, 150, 0, circlePos[0][0] + countDownTimer * axisXConfig.stepX, gridTopBound, 0];
 
     const verticalFinishGeo = new LineGeometry();
@@ -1285,6 +1346,10 @@ function drawFinishLine(finishLineObjs, circlePos, gridTopBound, stepX, countDow
 
 // Update the geometry of the purchase line using greenpoint position
 function updateFinishLine(drawingGroup, finishLineObjs, circlePos, gridTopBound, stepX, finishTimer) {
+    if (Number.isNaN(circlePos[0][0]) || Number.isNaN(circlePos[0][1])) {
+        console.log(circlePos[0])
+        return;
+    }
     let verticalFinishLinePos = [circlePos[0][0] + finishTimer * axisXConfig.stepX, 150, 0, circlePos[0][0] + finishTimer * axisXConfig.stepX, gridTopBound, 0];
 
     const verticalFinishGeo = new LineGeometry();
@@ -1299,9 +1364,13 @@ function updateFinishLine(drawingGroup, finishLineObjs, circlePos, gridTopBound,
 }
 
 function drawMark(drawingGroup, markObjs, circlePos, isLower, index, gridRightBound, movedDistance, invest, onloaded) {
+    if (Number.isNaN(circlePos[0][0]) || Number.isNaN(circlePos[0][1])) {
+        console.log(circlePos[0])
+        return;
+    }
     let w = 16, h = 16;
     let color = isLower ? LOWER_BUTTON_COLOR : HIGHER_BUTTON_COLOR;
-    let markImage =  isLower ? "/img/lowermark.png": "/img/highermark.png"
+    let markImage = isLower ? "/img/lowermark.png" : "/img/highermark.png"
     // Draw oval with number
     let ovalGeo = new THREE.PlaneGeometry(w, h);
     let ovalMesh = new THREE.Mesh(ovalGeo, new THREE.MeshBasicMaterial(
