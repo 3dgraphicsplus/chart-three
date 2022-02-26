@@ -493,7 +493,7 @@ function handleHigherButtonClick(invest) {
 
 function higherButtonClickCallback(value, price) {
     console.log("Callback when click on HigherButton with ", value)
-    let url = 'http://localhost:10000'
+    let url = 'http://192.168.136.134:10000/bets/'
     let amount = document.getElementById('price').value;
     let currentTimeStamp = Date.now();
     let betContent = JSON.stringify({
@@ -514,7 +514,7 @@ function higherButtonClickCallback(value, price) {
 
 function lowerButtonClickCallback(value, price) {
     console.log("Callback when click on LowerButton with ", value);
-    let url = 'http://localhost:10000'
+    let url = 'http://192.168.136.134:10000/bets/'
     let amount = document.getElementById('price').value;
     let currentTimeStamp = Date.now();
     let betContent = JSON.stringify({
@@ -574,12 +574,12 @@ function onPointerDown(event) {
             // intersects2[0].object.scale.setScalar(0.8);
             if (higherButton == intersects2[0].object) {
                 handleHigherButtonClick($("#price").val());
-                higherButtonClickCallback($("#price").val(), dataClient.input_value[dataClient.input_value.length - 1]);
+                higherButtonClickCallback($("#price").val(), dataClient.input_value[dataClient.input_value.length - 1].price);
             }
 
             if (lowerButton == intersects2[0].object) {
                 handleLowerButtonClick($("#price").val());
-                lowerButtonClickCallback($("#price").val(), dataClient.input_value[dataClient.input_value.length - 1]);
+                lowerButtonClickCallback($("#price").val(), dataClient.input_value[dataClient.input_value.length - 1].price);
             }
         }
     }

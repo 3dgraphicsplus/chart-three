@@ -1413,7 +1413,7 @@ function drawMark(drawingGroup, markObjs, circlePos, isLower, index, gridRightBo
 
     // shape
     let geomShape = new THREE.ShapeBufferGeometry(new THREE.Shape(coordinatesList));
-    let matShape = new THREE.MeshBasicMaterial({ color: HIGHER_BUTTON_COLOR, transparent: true, opacity: 0.9 });
+    let matShape = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.9 });
     let markPriceShape = new THREE.Mesh(geomShape, matShape);
     markPriceShape.renderOrder = 50;
 
