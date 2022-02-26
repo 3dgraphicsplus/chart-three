@@ -506,6 +506,13 @@ function higherButtonClickCallback(value, price) {
         "round": round
     })
     let xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function()
+    {
+        if (xhr.readyState == 4 && xhr.status == 201)
+        {
+            alert(xhr.responseText); // Another callback here
+        }
+    };
     xhr.open("POST", url, true);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.send(betContent);
@@ -527,6 +534,13 @@ function lowerButtonClickCallback(value, price) {
         "round": round
     })
     let xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function()
+    {
+        if (xhr.readyState == 4 && xhr.status == 201)
+        {
+            alert(xhr.responseText); // Another callback here
+        }
+    };
     xhr.open("POST", url, true);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.send(betContent);
