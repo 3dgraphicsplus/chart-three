@@ -86,6 +86,8 @@ let enablePriceMark = true;
 
 let lastDraw = { newY: 0, count: 1 };
 
+let round = 1;
+
 showProgress();
 dataClient.getHistoricalData(drawCount);
 
@@ -491,10 +493,44 @@ function handleHigherButtonClick(invest) {
 
 function higherButtonClickCallback(value, price) {
     console.log("Callback when click on HigherButton with ", value)
+    let url = 'http://localhost:10000'
+    let amount = document.getElementById('price').value;
+    let currentTimeStamp = Date.now();
+    let betContent = JSON.stringify({
+        "bets": {
+            "amount": amount,
+            "point": price,
+            "type": "above",
+            "time": currentTimeStamp
+        },
+        "round": round
+    })
+    let xhr = new XMLHttpRequest();
+    xhr.open("POST", url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send(betContent);
+    console.log(betContent)
 }
 
 function lowerButtonClickCallback(value, price) {
-    console.log("Callback when click on LowerButton with ", value)
+    console.log("Callback when click on LowerButton with ", value);
+    let url = 'http://localhost:10000'
+    let amount = document.getElementById('price').value;
+    let currentTimeStamp = Date.now();
+    let betContent = JSON.stringify({
+        "bets": {
+            "amount": amount,
+            "point": price,
+            "type": "below",
+            "time": currentTimeStamp
+        },
+        "round": round
+    })
+    let xhr = new XMLHttpRequest();
+    xhr.open("POST", url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send(betContent);
+    console.log(betContent)
 }
 
 function handleLowerButtonClick(invest) {
@@ -749,8 +785,10 @@ function updateOtherStuff(triggerAtPurchaseCallback, triggerAtFinishingCallback)
         Factory.updatePurchaseLine(activeGroup, activePurchaseLineObjs, [points[points.length - 1]], Factory.GRID_TOPLINE, Factory.axisXConfig.stepX, countDownTimer, false);
     }
     if (finishTimer == 0) {
+        round += 1;
         // Remove all marks
         Factory.removeMarks(activeGroup, activeMarkObjs);
+        activeMarkObjs = []
         // Re-enable buttons
         Factory.enableHigherActiveLines(higherButton, activePriceStatusObjs);
         Factory.enableLowerActiveLines(lowerButton, activePriceStatusObjs);

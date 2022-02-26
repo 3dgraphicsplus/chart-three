@@ -1568,19 +1568,29 @@ function updateMarks(markObjs, points, gridRightBound, movedDistance) {
 function removeMarks(drawingGroup, markObjs) {
     for (let i = 0; i < markObjs.length; i++) {
         drawingGroup.remove(markObjs[i].ovalMesh)
-        markObjs[i].ovalMesh.dispose();
+        markObjs[i].ovalMesh.geometry.dispose();
+        markObjs[i].ovalMesh.material.dispose();
+        markObjs[i].ovalMesh = undefined;
         drawingGroup.remove(markObjs[i].investText)
         markObjs[i].investText.dispose();
         drawingGroup.remove(markObjs[i].priceText)
         markObjs[i].priceText.dispose();
         drawingGroup.remove(markObjs[i].markPriceShape)
-        markObjs[i].markPriceShape.dispose();
+        markObjs[i].markPriceShape.geometry.dispose();
+        markObjs[i].markPriceShape.material.dispose();
+        markObjs[i].markPriceShape = undefined;
         drawingGroup.remove(markObjs[i].verdashedLine)
-        markObjs[i].verdashedLine.dispose();
+        markObjs[i].verdashedLine.geometry.dispose();
+        markObjs[i].verdashedLine.material.dispose();
+        markObjs[i].verdashedLine = undefined;
         drawingGroup.remove(markObjs[i].verLine)
-        markObjs[i].verLine.dispose();
+        markObjs[i].verLine.geometry.dispose();
+        markObjs[i].verLine.material.dispose();
+        markObjs[i].verLine = undefined;
         drawingGroup.remove(markObjs[i].markMesh)
-        markObjs[i].markMesh.dispose();
+        markObjs[i].markMesh.geometry.dispose();
+        markObjs[i].markMesh.material.dispose();
+        markObjs[i].markMesh = undefined;
     }
 }
 
