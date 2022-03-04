@@ -349,6 +349,31 @@ function zoom(zoomValue) {
     // wheeling = false;
 }
 
+function zoomWithEffect(isZoomIn) {
+    // console.log("pos: ", activeGroup.position.x)
+    stretchValue = SCROLL_STEP;
+    // Zoom in means negative, zoom out mean positive
+    let gridFrom = ({ x: 0.1, y: 0, z: 0 });
+    let gridTo = ({ x: stretchValue, y: 0, z: 0 });
+    if (tweenZoom) {
+        tweenZoom.stop();
+    }
+    tweenZoom = new TWEEN.Tween(gridFrom).to(gridTo, 100).onUpdate(function (object) {
+        if (isZoomIn) {
+            zoom(-object.x);
+        } else {
+            zoom(object.x);
+        }
+    }).onComplete(function () {
+        // currentGridStep += stretchValue * Factory.defaultZoomLevel();
+        // currentGridStep = Math.abs(points[5][0] - points[0][0])
+        // console.log("Steps of 5: ", Math.abs(points[5][0] - points[0][0]))
+        Factory.setXStepCount(Math.floor(Factory.GRID_RIGHTMOST_LINE / Factory.axisXConfig.stepX));
+        updateView(false, true);
+    })
+        .easing(TWEEN.Easing.Linear.None).start();
+}
+
 // Event triggered when zoom
 function onWheel(event) {
     let pivotPoint = { x: 0, y: 0 }
@@ -357,30 +382,13 @@ function onWheel(event) {
     pivotPoint.y = - ((event.clientY - container.offsetTop) / (container.clientHeight)) * 2 + 1;
     let intersects = raycaster.intersectObjects(bkgObjs);
     if (intersects.length > 0) {
-        // console.log("pos: ", activeGroup.position.x)
-        stretchValue = SCROLL_STEP;
-        // Zoom in means negative, zoom out mean positive
         zoomPoint.x = intersects[0].point.x;
         zoomPoint.y = intersects[0].point.y;
-        let gridFrom = ({ x: 0.1, y: 0, z: 0 });
-        let gridTo = ({ x: stretchValue, y: 0, z: 0 });
-        if (tweenZoom) {
-            tweenZoom.stop();
+        if (event.deltaY > 0)  {
+            zoomWithEffect(false);
+        } else {
+            zoomWithEffect(true);
         }
-        tweenZoom = new TWEEN.Tween(gridFrom).to(gridTo, 100).onUpdate(function (object) {
-            if (event.deltaY > 0) {
-                zoom(object.x);
-            } else {
-                zoom(-object.x);
-            }
-        }).onComplete(function () {
-            // currentGridStep += stretchValue * Factory.defaultZoomLevel();
-            // currentGridStep = Math.abs(points[5][0] - points[0][0])
-            // console.log("Steps of 5: ", Math.abs(points[5][0] - points[0][0]))
-            Factory.setXStepCount(Math.floor(Factory.GRID_RIGHTMOST_LINE / Factory.axisXConfig.stepX));
-            updateView(false, true);
-        })
-            .easing(TWEEN.Easing.Linear.None).start();
     }
 }
 
@@ -508,10 +516,8 @@ function higherButtonClickCallback(value, price) {
         "round": round
     })
     let xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function()
-    {
-        if (xhr.readyState == 4 && xhr.status == 201)
-        {
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState == 4 && xhr.status == 201) {
             alert(xhr.responseText); // Another callback here
         }
     };
@@ -536,10 +542,8 @@ function lowerButtonClickCallback(value, price) {
         "round": round
     })
     let xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function()
-    {
-        if (xhr.readyState == 4 && xhr.status == 201)
-        {
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState == 4 && xhr.status == 201) {
             alert(xhr.responseText); // Another callback here
         }
     };
@@ -986,10 +990,17 @@ function showZoomButtons() {
     //setup gui event
     $("#zoomin").click(function (e) {
         console.log("Zoom in")
+        // Zoom in means negative, zoom out mean positive
+        zoomPoint.x = [points[points.length - 1]][0][0];
+        zoomPoint.y = [points[points.length - 1]][0][1];
+        zoomWithEffect(true);
     })
 
     $("#zoomout").click(function (e) {
         console.log("Zoom out")
+        zoomPoint.x = [points[points.length - 1]][0][0];
+        zoomPoint.y = [points[points.length - 1]][0][1];
+        zoomWithEffect(false);
     })
 
     $("#focus").click(function (e) {
