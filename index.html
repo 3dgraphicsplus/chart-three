@@ -7,10 +7,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="css/graph.css">
-    <script
-    src="https://code.jquery.com/jquery-3.6.0.slim.min.js"
-    integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI="
-    crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"
+        integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=" crossorigin="anonymous"></script>
     <!-- separate out the shaders specific to this demo -->
     <script type="x-shader/x-vertex" id="vertexshader">
 
@@ -142,52 +140,59 @@
         <div id="myBar">10%</div>
     </div>
     <div id="container"></div>
-    <div id ="overlay">
-    <table>
-    <tbody>
-    <tr>
-    <th>
-    <table id="left">
-    <tbody>
-    <tr id="l1">
-    <th>Amount</th>
-    <th><img id="helpicon" src="https://img.icons8.com/material-outlined/24/000000/help.png"/></th>
-    </tr>
-    <tr id="l2">
-    <th>
-      $ <input id="price" type="text" value="40000" />
-      </th>
-    </tr>
-    </tbody>
-    </table>
-    </th>
-    <th>
-    <table id="right">
-    <tbody>
-    <tr>
-    <th id="plus">+</th>
-    </tr>
-    <tr>
-    <th id="minus">-</th>
-    </tr>
-    </tbody>
-    </table>
-    </th>
-    </tr>
-    </tbody>
-    </table>
-    <div id="centergroup">
-    <div id="profit">
-    Profit <img id="helpicon" src="https://img.icons8.com/material-outlined/24/000000/help.png"/>
+    <div id="overlay">
+        <table>
+            <tbody>
+                <tr>
+                    <th>
+                        <table id="left">
+                            <tbody>
+                                <tr id="l1">
+                                    <th>Amount</th>
+                                    <th><img id="helpicon"
+                                            src="https://img.icons8.com/material-outlined/24/000000/help.png" /></th>
+                                </tr>
+                                <tr id="l2">
+                                    <th>
+                                        $ <input id="price" type="text" value="40000" />
+                                    </th>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </th>
+                    <th>
+                        <table id="right">
+                            <tbody>
+                                <tr>
+                                    <th id="plus">+</th>
+                                </tr>
+                                <tr>
+                                    <th id="minus">-</th>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </th>
+                </tr>
+            </tbody>
+        </table>
+        <div id="centergroup">
+            <div id="profit">
+                Profit <img id="helpicon" src="https://img.icons8.com/material-outlined/24/000000/help.png" />
+            </div>
+            <div id="profit-per" class="green">
+                +85%
+            </div>
+            <div id="profit-val" class="green">
+                +0.85$
+            </div>
+        </div>
     </div>
-    <div id="profit-per" class="green">
-    +85%
+    <div id="zoombuttons">
+        <img id="zoomin" alt="Zoom in" src="/img/plus.png">
+        <img id="zoomout" alt="Zoom out" src="/img/minus.png">
+        <img id="focus" alt="Focus" src="/img/focus.png">
     </div>
-    <div id="profit-val" class="green">
-    +0.85$
-    </div>
-    </div>
-    </div>
+
     <script src="./js/TEST_DATA.js"></script>
     <script type="module" src="./js/index.js"></script>
 

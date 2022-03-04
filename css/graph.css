@@ -118,6 +118,32 @@ body {
     border-bottom-right-radius: 4px;
 }
 
+#zoomin {
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    left: 1110px;
+    bottom: 100px;
+    z-index: 300;
+}
+
+#zoomout {
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    left: 1050px;
+    bottom: 100px;
+    z-index: 300;
+}
+
+#focus {
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    left: 1080px;
+    bottom: 100px;
+    z-index: 300;
+}
 
 #centergroup {
     padding-top: 10px;
@@ -125,6 +151,10 @@ body {
     position: relative;
     text-align: center;
     font-family: Calibri;
+}
+
+#zoombuttons {
+    display: none;
 }
 
 #profit-per {

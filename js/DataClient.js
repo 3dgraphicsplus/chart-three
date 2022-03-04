@@ -16,6 +16,7 @@ export default class DataClient {
         let websocket;
         websocket = new WebSocket(
             `wss://stream.binance.com:9443/ws/btcusdt@ticker`
+            // `wss://grypto-price-3a6ks.ondigitalocean.app`
         );
 
         websocket.onmessage = (event) => {

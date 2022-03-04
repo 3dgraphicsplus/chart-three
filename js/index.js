@@ -143,6 +143,8 @@ function init() {
 
     //show css overlay
     showOverlay();
+
+    showZoomButtons();
 }
 
 function initScene(drawingGroup, gridStepX) {
@@ -976,5 +978,21 @@ function showOverlay() {
     })
     $("#price").change(function (e) {
         console.log("price " + $("#price").val())
+    })
+}
+
+function showZoomButtons() {
+    document.getElementById("zoombuttons").style.display = "block";
+    //setup gui event
+    $("#zoomin").click(function (e) {
+        console.log("Zoom in")
+    })
+
+    $("#zoomout").click(function (e) {
+        console.log("Zoom out")
+    })
+
+    $("#focus").click(function (e) {
+        console.log("Focus")
     })
 }
