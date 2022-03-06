@@ -18,7 +18,7 @@ const SCROLL_STEP = 1;
 
 const MIN_VIEW_Y = 300;
 const MAX_VIEW_Y = 700;
-const MIN_DIFF_Y = 100;
+const MIN_DIFF_Y = 1;
 
 
 let initialCameraPos = { x: Factory.axisXConfig.initialValueX - 50, y: 100, z: 1 }
@@ -102,8 +102,8 @@ function init() {
     profitVal.innerHTML = '+' + calculatedProfit + '$'
 
     container = document.getElementById('container');
-    camera = new THREE.OrthographicCamera(0, container.clientWidth,
-        container.clientHeight, 0, -1, 1);
+    camera = new THREE.OrthographicCamera(0, container.clientWidth*2,
+        container.clientHeight*2, 0, -1, 1);
     // initialCameraPos.x += container.clientWidth / 10;
     camera.position.set(initialCameraPos.x, initialCameraPos.y, initialCameraPos.z);
 
@@ -204,10 +204,10 @@ function initScene(drawingGroup, gridStepX) {
 
     for (let i = 0; i < activeHorizontalGridObjs.length; i++) {
         scene.remove(activeHorizontalGridObjs[i].line)
-        // scene.remove(activeHorizontalGridObjs[i].text)
+        scene.remove(activeHorizontalGridObjs[i].text)
 
         scene.add(activeHorizontalGridObjs[i].line)
-        // scene.add(activeHorizontalGridObjs[i].text)
+        scene.add(activeHorizontalGridObjs[i].text)
     }
 
     drawingGroup.add(newbkg)
@@ -633,7 +633,7 @@ function rescale(newStepDelta, beginIndex, endIndex, newInitialValueYDelta) {
         if (points[i] == undefined) {
             continue;
         }
-        points[i][1] = (dataClient.input_value[i].price - dataClient.getOrigin().price) * newStepDelta * 1000 + newInitialValueYDelta;
+        points[i][1] = (dataClient.input_value[i].price - dataClient.getOrigin().price) * newStepDelta + newInitialValueYDelta;
     }
 }
 
@@ -677,25 +677,30 @@ function calculateAxisY(newConfig) {
         }
     }
     let newStepY = Factory.axisYConfig.stepY;
-    let currentPos = (dataClient.input_value[dataClient.currentIndex].price - dataClient.getOrigin().price) * Factory.axisYConfig.stepY * 1000 + Factory.axisYConfig.initialValueY;
-    let prevPos = (dataClient.input_value[dataClient.currentIndex - 1].price - dataClient.getOrigin().price) * Factory.axisYConfig.stepY * 1000 + Factory.axisYConfig.initialValueY;
+    let currentPos = (dataClient.input_value[dataClient.currentIndex].price - dataClient.getOrigin().price) * Factory.axisYConfig.stepY + Factory.axisYConfig.initialValueY;
+    let prevPos = (dataClient.input_value[dataClient.currentIndex - 1].price - dataClient.getOrigin().price) * Factory.axisYConfig.stepY + Factory.axisYConfig.initialValueY;
     // if update is needed
-    if (minY < MIN_VIEW_Y || maxY > MAX_VIEW_Y || currentPos - prevPos < MIN_DIFF_Y) {
+    if (minY < MIN_VIEW_Y || maxY > MAX_VIEW_Y) {
         // console.log("Rescale needed: ", maxY, minY, currentPos, prevPos);
         // To calculate the newY that will fit into the view, use the predefined max, min view Y
-        newStepY = ((MAX_VIEW_Y - MIN_VIEW_Y)) / 1000 / (dataClient.input_value[maxYIndex].price - dataClient.input_value[minYIndex].price);
+        newStepY = ((MAX_VIEW_Y - MIN_VIEW_Y)) / (dataClient.input_value[maxYIndex].price - dataClient.input_value[minYIndex].price);
         let newInitialValueY = Factory.axisYConfig.initialValueY;
         if (minY < MIN_VIEW_Y) {
             // console.log("Rescale needed MIN_VIEW: ", dataClient.input_value[maxYIndex].price - dataClient.input_value[minYIndex].price);
-            newInitialValueY = (MIN_VIEW_Y - (dataClient.input_value[minYIndex].price - dataClient.getOrigin().price) * newStepY * 1000);
+            newInitialValueY = (MIN_VIEW_Y - (dataClient.input_value[minYIndex].price - dataClient.getOrigin().price) * newStepY);
             // console.log("newInitialValueY: ", newInitialValueY);
         } else if (maxY > MAX_VIEW_Y) {
             // console.log("Rescale needed MAX_VIEW: ", dataClient.input_value[maxYIndex].price - dataClient.input_value[minYIndex].price);
-            newInitialValueY = (MAX_VIEW_Y - (dataClient.input_value[maxYIndex].price - dataClient.getOrigin().price) * newStepY * 1000);
+            newInitialValueY = (MAX_VIEW_Y - (dataClient.input_value[maxYIndex].price - dataClient.getOrigin().price) * newStepY);
             // console.log("newInitialValueY: ", newInitialValueY);
         }
         newConfig.stepY = newStepY;
         newConfig.initialValueY = newInitialValueY;
+        return true;//need to update
+    } else if (currentPos - prevPos < MIN_DIFF_Y && (currentPos - prevPos != 0)) {
+        // newConfig.stepY = newConfig.stepY + newConfig.stepY * 20 / 100;
+        newConfig.stepY = MIN_DIFF_Y / ((currentPos - prevPos));
+        console.log("Rescale: ", currentPos, prevPos, newConfig.stepY)
         return true;//need to update
     }
 
@@ -833,7 +838,7 @@ function drawNewData(newY, count) {
 
     let tweenFrom = ({ x: tempPos[0][0], y: tempPos[0][1], z: 0 });
     let tweenTo = ({ x: newPos[0], y: newPos[1], z: 0 });
-    // console.log(Factory.axisYConfig)
+    console.log(newPos)
 
     //Just push new and updating value in real-time
     points.push([tweenFrom.x, tweenFrom.y, 0]);
@@ -872,7 +877,7 @@ function updateGreenPoint(now) {
             lastBlink = now;
             let percent = 1;
             let tempPos = [points[points.length - 1]];
-            let newY = (dataClient.input_value[dataClient.currentIndex].price - dataClient.getOrigin().price) * Factory.axisYConfig.stepY * 1000 + Factory.axisYConfig.initialValueY;//????FIXME
+            let newY = (dataClient.input_value[dataClient.currentIndex].price - dataClient.getOrigin().price) * Factory.axisYConfig.stepY + Factory.axisYConfig.initialValueY;//????FIXME
             let newPos = [tempPos[0][0] + Factory.axisXConfig.stepX, newY, 0];
             let tweenFrom = ({ x: tempPos[0][0], y: tempPos[0][1], z: 0 });
             let tweenTo = ({ x: newPos[0], y: newPos[1], z: 0 });
@@ -893,7 +898,8 @@ function updateGeometries(beginIndex, endIndex) {
     // Update the data line, note that two points make one data line
     Factory.updateDataLine(activeDataLineObjs, points, beginIndex, endIndex);
     // activeGroup.position.set(activeGroup.position.x + (stretchValue) * 2, activeGroup.position.y, activeGroup.position.z);
-    // Draw the poligon
+
+    Factory.updateHorizontalGrid(activeHorizontalGridObjs, 0, Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120);
 
     //  Two points make one poligon also
     Factory.updatePolygon(activePoligonObjs, points, beginIndex, endIndex);
@@ -919,10 +925,11 @@ function update(now) {
     let newVal = getNewY(now);
     if (newVal) {//???WHAT IS FOR
         // console.log("before", Factory.axisYConfig.stepY, Factory.axisYConfig.initialValueY)
-        let newY = (newVal.price - dataClient.getOrigin().price) * Factory.axisYConfig.stepY * 1000 + Factory.axisYConfig.initialValueY;
+        let newY = (newVal.price - dataClient.getOrigin().price) * Factory.axisYConfig.stepY + Factory.axisYConfig.initialValueY;
 
         //disable 
         if (1 || Math.floor(newY) != Math.floor(lastDraw.newY) || lastDraw.count >= 3) {
+            console.log(newVal.price, newY)
             drawNewData(newY, lastDraw.count);
             lastDraw.newY = newY;
             lastDraw.count = 1;
