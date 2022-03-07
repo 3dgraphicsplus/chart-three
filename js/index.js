@@ -102,8 +102,8 @@ function init() {
     profitVal.innerHTML = '+' + calculatedProfit + '$'
 
     container = document.getElementById('container');
-    camera = new THREE.OrthographicCamera(0, container.clientWidth*2,
-        container.clientHeight*2, 0, -1, 1);
+    camera = new THREE.OrthographicCamera(0, container.clientWidth,
+        container.clientHeight, 0, -1, 1);
     // initialCameraPos.x += container.clientWidth / 10;
     camera.position.set(initialCameraPos.x, initialCameraPos.y, initialCameraPos.z);
 
@@ -311,7 +311,6 @@ function zoom(zoomValue) {
 
     // Init the index of point where the zoom happens
     zoomFrom(zoomPoint.x, -zoomValue / 10.0);
-
 
     // Update the data line
     Factory.updateDataLine(activeDataLineObjs, points, beginViewingIndex, endViewingIndex);
@@ -697,11 +696,11 @@ function calculateAxisY(newConfig) {
         newConfig.stepY = newStepY;
         newConfig.initialValueY = newInitialValueY;
         return true;//need to update
-    } else if (currentPos - prevPos < MIN_DIFF_Y && (currentPos - prevPos != 0)) {
-        // newConfig.stepY = newConfig.stepY + newConfig.stepY * 20 / 100;
-        newConfig.stepY = MIN_DIFF_Y / ((currentPos - prevPos));
-        console.log("Rescale: ", currentPos, prevPos, newConfig.stepY)
-        return true;//need to update
+    // } else if (currentPos - prevPos < MIN_DIFF_Y && (currentPos - prevPos != 0)) {
+    //     // newConfig.stepY = newConfig.stepY + newConfig.stepY * 20 / 100;
+    //     newConfig.stepY = MIN_DIFF_Y / ((currentPos - prevPos));
+    //     console.log("Rescale: ", currentPos, prevPos, newConfig.stepY)
+    //     return true;//need to update
     }
 
     return false;
@@ -838,7 +837,7 @@ function drawNewData(newY, count) {
 
     let tweenFrom = ({ x: tempPos[0][0], y: tempPos[0][1], z: 0 });
     let tweenTo = ({ x: newPos[0], y: newPos[1], z: 0 });
-    console.log(newPos)
+    // console.log(newPos)
 
     //Just push new and updating value in real-time
     points.push([tweenFrom.x, tweenFrom.y, 0]);
@@ -929,7 +928,7 @@ function update(now) {
 
         //disable 
         if (1 || Math.floor(newY) != Math.floor(lastDraw.newY) || lastDraw.count >= 3) {
-            console.log(newVal.price, newY)
+            console.log(newVal.price, newY, Factory.axisYConfig.stepY, Factory.axisYConfig.initialValueY)
             drawNewData(newY, lastDraw.count);
             lastDraw.newY = newY;
             lastDraw.count = 1;
