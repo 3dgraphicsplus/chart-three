@@ -33,7 +33,8 @@ const NUMBER_OF_Y_LINE = 6
 var GRID_TOPLINE, GRID_RIGHTMOST_LINE;
 
 // const DEFAULT_ZOOM_LEVEL = [5, 10, 15, 30, 60, 120, 300, 900, 1800, 3600, 7200, 3600 * 4, 3600 * 6, 3600 * 12]
-const DEFAULT_ZOOM_LEVEL = [15, 30, 60, 120, 300, 900]
+const DEFAULT_ZOOM_LEVEL = [5, 10, 15, 30, 60, 120, 300, 900]
+
 // Index of the DEFAULT_ZOOM_LEVEL array
 let currentZoomLevel = 2;
 
@@ -54,16 +55,16 @@ const SCROLL_STEP = 1;
 const MIN_VIEW_Y = 300;
 const MAX_VIEW_Y = 800;
 const MIN_DIFF_Y = 200;
-// let XStepCount = 50;
+let XStepCount = 50;
 let axisXConfig = { stepX: 20, initialValueX: 0 }
 let axisYConfig = {
-    stepY: 100, initialValueY: 1000,
+    stepY: 3, initialValueY: 700,
     clone: function () { return { stepY: this.stepY, initialValueY: this.initialValueY }; }
 }
 
 function drawInitialData(points, count, activeGroup, activePoligonObjs) {
 
-    // XStepCount = Math.floor(GRID_RIGHTMOST_LINE / axisXConfig.stepX);
+    XStepCount = Math.floor(GRID_RIGHTMOST_LINE / axisXConfig.stepX);
     // Get the data
     points.push([parseFloat(axisXConfig.initialValueX), parseFloat(axisYConfig.initialValueY), 0]);
 
@@ -1632,9 +1633,9 @@ function currentZoom(val) {
     return currentZoomLevel
 }
 
-// function setXStepCount(val) {
-//     XStepCount = val;
-// }
+function setXStepCount(val) {
+    XStepCount = val;
+}
 
 export {
     updatePurchaseLine,
@@ -1661,8 +1662,8 @@ export {
     currentZoom,
     axisYConfig,
     axisXConfig,
-    // setXStepCount,
-    // XStepCount,
+    setXStepCount,
+    XStepCount,
     drawHigherButton,
     LOWER_BUTTON_COLOR_ENABLE,
     HIGHER_BUTTON_COLOR_ENABLE,

@@ -16,7 +16,7 @@ const MAX_GRID_STEP = 300
 const MIN_GRID_STEP = 150
 const SCROLL_STEP = 1;
 
-const MIN_VIEW_Y = 300;
+const MIN_VIEW_Y = 200;
 const MAX_VIEW_Y = 700;
 const MIN_DIFF_Y = 1;
 
@@ -102,12 +102,12 @@ function init() {
     profitVal.innerHTML = '+' + calculatedProfit + '$'
 
     container = document.getElementById('container');
-    camera = new THREE.OrthographicCamera(0, container.clientWidth*2,
-        container.clientHeight*2, 0, -1, 1);
+    camera = new THREE.OrthographicCamera(0, container.clientWidth,
+        container.clientHeight, 0, -1, 1);
     // initialCameraPos.x += container.clientWidth / 10;
     camera.position.set(initialCameraPos.x, initialCameraPos.y, initialCameraPos.z);
 
-    Factory.setGrid(container.clientHeight*2 + container.offsetTop + 50, container.clientWidth*2 + 100);
+    Factory.setGrid(container.clientHeight + container.offsetTop + 50, container.clientWidth + 100);
 
     scene = new THREE.Scene();
     // camera.lookAt( scene.position );
@@ -154,7 +154,7 @@ function initScene(drawingGroup, gridStepX) {
     // console.log(points.length, dataClient.currentIndex)
 
     // console.log("totalpoligons: ", activePoligonObjs.length, drawCount)
-    beginViewingIndex = dataClient.currentIndex - Factory.XStepCount - 1;
+    beginViewingIndex = 0;
     endViewingIndex = dataClient.currentIndex;
 
     let higher = Factory.drawHigherButton(scene, Factory.GRID_RIGHTMOST_LINE);
@@ -281,8 +281,8 @@ function zoomFrom(x, zoomValue) {
 
     // Update step between two consecutive data points
     // Factory.axisXConfig.stepX -= zoomValue;
-    // Factory.setXStepCount(newGridStep);
     Factory.axisXConfig.stepX = points[1][0] - points[0][0]
+    // Factory.setXStepCount((Factory.axisXConfig.stepX - zoomValue) * Factory.defaultZoomLevel());
     // console.log("Updated: ", Factory.axisXConfig.stepX);
 }
 
@@ -373,8 +373,8 @@ function zoomWithEffect(isZoomIn) {
         // currentGridStep += stretchValue * Factory.defaultZoomLevel();
         // currentGridStep = Math.abs(points[5][0] - points[0][0])
         // console.log("Steps of 5: ", Math.abs(points[5][0] - points[0][0]))
-        // Factory.setXStepCount(Math.floor(Factory.GRID_RIGHTMOST_LINE / Factory.axisXConfig.stepX));
-
+        Factory.setXStepCount(Math.floor(Factory.GRID_RIGHTMOST_LINE / Factory.axisXConfig.stepX));
+        Factory.axisYConfig.stepY *= 2;
         console.log(Factory.axisXConfig.stepX, Factory.currentZoom());
         updateView(false, true);
     })
@@ -663,14 +663,11 @@ function updateListOfViewingIndex() {
 }
 
 function calculateAxisY(newConfig) {
-    // if (Factory.currentZoom != 0) {
-    //     return;
-    // }
     let maxY = points[beginViewingIndex][1];
     let minY = points[beginViewingIndex][1];
     let maxYIndex = beginViewingIndex;
     let minYIndex = beginViewingIndex;
-    // console.log("beginViewIndex and endViewingIndex and currentIndex: ", beginViewingIndex, endViewingIndex, dataClient.currentIndex);
+    console.log("beginViewIndex and endViewingIndex and currentIndex: ", beginViewingIndex, endViewingIndex, dataClient.currentIndex);
     for (let i = beginViewingIndex; i < endViewingIndex; i++) {
         if (points[i] == undefined) {
             continue;
@@ -686,34 +683,40 @@ function calculateAxisY(newConfig) {
             minYIndex = i;
         }
     }
+
+    console.log("max min: ", maxYIndex, minYIndex);
     let newStepY = Factory.axisYConfig.stepY;
-    let currentPos = (dataClient.input_value[dataClient.currentIndex].price - dataClient.getOrigin().price) * Factory.axisYConfig.stepY + Factory.axisYConfig.initialValueY;
-    let prevPos = (dataClient.input_value[dataClient.currentIndex - 1].price - dataClient.getOrigin().price) * Factory.axisYConfig.stepY + Factory.axisYConfig.initialValueY;
-    // if update is needed
-    if (minY < MIN_VIEW_Y || maxY > MAX_VIEW_Y) {
-        // console.log("Rescale needed: ", maxY, minY, currentPos, prevPos);
-        // To calculate the newY that will fit into the view, use the predefined max, min view Y
-        newStepY = ((MAX_VIEW_Y - MIN_VIEW_Y)) / (dataClient.input_value[maxYIndex].price - dataClient.input_value[minYIndex].price);
-        let newInitialValueY = Factory.axisYConfig.initialValueY;
-        if (minY < MIN_VIEW_Y) {
-            // console.log("Rescale needed MIN_VIEW: ", dataClient.input_value[maxYIndex].price - dataClient.input_value[minYIndex].price);
-            newInitialValueY = (MIN_VIEW_Y - (dataClient.input_value[minYIndex].price - dataClient.getOrigin().price) * newStepY);
-            // console.log("newInitialValueY: ", newInitialValueY);
-        } else if (maxY > MAX_VIEW_Y) {
-            // console.log("Rescale needed MAX_VIEW: ", dataClient.input_value[maxYIndex].price - dataClient.input_value[minYIndex].price);
-            newInitialValueY = (MAX_VIEW_Y - (dataClient.input_value[maxYIndex].price - dataClient.getOrigin().price) * newStepY);
-            // console.log("newInitialValueY: ", newInitialValueY);
+    let currentPos = (dataClient.input_value[dataClient.currentIndex].price - dataClient.input_value[beginViewingIndex].price) * Factory.axisYConfig.stepY + Factory.axisYConfig.initialValueY;
+    let prevPos = (dataClient.input_value[dataClient.currentIndex - 1].price - dataClient.input_value[beginViewingIndex].price) * Factory.axisYConfig.stepY + Factory.axisYConfig.initialValueY;
+    // if (Factory.currentZoom() == 0) {
+    //     if (currentPos - prevPos < MIN_DIFF_Y && (currentPos - prevPos != 0)) {
+    //         // newConfig.stepY = newConfig.stepY + newConfig.stepY * 20 / 100;
+    //         newConfig.stepY = MIN_DIFF_Y / ((currentPos - prevPos));
+    //         console.log("Rescale: ", currentPos, prevPos, newConfig.stepY)
+    //         return true;//need to update
+    //     }
+    // } else {
+        // if update is needed
+        if (minY < MIN_VIEW_Y || maxY > MAX_VIEW_Y) {
+            console.log("Rescale needed: ", maxY, minY, dataClient.input_value[maxYIndex].price, dataClient.input_value[minYIndex].price);
+            // To calculate the newY that will fit into the view, use the predefined max, min view Y
+            newStepY = ((MAX_VIEW_Y - MIN_VIEW_Y)) / (dataClient.input_value[maxYIndex].price - dataClient.input_value[minYIndex].price);
+            let newInitialValueY = Factory.axisYConfig.initialValueY;
+            if (minY < MIN_VIEW_Y) {
+                // console.log("Rescale needed MIN_VIEW: ", dataClient.input_value[maxYIndex].price - dataClient.input_value[minYIndex].price);
+                newInitialValueY = (MIN_VIEW_Y - (dataClient.input_value[minYIndex].price - dataClient.getOrigin().price) * newStepY);
+                // console.log("newInitialValueY: ", newInitialValueY);
+            } else if (maxY > MAX_VIEW_Y) {
+                // console.log("Rescale needed MAX_VIEW: ", dataClient.input_value[maxYIndex].price - dataClient.input_value[minYIndex].price);
+                newInitialValueY = (MAX_VIEW_Y - (dataClient.input_value[maxYIndex].price - dataClient.getOrigin().price) * newStepY);
+                // console.log("newInitialValueY: ", newInitialValueY);
+            }
+            newConfig.stepY = newStepY;
+            newConfig.initialValueY = newInitialValueY;
+            console.log("Changed: ", newStepY, newInitialValueY);
+            return true;
         }
-        newConfig.stepY = newStepY;
-        newConfig.initialValueY = newInitialValueY;
-        return true;
-        //need to update
-        // } else if (currentPos - prevPos < MIN_DIFF_Y && (currentPos - prevPos != 0)) {
-        //     // newConfig.stepY = newConfig.stepY + newConfig.stepY * 20 / 100;
-        //     newConfig.stepY = MIN_DIFF_Y / ((currentPos - prevPos));
-        //     console.log("Rescale: ", currentPos, prevPos, newConfig.stepY)
-        //     return true;//need to update
-    }
+    // }
 
     return false;
 
@@ -889,7 +892,7 @@ function updateGreenPoint(now) {
             lastBlink = now;
             let percent = 1;
             let tempPos = [points[points.length - 1]];
-            let newY = (dataClient.input_value[dataClient.currentIndex].price - dataClient.getOrigin().price) * Factory.axisYConfig.stepY + Factory.axisYConfig.initialValueY;//????FIXME
+            let newY = (dataClient.input_value[dataClient.currentIndex].price - dataClient.input_value[beginViewingIndex].price) * Factory.axisYConfig.stepY + Factory.axisYConfig.initialValueY;//????FIXME
             let newPos = [tempPos[0][0] + Factory.axisXConfig.stepX, newY, 0];
             let tweenFrom = ({ x: tempPos[0][0], y: tempPos[0][1], z: 0 });
             let tweenTo = ({ x: newPos[0], y: newPos[1], z: 0 });
@@ -937,7 +940,7 @@ function update(now) {
     let newVal = getNewY(now);
     if (newVal) {//???WHAT IS FOR
         // console.log("before", Factory.axisYConfig.stepY, Factory.axisYConfig.initialValueY)
-        let newY = (newVal.price - dataClient.getOrigin().price) * Factory.axisYConfig.stepY + Factory.axisYConfig.initialValueY;
+        let newY = (newVal.price - dataClient.input_value[beginViewingIndex].price) * Factory.axisYConfig.stepY + Factory.axisYConfig.initialValueY;
         console.log(dataClient.getOrigin().price, newVal.price, newY);
 
         //disable 
