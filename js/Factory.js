@@ -32,11 +32,10 @@ const NUMBER_OF_Y_LINE = 6
 
 var GRID_TOPLINE, GRID_RIGHTMOST_LINE;
 
-
 // const DEFAULT_ZOOM_LEVEL = [5, 10, 15, 30, 60, 120, 300, 900, 1800, 3600, 7200, 3600 * 4, 3600 * 6, 3600 * 12]
-const DEFAULT_ZOOM_LEVEL = [5, 10, 15, 30]
+const DEFAULT_ZOOM_LEVEL = [15, 30, 60, 120, 300, 900]
 // Index of the DEFAULT_ZOOM_LEVEL array
-let currentZoomLevel = 0;
+let currentZoomLevel = 2;
 
 let timestampShape, timestampText;
 let mousePriceShape, mouseAlertShape;
@@ -49,7 +48,7 @@ let enableLowerActive = false;
 
 const DEFAULT_GRID_STEP = 200;
 const MAX_GRID_STEP = 300;
-const MIN_GRID_STEP = 150;
+const MIN_GRID_STEP = 100;
 const SCROLL_STEP = 1;
 
 const MIN_VIEW_Y = 300;
@@ -58,7 +57,7 @@ const MIN_DIFF_Y = 200;
 // let XStepCount = 50;
 let axisXConfig = { stepX: 20, initialValueX: 0 }
 let axisYConfig = {
-    stepY: 10, initialValueY: 0,
+    stepY: 100, initialValueY: 1000,
     clone: function () { return { stepY: this.stepY, initialValueY: this.initialValueY }; }
 }
 

@@ -77,7 +77,7 @@ let upMesh, downMesh;
 let lowhighButtons = [];
 
 //Draw demo 100 points at start point??
-const drawCount = 100;
+const drawCount = 300;
 let beginViewingIndex = 0;
 let endViewingIndex = drawCount;
 let currentProgress = 0;
@@ -85,8 +85,6 @@ let currentProgress = 0;
 let enablePriceMark = true;
 
 let lastDraw = { newY: 0, count: 1 };
-
-let zoomChange = false;
 
 let round = 1;
 
@@ -104,12 +102,12 @@ function init() {
     profitVal.innerHTML = '+' + calculatedProfit + '$'
 
     container = document.getElementById('container');
-    camera = new THREE.OrthographicCamera(0, container.clientWidth,
-        container.clientHeight, 0, -1, 1);
+    camera = new THREE.OrthographicCamera(0, container.clientWidth*2,
+        container.clientHeight*2, 0, -1, 1);
     // initialCameraPos.x += container.clientWidth / 10;
     camera.position.set(initialCameraPos.x, initialCameraPos.y, initialCameraPos.z);
 
-    Factory.setGrid(container.clientHeight + container.offsetTop + 50, container.clientWidth + 100);
+    Factory.setGrid(container.clientHeight*2 + container.offsetTop + 50, container.clientWidth*2 + 100);
 
     scene = new THREE.Scene();
     // camera.lookAt( scene.position );
@@ -285,7 +283,7 @@ function zoomFrom(x, zoomValue) {
     // Factory.axisXConfig.stepX -= zoomValue;
     // Factory.setXStepCount(newGridStep);
     Factory.axisXConfig.stepX = points[1][0] - points[0][0]
-    console.log("Updated: ", Factory.axisXConfig.stepX);
+    // console.log("Updated: ", Factory.axisXConfig.stepX);
 }
 
 // Called when zoomint/out, in onWheel function
@@ -665,7 +663,9 @@ function updateListOfViewingIndex() {
 }
 
 function calculateAxisY(newConfig) {
-
+    // if (Factory.currentZoom != 0) {
+    //     return;
+    // }
     let maxY = points[beginViewingIndex][1];
     let minY = points[beginViewingIndex][1];
     let maxYIndex = beginViewingIndex;
@@ -675,6 +675,7 @@ function calculateAxisY(newConfig) {
         if (points[i] == undefined) {
             continue;
         }
+
         if (points[i][1] > maxY) {
             maxY = points[i][1];
             maxYIndex = i;
@@ -705,7 +706,8 @@ function calculateAxisY(newConfig) {
         }
         newConfig.stepY = newStepY;
         newConfig.initialValueY = newInitialValueY;
-        return true;//need to update
+        return true;
+        //need to update
         // } else if (currentPos - prevPos < MIN_DIFF_Y && (currentPos - prevPos != 0)) {
         //     // newConfig.stepY = newConfig.stepY + newConfig.stepY * 20 / 100;
         //     newConfig.stepY = MIN_DIFF_Y / ((currentPos - prevPos));
@@ -730,6 +732,7 @@ function updateView(addNewData, refreshView) {
 
     let newConfig = Factory.axisYConfig.clone();
     let need2Update = calculateAxisY(newConfig);
+    // let need2Update = false;
     // console.log("stepY, initY ", Factory.axisYConfig.stepY, Factory.axisYConfig.initialValueY);
     // console.log("begin, end ", beginViewingIndex, endViewingIndex, dataClient.currentIndex, Factory.XStepCount);
     if (need2Update) {
@@ -935,6 +938,7 @@ function update(now) {
     if (newVal) {//???WHAT IS FOR
         // console.log("before", Factory.axisYConfig.stepY, Factory.axisYConfig.initialValueY)
         let newY = (newVal.price - dataClient.getOrigin().price) * Factory.axisYConfig.stepY + Factory.axisYConfig.initialValueY;
+        console.log(dataClient.getOrigin().price, newVal.price, newY);
 
         //disable 
         if (1 || Math.floor(newY) != Math.floor(lastDraw.newY) || lastDraw.count >= 3) {
