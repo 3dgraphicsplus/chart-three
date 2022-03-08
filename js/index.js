@@ -86,6 +86,8 @@ let enablePriceMark = true;
 
 let lastDraw = { newY: 0, count: 1 };
 
+let zoomChange = false;
+
 let round = 1;
 
 showProgress();
@@ -276,8 +278,14 @@ function zoomFrom(x, zoomValue) {
 
     // Find the point at which the zoom happens
     for (let i = 0; i < points.length; i++) {
-        points[i][0] += (zoomValue) * (points[i][0] - xLine);
+        points[i][0] -= (zoomValue) * (points[i][0] - xLine);
     }
+
+    // Update step between two consecutive data points
+    // Factory.axisXConfig.stepX -= zoomValue;
+    // Factory.setXStepCount(newGridStep);
+    Factory.axisXConfig.stepX = points[1][0] - points[0][0]
+    console.log("Updated: ", Factory.axisXConfig.stepX);
 }
 
 // Called when zoomint/out, in onWheel function
@@ -285,45 +293,45 @@ function zoom(zoomValue) {
     // Find the position of wheel
     let newGridStep = (Factory.axisXConfig.stepX - zoomValue) * Factory.defaultZoomLevel();
     let lastZoomLevel = Factory.currentZoom();
-    let zoomChange = false;
-    // Check if need to update grid, remove or add new grid
-    if (newGridStep > MAX_GRID_STEP) {
-        // zoom in at max for current level, need to change level of zoom
-        if (Factory.currentZoom() < Factory.listZoomLevel().length - 1 && lastZoomLevel > 0.5) {//avoid float accuracy
-            Factory.currentZoom(Factory.currentZoom() - 1);
-            zoomChange = true;
-        } else {
-            return;
+    let newDraw = false;
+
+    if (zoomValue < 0) { // Zoom in
+        if (newGridStep > MAX_GRID_STEP) {
+            // zoom in at max for current level, need to change level of zoom
+            if (Factory.currentZoom() < Factory.listZoomLevel().length - 1 && lastZoomLevel > 0.5) {//avoid float accuracy
+                Factory.currentZoom(Factory.currentZoom() - 1);
+                newDraw = true;
+            } else {
+                return;
+            }
         }
-    } else if (newGridStep < MIN_GRID_STEP) {
-        // zoom out at max for current level, need to change level of zoom
-        if (lastZoomLevel >= 0 && Factory.currentZoom() < Factory.listZoomLevel().length - 1 - 1) {
-            Factory.currentZoom(Factory.currentZoom() + 1);
-            zoomChange = true;
-        } else {
-            return;
+    } else if (zoomValue > 0) { // Zoom out
+        if (newGridStep < MIN_GRID_STEP) {
+            if (lastZoomLevel >= 0 && Factory.currentZoom() <= Factory.listZoomLevel().length - 1 - 1) {
+                Factory.currentZoom(Factory.currentZoom() + 1);
+                newDraw = true;
+            } else {
+                return;
+            }
         }
+    } else {
+        return;
     }
 
-    // Update step between two consecutive data points
-    Factory.axisXConfig.stepX -= zoomValue;
-    Factory.setXStepCount(Math.floor(Factory.GRID_RIGHTMOST_LINE / Factory.axisXConfig.stepX));
-
     // Init the index of point where the zoom happens
-    zoomFrom(zoomPoint.x, -zoomValue / 10.0);
+    zoomFrom(zoomPoint.x, zoomValue / 10.0);
 
     // Update the data line
     Factory.updateDataLine(activeDataLineObjs, points, beginViewingIndex, endViewingIndex);
 
     // If need to change current zoom level then need to add/remove grids
-    if (zoomChange == true) {
+    if (newDraw == true) {
         Factory.removeRedundantVerticalGrid(activeGroup, activeVerticalGridObjs);
-        Factory.updateVerticalGrid(activeVerticalGridObjs, points, lastZoomLevel, Factory.GRID_TOPLINE);
+        Factory.updateVerticalGrid(activeVerticalGridObjs, points, Factory.currentZoom(), Factory.GRID_TOPLINE);
         //??FIXME update?not create
         Factory.drawVerticalGrid(activeGroup, activeVerticalGridObjs, points, Math.floor(dataClient.currentIndex / Factory.defaultZoomLevel()), Factory.GRID_TOPLINE, 0)
-        zoomChange = false;
     } else { //otherwise, update only the geometry of current grid
-        Factory.updateVerticalGrid(activeVerticalGridObjs, points, lastZoomLevel, Factory.GRID_TOPLINE);
+        Factory.updateVerticalGrid(activeVerticalGridObjs, points, Factory.currentZoom(), Factory.GRID_TOPLINE);
     }
 
     // Draw the poligon
@@ -367,7 +375,9 @@ function zoomWithEffect(isZoomIn) {
         // currentGridStep += stretchValue * Factory.defaultZoomLevel();
         // currentGridStep = Math.abs(points[5][0] - points[0][0])
         // console.log("Steps of 5: ", Math.abs(points[5][0] - points[0][0]))
-        Factory.setXStepCount(Math.floor(Factory.GRID_RIGHTMOST_LINE / Factory.axisXConfig.stepX));
+        // Factory.setXStepCount(Math.floor(Factory.GRID_RIGHTMOST_LINE / Factory.axisXConfig.stepX));
+
+        console.log(Factory.axisXConfig.stepX, Factory.currentZoom());
         updateView(false, true);
     })
         .easing(TWEEN.Easing.Linear.None).start();
@@ -383,7 +393,7 @@ function onWheel(event) {
     if (intersects.length > 0) {
         zoomPoint.x = intersects[0].point.x;
         zoomPoint.y = intersects[0].point.y;
-        if (event.deltaY > 0)  {
+        if (event.deltaY > 0) {
             zoomWithEffect(false);
         } else {
             zoomWithEffect(true);
@@ -696,11 +706,11 @@ function calculateAxisY(newConfig) {
         newConfig.stepY = newStepY;
         newConfig.initialValueY = newInitialValueY;
         return true;//need to update
-    // } else if (currentPos - prevPos < MIN_DIFF_Y && (currentPos - prevPos != 0)) {
-    //     // newConfig.stepY = newConfig.stepY + newConfig.stepY * 20 / 100;
-    //     newConfig.stepY = MIN_DIFF_Y / ((currentPos - prevPos));
-    //     console.log("Rescale: ", currentPos, prevPos, newConfig.stepY)
-    //     return true;//need to update
+        // } else if (currentPos - prevPos < MIN_DIFF_Y && (currentPos - prevPos != 0)) {
+        //     // newConfig.stepY = newConfig.stepY + newConfig.stepY * 20 / 100;
+        //     newConfig.stepY = MIN_DIFF_Y / ((currentPos - prevPos));
+        //     console.log("Rescale: ", currentPos, prevPos, newConfig.stepY)
+        //     return true;//need to update
     }
 
     return false;
@@ -928,7 +938,7 @@ function update(now) {
 
         //disable 
         if (1 || Math.floor(newY) != Math.floor(lastDraw.newY) || lastDraw.count >= 3) {
-            console.log(newVal.price, newY, Factory.axisYConfig.stepY, Factory.axisYConfig.initialValueY)
+            // console.log(newVal.price, newY, Factory.axisYConfig.stepY, Factory.axisYConfig.initialValueY)
             drawNewData(newY, lastDraw.count);
             lastDraw.newY = newY;
             lastDraw.count = 1;

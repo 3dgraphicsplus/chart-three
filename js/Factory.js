@@ -47,15 +47,15 @@ let lastVerticalGrid;
 let enableHigherActive = false;
 let enableLowerActive = false;
 
-const DEFAULT_GRID_STEP = 200
-const MAX_GRID_STEP = 300
-const MIN_GRID_STEP = 150
+const DEFAULT_GRID_STEP = 200;
+const MAX_GRID_STEP = 300;
+const MIN_GRID_STEP = 150;
 const SCROLL_STEP = 1;
 
 const MIN_VIEW_Y = 300;
 const MAX_VIEW_Y = 800;
 const MIN_DIFF_Y = 200;
-let XStepCount = 50;
+// let XStepCount = 50;
 let axisXConfig = { stepX: 20, initialValueX: 0 }
 let axisYConfig = {
     stepY: 10, initialValueY: 0,
@@ -64,7 +64,7 @@ let axisYConfig = {
 
 function drawInitialData(points, count, activeGroup, activePoligonObjs) {
 
-    XStepCount = Math.floor(GRID_RIGHTMOST_LINE / axisXConfig.stepX);
+    // XStepCount = Math.floor(GRID_RIGHTMOST_LINE / axisXConfig.stepX);
     // Get the data
     points.push([parseFloat(axisXConfig.initialValueX), parseFloat(axisYConfig.initialValueY), 0]);
 
@@ -223,7 +223,7 @@ function drawLowerButton(scene, gridRightBound) {
     return { lowerButton, downMesh, lowerText };
 }
 
-// Update the position of the line at the mouse cursor    
+// Update the position of the line at the mouse cursor
 let mousePriceLineMat = null;
 let mouseTimeLineMat = null;
 let matShape = new THREE.MeshBasicMaterial({ color: 0x525a71, transparent: false });
@@ -519,9 +519,10 @@ function drawVerticalGrid(drawingGroup, verticalGrids, dataPoints, loopCount, gr
             if (verticalGrids[(i - 1) * DEFAULT_ZOOM_LEVEL[currentZoomLevel]] == undefined) {
                 continue;
             }
-            let previousPos = verticalGrids[(i - 1) * DEFAULT_ZOOM_LEVEL[currentZoomLevel]].text.position.x + 30
+            let previousPos = verticalGrids[(i - 1) * DEFAULT_ZOOM_LEVEL[currentZoomLevel]].text.position.x
             currentPos = previousPos + axisXConfig.stepX * DEFAULT_ZOOM_LEVEL[currentZoomLevel];
         } else {
+            // console.log("Draw new ", loopCount, dataPoints[index][0]);
             currentPos = dataPoints[index][0];
         }
         verticalGridGeo.setPositions([currentPos, 150, 0, currentPos, gridTopBound, 0]);
@@ -591,7 +592,7 @@ function updateVerticalGrid(verticalGrids, data, lastZoomLevel, gridTopBound) {
             if (verticalGrids[(i - 1) * DEFAULT_ZOOM_LEVEL[lastZoomLevel]] == undefined) {
                 continue;
             }
-            let previousPos = verticalGrids[(i - 1) * DEFAULT_ZOOM_LEVEL[lastZoomLevel]].text.position.x + 30
+            let previousPos = verticalGrids[(i - 1) * DEFAULT_ZOOM_LEVEL[lastZoomLevel]].text.position.x;
             currentPos = previousPos + axisXConfig.stepX * DEFAULT_ZOOM_LEVEL[lastZoomLevel];
         } else {
             currentPos = data[key][0];
@@ -1632,9 +1633,9 @@ function currentZoom(val) {
     return currentZoomLevel
 }
 
-function setXStepCount(val) {
-    XStepCount = val;
-}
+// function setXStepCount(val) {
+//     XStepCount = val;
+// }
 
 export {
     updatePurchaseLine,
@@ -1661,8 +1662,8 @@ export {
     currentZoom,
     axisYConfig,
     axisXConfig,
-    setXStepCount,
-    XStepCount,
+    // setXStepCount,
+    // XStepCount,
     drawHigherButton,
     LOWER_BUTTON_COLOR_ENABLE,
     HIGHER_BUTTON_COLOR_ENABLE,
