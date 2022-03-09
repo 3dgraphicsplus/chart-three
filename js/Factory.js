@@ -28,13 +28,15 @@ const GRID_LINE_WIDTH = 0.5
 const PURCHASE_LINE_WIDTH = 0.8
 const MOUSE_MOVE_LINE_WIDTH = 1
 
+const NUMBER_OF_Y_LINE = 6
+
 var GRID_TOPLINE, GRID_RIGHTMOST_LINE;
 
-
 // const DEFAULT_ZOOM_LEVEL = [5, 10, 15, 30, 60, 120, 300, 900, 1800, 3600, 7200, 3600 * 4, 3600 * 6, 3600 * 12]
-const DEFAULT_ZOOM_LEVEL = [5, 10, 15, 30]
+const DEFAULT_ZOOM_LEVEL = [5, 10, 15, 30, 60, 120, 300, 900]
+
 // Index of the DEFAULT_ZOOM_LEVEL array
-let currentZoomLevel = 0;
+let currentZoomLevel = 2;
 
 let timestampShape, timestampText;
 let mousePriceShape, mouseAlertShape;
@@ -45,9 +47,9 @@ let lastVerticalGrid;
 let enableHigherActive = false;
 let enableLowerActive = false;
 
-const DEFAULT_GRID_STEP = 200
-const MAX_GRID_STEP = 300
-const MIN_GRID_STEP = 150
+const DEFAULT_GRID_STEP = 200;
+const MAX_GRID_STEP = 300;
+const MIN_GRID_STEP = 100;
 const SCROLL_STEP = 1;
 
 const MIN_VIEW_Y = 300;
@@ -56,7 +58,7 @@ const MIN_DIFF_Y = 200;
 let XStepCount = 50;
 let axisXConfig = { stepX: 20, initialValueX: 0 }
 let axisYConfig = {
-    stepY: 0.03, initialValueY: 100,
+    stepY: 0.5, initialValueY: 0,
     clone: function () { return { stepY: this.stepY, initialValueY: this.initialValueY }; }
 }
 
@@ -72,7 +74,7 @@ function drawInitialData(points, count, activeGroup, activePoligonObjs) {
     for (let i = 0; i < count; i++) {
         let currentIndex = dataClient.currentIndex;
         point.x += (axisXConfig.stepX);
-        point.y = (parseFloat(dataClient.getNext().price) - originY.price) * axisYConfig.stepY * 1000 + axisYConfig.initialValueY;
+        point.y = (parseFloat(dataClient.getNext().price) - originY.price) * axisYConfig.stepY + axisYConfig.initialValueY;
 
         if (Number.isNaN((point.x)) == true || Number.isNaN((point.y)) == true) {
             continue;
@@ -221,7 +223,7 @@ function drawLowerButton(scene, gridRightBound) {
     return { lowerButton, downMesh, lowerText };
 }
 
-// Update the position of the line at the mouse cursor    
+// Update the position of the line at the mouse cursor
 let mousePriceLineMat = null;
 let mouseTimeLineMat = null;
 let matShape = new THREE.MeshBasicMaterial({ color: 0x525a71, transparent: false });
@@ -390,7 +392,7 @@ function updateMouseMoveLine(scene, posX, posY, initialValueX, timestamp) {
     }
 
     if (mousePriceText != undefined) {
-        let priceValue = dataClient.convertToDisplay((posY - axisYConfig.initialValueY) / axisYConfig.stepY / 1000 + dataClient.getOrigin().price);
+        let priceValue = dataClient.convertToDisplay((posY - axisYConfig.initialValueY) / axisYConfig.stepY + dataClient.getOrigin().price);
         mousePriceText.text = '' + priceValue.toFixed(2);
         mousePriceText.position.z = 0
         mousePriceText.position.x = GRID_RIGHTMOST_LINE - 205 - 120
@@ -406,7 +408,7 @@ function updateMouseMoveLine(scene, posX, posY, initialValueX, timestamp) {
         // scene.add(priceText)
 
         // Set properties to configure:
-        let priceValue = dataClient.convertToDisplay((posY - axisYConfig.initialValueY) / axisYConfig.stepY / 1000 + dataClient.getOrigin().price);
+        let priceValue = dataClient.convertToDisplay((posY - axisYConfig.initialValueY) / axisYConfig.stepY + dataClient.getOrigin().price);
         mousePriceText.text = '' + priceValue.toFixed(2);
         //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
         mousePriceText.fontSize = 12
@@ -441,13 +443,11 @@ function drawBackground(startingLine, loopCount, gridStep) {
 
 let horizontalGridMaterial = null;
 function drawHorizontalGrid(horizontalGrids, startingLine, gridTopBound, gridRightBound) {
-    for (let j = 0; j < 10; j++) {
+    for (let j = NUMBER_OF_Y_LINE - 1; j >= 0; j--) {
         const horizontalGridGeo = new LineGeometry();
-        if (j == 1) {
-            horizontalGridGeo.setPositions([startingLine - 200, gridTopBound - 200 * j, 0, gridRightBound - 200, gridTopBound - 200 * j, 0]);
-        } else {
-            horizontalGridGeo.setPositions([startingLine - 200, gridTopBound - 200 * j, 0, gridRightBound - 200, gridTopBound - 200 * j, 0]);
-        }
+        let yValue = gridTopBound - gridTopBound / NUMBER_OF_Y_LINE * j;
+        let priceValue = dataClient.convertToDisplay((yValue - axisYConfig.initialValueY) / axisYConfig.stepY + dataClient.getOrigin().price)
+        horizontalGridGeo.setPositions([startingLine - 200, yValue, 0, gridRightBound - 200, yValue, 0]);
         if (!horizontalGridMaterial || horizontalGridMaterial.resolution.x != container.clientWidth || horizontalGridMaterial.resolution.y != container.clientHeight) {
 
             horizontalGridMaterial = new LineMaterial({
@@ -469,17 +469,37 @@ function drawHorizontalGrid(horizontalGrids, startingLine, gridTopBound, gridRig
 
 
         let priceText = new Text()
+        // console.log(priceValue)
         // Set properties to configure:
-        priceText.text = '3501' + j;
+        priceText.text = priceValue.toFixed(2);
         //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
         priceText.fontSize = 12
         priceText.position.z = 0
         priceText.position.x = gridRightBound - 195
-        priceText.position.y = gridTopBound - 200 * j + 8
+        priceText.position.y = yValue + 8
         priceText.color = HORIZONTAL_PRICE_TEXT_COLOR
 
         priceText.sync()
         horizontalGrids.push({ line: horizontalGridLine, text: priceText })
+    }
+}
+
+function updateHorizontalGrid(horizontalGrids, startingLine, gridTopBound, gridRightBound) {
+    for (let j = NUMBER_OF_Y_LINE - 1; j >= 0; j--) {
+        let horizontalGridGeo = new LineGeometry();
+        let yValue = gridTopBound - gridTopBound / NUMBER_OF_Y_LINE * j;
+        let priceValue = dataClient.convertToDisplay((yValue - axisYConfig.initialValueY) / axisYConfig.stepY + dataClient.getOrigin().price)
+        horizontalGridGeo.setPositions([startingLine - 200, yValue, 0, gridRightBound - 200, yValue, 0]);
+        horizontalGrids[j].line.geometry.dispose();
+        horizontalGrids[j].line.geometry = horizontalGridGeo;
+        horizontalGrids[j].line.geometry.attributes.position.needsUpdate = true;
+
+
+        horizontalGrids[j].text.text = priceValue.toFixed(2);
+        // console.log(priceValue)
+        // console.log(horizontalGrids[j].text)
+        horizontalGrids[j].text.position.y = yValue + 8
+        horizontalGrids[j].text.sync();
     }
 }
 
@@ -499,9 +519,10 @@ function drawVerticalGrid(drawingGroup, verticalGrids, dataPoints, loopCount, gr
             if (verticalGrids[(i - 1) * DEFAULT_ZOOM_LEVEL[currentZoomLevel]] == undefined) {
                 continue;
             }
-            let previousPos = verticalGrids[(i - 1) * DEFAULT_ZOOM_LEVEL[currentZoomLevel]].text.position.x + 30
+            let previousPos = verticalGrids[(i - 1) * DEFAULT_ZOOM_LEVEL[currentZoomLevel]].text.position.x
             currentPos = previousPos + axisXConfig.stepX * DEFAULT_ZOOM_LEVEL[currentZoomLevel];
         } else {
+            // console.log("Draw new ", loopCount, dataPoints[index][0]);
             currentPos = dataPoints[index][0];
         }
         verticalGridGeo.setPositions([currentPos, 150, 0, currentPos, gridTopBound, 0]);
@@ -571,7 +592,7 @@ function updateVerticalGrid(verticalGrids, data, lastZoomLevel, gridTopBound) {
             if (verticalGrids[(i - 1) * DEFAULT_ZOOM_LEVEL[lastZoomLevel]] == undefined) {
                 continue;
             }
-            let previousPos = verticalGrids[(i - 1) * DEFAULT_ZOOM_LEVEL[lastZoomLevel]].text.position.x + 30
+            let previousPos = verticalGrids[(i - 1) * DEFAULT_ZOOM_LEVEL[lastZoomLevel]].text.position.x;
             currentPos = previousPos + axisXConfig.stepX * DEFAULT_ZOOM_LEVEL[lastZoomLevel];
         } else {
             currentPos = data[key][0];
@@ -655,7 +676,7 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     let priceShape = new THREE.Mesh(geomShape, matShape);
     priceShape.renderOrder = 30;
 
-    let currentValue = dataClient.convertToDisplay((circlePos[0][1] - axisYConfig.initialValueY) / axisYConfig.stepY / 1000 + dataClient.getOrigin().price)
+    let currentValue = dataClient.convertToDisplay((circlePos[0][1] - axisYConfig.initialValueY) / axisYConfig.stepY + dataClient.getOrigin().price)
     let prevValue = dataClient.convertToDisplay(dataClient.input_value[dataClient.currentIndex - 2].price)
 
     const isChanged = Math.round((currentValue - prevValue) * 1e2) / 1e2;
@@ -843,7 +864,7 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
     activePriceStatusObjs[0].priceShape.geometry.computeBoundingBox();
     activePriceStatusObjs[0].priceShape.geometry.computeBoundingSphere();
 
-    let currentValue = dataClient.convertToDisplay((circlePos[0][1] - axisYConfig.initialValueY) / axisYConfig.stepY / 1000 + dataClient.getOrigin().price)
+    let currentValue = dataClient.convertToDisplay((circlePos[0][1] - axisYConfig.initialValueY) / axisYConfig.stepY + dataClient.getOrigin().price)
     let prevValue = dataClient.convertToDisplay(dataClient.input_value[dataClient.currentIndex - 2].price)
 
     const isChanged = Math.round((currentValue - prevValue) * 1e2) / 1e2;
@@ -1629,6 +1650,7 @@ export {
     removeRedundantVerticalGrid,
     drawVerticalGrid,
     drawHorizontalGrid,
+    updateHorizontalGrid,
     drawBackground,
     updateMouseMoveLine,
     drawInitialData,
