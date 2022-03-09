@@ -16,7 +16,7 @@ let BACKGROUND_COLOR = 0x191f2d
 let TIME_TEXT_COLOR = 0x524f56
 let HORIZONTAL_PRICE_TEXT_COLOR = 0x9ca0aa
 let GRID_LINE_CORLOR = 0x9ca0aa
-let GREEN_COLOR = 0x238933;
+let GREEN_COLOR = 0x66ff66;
 let HIGHER_BUTTON_COLOR = 0x2cac40;
 let HIGHER_BUTTON_COLOR_ENABLE = 0x238933;
 let LOWER_BUTTON_COLOR = 0xdb4931;
@@ -731,11 +731,11 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     let spriteMaterial = new THREE.SpriteMaterial(
         {
             map: new THREE.TextureLoader().load("/img/glow2.png"),
-            color: 0x238933, transparent: false, blending: THREE.AdditiveBlending
+            color: GREEN_COLOR, transparent: false, blending: THREE.AdditiveBlending
         });
     let greenGlow = new THREE.Sprite(spriteMaterial);
 
-    greenGlow.scale.set(80, 80, 1.0);
+    greenGlow.scale.set(90, 90, 1.0);
     greenDot.add(greenGlow);
 
     let lowerAreaShape = new THREE.Shape();

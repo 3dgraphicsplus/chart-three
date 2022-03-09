@@ -1008,15 +1008,13 @@ function showZoomButtons() {
     $("#zoomin").click(function (e) {
         console.log("Zoom in")
         // Zoom in means negative, zoom out mean positive
-        zoomPoint.x = [points[points.length - 1]][0][0];
-        zoomPoint.y = [points[points.length - 1]][0][1];
+        zoomPoint.x = (container.clientWidth + 100) / 2; // zoom using middle point of screen
         zoomWithEffect(true);
     })
 
     $("#zoomout").click(function (e) {
         console.log("Zoom out")
-        zoomPoint.x = [points[points.length - 1]][0][0];
-        zoomPoint.y = [points[points.length - 1]][0][1];
+        zoomPoint.x = (container.clientWidth + 100) / 2; // zoom using middle point of screen
         zoomWithEffect(false);
     })
 

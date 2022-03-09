@@ -14,6 +14,8 @@ export default class DataClient {
         this.last = undefined;
         this.currentIndex = -1;
         let websocket;
+        // const socket = io(`wss://grypto-price-3a6ks.ondigitalocean.app`);
+        // socket.onAny((msg) => console.info(msg));
         websocket = new WebSocket(
             `wss://stream.binance.com:9443/ws/btcusdt@ticker`
             // `wss://grypto-price-3a6ks.ondigitalocean.app`
