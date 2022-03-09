@@ -512,6 +512,7 @@ function handleHigherButtonClick(invest) {
 
 function higherButtonClickCallback(value, price) {
     console.log("Callback when click on HigherButton with ", value)
+    document.getElementById('audio').play();
     let url = 'http://192.168.136.134:10000/bets/'
     let amount = document.getElementById('price').value;
     let currentTimeStamp = Date.now();
@@ -538,6 +539,7 @@ function higherButtonClickCallback(value, price) {
 
 function lowerButtonClickCallback(value, price) {
     console.log("Callback when click on LowerButton with ", value);
+    document.getElementById('audio').play();
     let url = 'http://192.168.136.134:10000/bets/'
     let amount = document.getElementById('price').value;
     let currentTimeStamp = Date.now();
