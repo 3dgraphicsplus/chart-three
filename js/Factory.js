@@ -86,6 +86,7 @@ function drawInitialData(points, count, activeGroup, activePoligonObjs) {
             // activeGroup.position.set(activeGroup.position.x - axisXConfig.stepX, activeGroup.position.y, activeGroup.position.z);
             //activeGroupMovement -= (point.x - (GRID_RIGHTMOST_LINE / 2 - activeGroup.position.x));
             activeGroup.position.x = activeGroup.position.x - (point.x - (GRID_RIGHTMOST_LINE / 2 - activeGroup.position.x));
+            console.log("moving ", activeGroup.position.x);
         }
 
         //add active point to list

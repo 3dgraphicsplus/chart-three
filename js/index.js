@@ -77,7 +77,7 @@ let upMesh, downMesh;
 let lowhighButtons = [];
 
 //Draw demo 100 points at start point??
-const drawCount = 300;
+const drawCount = 240;
 let beginViewingIndex = 0;
 let endViewingIndex = drawCount;
 let currentProgress = 0;
@@ -99,7 +99,7 @@ function init() {
     let profitVal = document.getElementById('profit-val')
 
     let calculatedProfit = parseFloat(profitPercent) * parseFloat(investTotal) / 100
-    console.log(profitPercent, investTotal, calculatedProfit)
+    // console.log(profitPercent, investTotal, calculatedProfit)
     profitVal.innerHTML = '+' + calculatedProfit + '$'
 
     container = document.getElementById('container');
@@ -225,7 +225,7 @@ function triggerAtPurchaseTime(value) {
 
 function showProgress() {
     if (currentProgress == 0) {
-        currentProgress = dataClient.input_value.length;
+        currentProgress = dataClient.input_value.length / drawCount * 100;
         var elem = document.getElementById("myBar");
         var width = currentProgress;
         var id = setInterval(frame, currentProgress);
@@ -239,6 +239,7 @@ function showProgress() {
                 animate();
             } else {
                 // console.log(dataClient.input_value.length)
+                // console.log(currentProgress)
                 width = (dataClient.input_value.length / drawCount * 100).toFixed(0);
                 elem.style.width = width + "%";
                 elem.innerHTML = width + "%";
@@ -377,7 +378,7 @@ function zoomWithEffect(isZoomIn) {
         // console.log("Steps of 5: ", Math.abs(points[5][0] - points[0][0]))
         Factory.setXStepCount(Math.floor(Factory.GRID_RIGHTMOST_LINE / Factory.axisXConfig.stepX));
         Factory.axisYConfig.stepY *= 2;
-        console.log(Factory.axisXConfig.stepX, Factory.currentZoom());
+        // console.log(Factory.axisXConfig.stepX, Factory.currentZoom());
         updateView(false, true);
     })
         .easing(TWEEN.Easing.Linear.None).start();
@@ -672,7 +673,7 @@ function calculateAxisY(newConfig) {
     let minY = points[beginViewingIndex][1];
     let maxYIndex = beginViewingIndex;
     let minYIndex = beginViewingIndex;
-    console.log("beginViewIndex and endViewingIndex and currentIndex: ", beginViewingIndex, endViewingIndex, dataClient.currentIndex);
+    // console.log("beginViewIndex and endViewingIndex and currentIndex: ", beginViewingIndex, endViewingIndex, dataClient.currentIndex);
     for (let i = beginViewingIndex; i < endViewingIndex; i++) {
         if (points[i] == undefined) {
             continue;
@@ -689,13 +690,13 @@ function calculateAxisY(newConfig) {
         }
     }
 
-    console.log("max min: ", maxYIndex, minYIndex);
+    // console.log("max min: ", maxYIndex, minYIndex);
     let newStepY = Factory.axisYConfig.stepY;
     // let currentPos = (dataClient.input_value[dataClient.currentIndex].price - dataClient.input_value[originIndex].price) * Factory.axisYConfig.stepY + Factory.axisYConfig.initialValueY;
     // let prevPos = (dataClient.input_value[dataClient.currentIndex - 1].price - dataClient.input_value[originIndex].price) * Factory.axisYConfig.stepY + Factory.axisYConfig.initialValueY;
     // if update is needed
     if (minY < MIN_VIEW_Y || maxY > MAX_VIEW_Y) {
-        console.log("Rescale needed: ", maxY, minY, dataClient.input_value[maxYIndex].price, dataClient.input_value[minYIndex].price);
+        // console.log("Rescale needed: ", maxY, minY, dataClient.input_value[maxYIndex].price, dataClient.input_value[minYIndex].price);
         // To calculate the newY that will fit into the view, use the predefined max, min view Y
         newStepY = ((MAX_VIEW_Y - MIN_VIEW_Y)) / (dataClient.input_value[maxYIndex].price - dataClient.input_value[minYIndex].price);
         let newInitialValueY = Factory.axisYConfig.initialValueY;
@@ -710,7 +711,7 @@ function calculateAxisY(newConfig) {
         }
         newConfig.stepY = newStepY;
         newConfig.initialValueY = newInitialValueY;
-        console.log("Changed: ", newConfig.stepY, newConfig.initialValueY);
+        // console.log("Changed: ", newConfig.stepY, newConfig.initialValueY);
         // originIndex = beginViewingIndex;
         return true;
     }
@@ -849,7 +850,7 @@ function drawNewData(newY, count) {
 
     let tweenFrom = ({ x: tempPos[0][0], y: tempPos[0][1], z: 0 });
     let tweenTo = ({ x: newPos[0], y: newPos[1], z: 0 });
-    // console.log(newPos)
+    console.log(activeGroup.position.x);
 
     //Just push new and updating value in real-time
     points.push([tweenFrom.x, tweenFrom.y, 0]);
@@ -937,11 +938,11 @@ function update(now) {
     if (newVal) {//???WHAT IS FOR
         // console.log("before", Factory.axisYConfig.stepY, Factory.axisYConfig.initialValueY)
         let newY = (newVal.price - dataClient.input_value[beginViewingIndex].price) * Factory.axisYConfig.stepY + Factory.axisYConfig.initialValueY;
-        console.log(dataClient.getOrigin().price, newVal.price, newY);
+        // console.log(dataClient.getOrigin().price, newVal.price, newY);
 
         //disable 
         if (1 || Math.floor(newY) != Math.floor(lastDraw.newY) || lastDraw.count >= 3) {
-            console.log(newVal.price, newY, Factory.axisYConfig.stepY, Factory.axisYConfig.initialValueY)
+            // console.log(newVal.price, newY, Factory.axisYConfig.stepY, Factory.axisYConfig.initialValueY)
             drawNewData(newY, lastDraw.count);
             lastDraw.newY = newY;
             lastDraw.count = 1;
