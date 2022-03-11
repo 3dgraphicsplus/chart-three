@@ -76,7 +76,6 @@ let lowerText, higherText;
 let upMesh, downMesh;
 let lowhighButtons = [];
 
-//Draw demo 100 points at start point??
 const drawCount = 240;
 let beginViewingIndex = 0;
 let endViewingIndex = drawCount;
@@ -260,13 +259,14 @@ function onWindowResize() {
 
 }
 
+// Having the x value of the screen, find the point from it
 function x2DataIndex(x) {
-    let dataIndex = points.length - 1;
-    let xLine = x - activeGroup.position.x;
+    let dataIndex = points.length - 1; // init value
+    let xLine = x - activeGroup.position.x; // find the actual x value of the viewing area (show on the screen)
 
     // Find the point at which the zoom happens
     for (let i = 0; i < points.length - 1; i++) {
-        if (points[i][0] <= xLine && points[i + 1][0] >= xLine) {
+        if (points[i][0] <= xLine && points[i + 1][0] >= xLine) { // basically return the index if the x is between two consecutive points
             dataIndex = i;
             break;
         }
@@ -274,12 +274,13 @@ function x2DataIndex(x) {
     return dataIndex
 }
 
+// Zoom along the x axis
 function zoomFrom(x, zoomValue) {
-    let xLine = x - activeGroup.position.x;
+    let xLine = x - activeGroup.position.x; // find the actual x value of the viewing area
 
     // Find the point at which the zoom happens
     for (let i = 0; i < points.length; i++) {
-        points[i][0] -= (zoomValue) * (points[i][0] - xLine);
+        points[i][0] -= (zoomValue) * (points[i][0] - xLine); // move the left points of the zoom line to the left, right points of the zoom line to right
     }
 
     // Update step between two consecutive data points
@@ -339,43 +340,26 @@ function zoom(zoomValue) {
     Factory.updatePolygon(activePoligonObjs, points, beginViewingIndex, endViewingIndex);
 
     Factory.updateActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
-
-    //FIXME update 
-    //activeGroup.remove(activePurchaseLineObjs[0].purchaseLine)
-    //activeGroup.remove(activePurchaseLineObjs[0].purchaseText)
-    //activeGroup.remove(activePurchaseLineObjs[0].timeText)
-    //activeGroup.remove(activePurchaseLineObjs[0].countDownText)
-    //activeGroup.remove(activePurchaseLineObjs[0].stopwatch)
-
-    //activePurchaseLineObjs = []
-    //FIXME update , not draw Factory.drawPurchaseLine(activePurchaseLineObjs, [points[points.length-1]], Factory.GRID_TOPLINE, Factory.axisXConfig.stepX, countDownTimer);
-    //activeGroup.add(activePurchaseLineObjs[0].purchaseLine)
-    //activeGroup.add(activePurchaseLineObjs[0].purchaseText)
-    //activeGroup.add(activePurchaseLineObjs[0].timeText)
-    //activeGroup.add(activePurchaseLineObjs[0].countDownText)
-    //activeGroup.add(activePurchaseLineObjs[0].stopwatch)
-    // wheeling = false;
 }
 
 function zoomWithEffect(isZoomIn) {
     // console.log("pos: ", activeGroup.position.x)
-    stretchValue = SCROLL_STEP;
+    stretchValue = SCROLL_STEP; // fix step of zooming here
     // Zoom in means negative, zoom out mean positive
     let gridFrom = ({ x: 0.1, y: 0, z: 0 });
     let gridTo = ({ x: stretchValue, y: 0, z: 0 });
     if (tweenZoom) {
         tweenZoom.stop();
     }
-    tweenZoom = new TWEEN.Tween(gridFrom).to(gridTo, 100).onUpdate(function (object) {
+    tweenZoom = new TWEEN.Tween(gridFrom).to(gridTo, 100).onUpdate(function (object) { // tween supports zooming effect
         if (isZoomIn) {
             zoom(-object.x);
         } else {
             zoom(object.x);
         }
     }).onComplete(function () {
-        // currentGridStep += stretchValue * Factory.defaultZoomLevel();
-        // currentGridStep = Math.abs(points[5][0] - points[0][0])
         // console.log("Steps of 5: ", Math.abs(points[5][0] - points[0][0]))
+        // count number of steps along the x axis, this will be used to determine the list of point on the graph area
         Factory.setXStepCount(Math.floor(Factory.GRID_RIGHTMOST_LINE / Factory.axisXConfig.stepX));
         Factory.axisYConfig.stepY *= 2;
         // console.log(Factory.axisXConfig.stepX, Factory.currentZoom());
@@ -394,6 +378,8 @@ function onWheel(event) {
     if (intersects.length > 0) {
         zoomPoint.x = intersects[0].point.x;
         zoomPoint.y = intersects[0].point.y;
+        // basically, from the pivotPoint zoom points on the left of the point to the left
+        // and the right points to the right
         if (event.deltaY > 0) {
             zoomWithEffect(false);
         } else {
@@ -412,7 +398,7 @@ function onPointerMove(event) {
         clickMousePos.x = event.clientX;
         clickMousePos.y = event.clientY;
         let beginningLine = initialCameraPos.x;
-        let xLeftLine = beginningLine - activeGroup.position.x;
+        let xLeftLine = beginningLine - activeGroup.position.x; // beginning line, to check if moving left is still allowed
         let xRightLine = (Factory.GRID_RIGHTMOST_LINE / 2 - activeGroup.position.x);
         // console.log("currentIndex: ", currentIndex, deltaX);
         if (deltaX > 0) {
@@ -425,7 +411,7 @@ function onPointerMove(event) {
             moving = true;
             updateView();
         } else {
-            if (xRightLine > points[dataClient.currentIndex - 2][0]) {
+            if (xRightLine > points[dataClient.currentIndex - 2][0]) { // ending line, to check if moving right is still allowed
                 moving = false;
             } else {
                 activeGroup.position.set(activeGroup.position.x + deltaX, activeGroup.position.y, activeGroup.position.z);
@@ -442,6 +428,7 @@ function onPointerMove(event) {
         mouse.y = - ((event.clientY - container.offsetTop) / (container.clientHeight)) * 2 + 1;
         raycaster.setFromCamera(mouse, camera);
         let intersects = raycaster.intersectObjects(bkgObjs);
+        // just handle the mouse click on buttons
         if (intersects.length > 0) {
             //console.log(intersects[0].point.x)
             let dataIndex = x2DataIndex(intersects[0].point.x);
@@ -617,6 +604,7 @@ function onPointerDown(event) {
     }
 }
 
+// scale up and then scale down the icon
 function flipflop(obj) {
     let biggerFrom = { x: obj.scale.x, y: obj.scale.y };
     let biggerTo = { x: obj.scale.x * 2, y: obj.scale.y * 2 };
@@ -638,7 +626,7 @@ function onPointerUp(event) {
     mouseDown = false;
 }
 
-// Use to rescale the data so it will fit into the view
+// Use to rescale the data so it will fit into the view by recalculating all points in range
 function rescale(newStepDelta, beginIndex, endIndex, newInitialValueYDelta) {
     // console.log("rescale: ", beginIndex, endIndex, points.length);
     for (let i = beginIndex; i <= endIndex; i++) {
@@ -654,7 +642,7 @@ function rescale(newStepDelta, beginIndex, endIndex, newInitialValueYDelta) {
 function updateListOfViewingIndex() {
     let beginningLine = initialCameraPos.x;
     let xLeftLine = beginningLine - activeGroup.position.x; // leftline is the left most line of the view
-    let xRightLine = Factory.GRID_RIGHTMOST_LINE - activeGroup.position.x; // leftline is the right most line of the view
+    let xRightLine = Factory.GRID_RIGHTMOST_LINE - activeGroup.position.x; // right line is the right most line of the view
     beginViewingIndex = 0;
     endViewingIndex = dataClient.currentIndex;
     for (let i = 0; i < points.length - 1; i++) {
@@ -694,7 +682,7 @@ function calculateAxisY(newConfig) {
     let newStepY = Factory.axisYConfig.stepY;
     // let currentPos = (dataClient.input_value[dataClient.currentIndex].price - dataClient.input_value[originIndex].price) * Factory.axisYConfig.stepY + Factory.axisYConfig.initialValueY;
     // let prevPos = (dataClient.input_value[dataClient.currentIndex - 1].price - dataClient.input_value[originIndex].price) * Factory.axisYConfig.stepY + Factory.axisYConfig.initialValueY;
-    // if update is needed
+    // if update is needed, by checking if one point is higher/lower than viewing area
     if (minY < MIN_VIEW_Y || maxY > MAX_VIEW_Y) {
         // console.log("Rescale needed: ", maxY, minY, dataClient.input_value[maxYIndex].price, dataClient.input_value[minYIndex].price);
         // To calculate the newY that will fit into the view, use the predefined max, min view Y
@@ -702,10 +690,12 @@ function calculateAxisY(newConfig) {
         let newInitialValueY = Factory.axisYConfig.initialValueY;
         if (minY < MIN_VIEW_Y) {
             // console.log("Rescale needed MIN_VIEW: ", dataClient.input_value[maxYIndex].price - dataClient.input_value[minYIndex].price);
+            // assume the minY calculated is equal to the minimum visible point MIN_VIEW_Y
             newInitialValueY = (MIN_VIEW_Y - (dataClient.input_value[minYIndex].price - dataClient.input_value[beginViewingIndex].price) * newStepY);
             // console.log("newInitialValueY: ", newInitialValueY);
         } else if (maxY > MAX_VIEW_Y) {
             // console.log("Rescale needed MAX_VIEW: ", dataClient.input_value[maxYIndex].price - dataClient.input_value[minYIndex].price);
+            // assume the maxY calculated is equal to the maximum visible point MAX_VIEW_Y
             newInitialValueY = (MAX_VIEW_Y - (dataClient.input_value[maxYIndex].price - dataClient.input_value[beginViewingIndex].price) * newStepY);
             // console.log("newInitialValueY: ", newInitialValueY);
         }
@@ -764,17 +754,10 @@ function updateActiveGroup(now, last) {
     groupTo = ({ x: activeGroup.position.x - moveInOneFrame, y: activeGroup.position.y, z: 0 });
 
     // Move the activeGroup so that it feels like moving only if new point position go past the middle of the page
-    // if (newPos[0] > (Factory.GRID_RIGHTMOST_LINE / 2 - activeGroup.position.x)) {
     // console.log(drawingGroup.position.x);
     // console.log(point.x - (Factory.GRID_RIGHTMOST_LINE/2 - drawingGroup.position.x));
-    // groupTo = ({ x: activeGroup.position.x - (newPos[0] - (Factory.GRID_RIGHTMOST_LINE / 2 - activeGroup.position.x)), y: activeGroup.position.y, z: 0 });
     if (mouseDown == false && moving == false) {
         activeGroup.position.x = activeGroup.position.x - moveInOneFrame
-        // but only move if there is no dragging
-        // new TWEEN.Tween(activeGroup.position).to(groupTo, 400).onUpdate(function () {
-        // })
-        //     .easing(TWEEN.Easing.Quadratic.InOut)
-        //     .start();
     }
 
     Factory.updateActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
@@ -850,7 +833,7 @@ function drawNewData(newY, count) {
 
     let tweenFrom = ({ x: tempPos[0][0], y: tempPos[0][1], z: 0 });
     let tweenTo = ({ x: newPos[0], y: newPos[1], z: 0 });
-    console.log(activeGroup.position.x);
+    // console.log(activeGroup.position.x);
 
     //Just push new and updating value in real-time
     points.push([tweenFrom.x, tweenFrom.y, 0]);
@@ -863,8 +846,6 @@ function drawNewData(newY, count) {
         //tempPolyPoints.push([parseFloat(object.x), parseFloat(object.y), 0])
         // Draw new lines so it make smooth animation but because tween create too many points,
         // so these temporary lines, polygon will be removed later
-        //Factory.addDataLine(activeGroup, tempDataObjs, tempPolyPoints,tempPolyPoints.length-2, container.clientWidth, container.clientHeight)
-
         points[points.length - 1][0] += object.x - lastX;
         points[points.length - 1][1] += object.y - lastY;
         Factory.updatePolygonSingle(activePoligonObjs, tempPos[0][0], tempPos[0][1], points[points.length - 1][0], points[points.length - 1][1], points.length - 2);

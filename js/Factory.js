@@ -82,11 +82,9 @@ function drawInitialData(points, count, activeGroup, activePoligonObjs) {
 
         //FIXME - other feature
         if (point.x > GRID_RIGHTMOST_LINE / 2) {
-            // activeGroupMovement -= axisXConfig.stepX;
-            // activeGroup.position.set(activeGroup.position.x - axisXConfig.stepX, activeGroup.position.y, activeGroup.position.z);
-            //activeGroupMovement -= (point.x - (GRID_RIGHTMOST_LINE / 2 - activeGroup.position.x));
+            // move the graph group activeGroup if the line is exceed the middle of view
             activeGroup.position.x = activeGroup.position.x - (point.x - (GRID_RIGHTMOST_LINE / 2 - activeGroup.position.x));
-            console.log("moving ", activeGroup.position.x);
+            // console.log("moving ", activeGroup.position.x);
         }
 
         //add active point to list
