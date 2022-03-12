@@ -980,49 +980,6 @@ function disableLowerActiveLines(lowerButton, activePriceStatusObjs, disabledCor
     activePriceStatusObjs[0].priceShape.material.needsUpdate = true;
 }
 
-// Update the geometry of the polygons in a selected range: from, to
-function updatePolygon(poligons, poly, from, to) {
-    //FIXME call this realtime is  so bad
-    for (let i = from; i < to; i++) {
-        if (poly[i] == undefined || poly[i + 1] == undefined) {
-            continue;
-        }
-
-        if (Number.isNaN(poly[i][0]) || Number.isNaN(poly[i][1]) || Number.isNaN(poly[i + 1][0]) || Number.isNaN(poly[i + 1][1])) {
-            continue;
-        }
-        let shape = new THREE.Shape();
-        shape.moveTo(poly[i][0], poly[i][1]);
-        shape.lineTo(poly[i + 1][0], poly[i + 1][1]);
-        shape.lineTo(poly[i + 1][0], 0);
-        shape.lineTo(poly[i][0], 0);
-        let geometry = new THREE.ShapeGeometry(shape);
-        poligons[i].geometry.dispose();
-        poligons[i].geometry = geometry;
-        poligons[i].geometry.attributes.position.needsUpdate = true;
-    }
-}
-
-function updatePolygonSingle(poligons, x0, y0, x, y, offset) {
-    if (Number.isNaN(x0) || Number.isNaN(y0) || Number.isNaN(x) || Number.isNaN(y)) {
-        console.log(x0, y0, x, y)
-        return;
-    }
-    //FIXME call this realtime is  so bad
-    let vertices = [];
-    vertices.push(x0, y0, 0);
-    vertices.push(x0, 0, 0);
-    vertices.push(x, y, 0);
-
-
-    vertices.push(x, y, 0);
-    vertices.push(x0, 0, 0);
-    vertices.push(x, 0, 0);
-    vertices.forEach((val, i) =>
-        poligons[offset].geometry.attributes.position.array[i] = val
-    )
-    poligons[offset].geometry.attributes.position.needsUpdate = true;
-}
 
 // Create the polygon using the list of points
 let polygonMaterial = new THREE.ShaderMaterial({
@@ -1035,15 +992,11 @@ let polygonMaterial = new THREE.ShaderMaterial({
     transparent: true,
     opacity: 0.4
 });
+
 function addPolygon(drawingGroup, poligons, poly, offset = 0) {
-    // activeGroup.remove(poligon);
     let geometry = new THREE.BufferGeometry();
     let vertices = [];
-    //vertices.push(poly[0 + offset][0], poly[0 + offset][1],0);
     for (let i = 1 + offset; i < poly.length; ++i) {
-        // if (Number.isNaN(parseFloat(poly[i][0])) || Number.isNaN(parseFloat(poly[i][1]))) {
-        //     continue;
-        // }
         vertices.push(poly[i - 1][0], poly[i - 1][1], 0);
         vertices.push(poly[i - 1][0], 0, 0);
         vertices.push(poly[i][0], poly[i][1], 0);
@@ -1054,12 +1007,6 @@ function addPolygon(drawingGroup, poligons, poly, offset = 0) {
         vertices.push(poly[i][0], 0, 0);
     }
 
-    // if (Number.isNaN(parseFloat(poly[poly.length - 1][0])) || Number.isNaN(parseFloat(poly[poly.length - 1][1]))) {
-    //     return;
-    // }
-    // shape.lineTo(poly[poly.length - 1][0], 0);
-    //shape.lineTo(poly[0 + offset][0], 0);
-
     geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
 
     //test
@@ -1069,8 +1016,44 @@ function addPolygon(drawingGroup, poligons, poly, offset = 0) {
     poligon.renderOrder = 5;
     drawingGroup.add(poligon);
     poligons.push(poligon);
+
+    return poligon;
 }
 
+function updatePolygon(poligons, poly, offset = 0) {
+    let vertices = [];
+    for (let i = 1 + 0; i < poly.length; ++i) {
+        vertices.push(poly[i - 1][0], poly[i - 1][1], 0);
+        vertices.push(poly[i - 1][0], 0, 0);
+        vertices.push(poly[i][0], poly[i][1], 0);
+
+
+        vertices.push(poly[i][0], poly[i][1], 0);
+        vertices.push(poly[i - 1][0], 0, 0);
+        vertices.push(poly[i][0], 0, 0);
+    }
+
+    poligons[0].geometry.deleteAttribute('position');
+    poligons[0].geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
+
+    poligons[0].geometry.attributes.position.needsUpdate = true;
+    poligons[0].geometry.computeBoundingSphere();
+
+}
+function updatePolygonSingle(poligon, x0, y0, x, y) {
+    let vertices = [];
+    vertices.push(x0, y0, 0);
+    vertices.push(x0, 0, 0);
+    vertices.push(x, y, 0);
+
+
+    vertices.push(x, y, 0);
+    vertices.push(x0, 0, 0);
+    vertices.push(x, 0, 0);
+    poligon.geometry.attributes.position.array.set(vertices, 0)
+
+    poligon.geometry.attributes.position.needsUpdate = true;
+}
 // Draw the data lines which map data points
 var matLine = null;
 function addDataLine(drawingGroup, dataLines, data, offset, width, height) {
@@ -1089,17 +1072,6 @@ function addDataLine(drawingGroup, dataLines, data, offset, width, height) {
     }
     let geometry = new THREE.BufferGeometry();
     let vertices = [];
-    // for (let i = offset; i < data.length - 1; i++) {
-    //     if (data[i] == undefined || data[i + 1] == undefined) {
-    //         continue;
-    //     }
-    //     if (Number.isNaN((data[i][0])) || Number.isNaN((data[i][1])) || Number.isNaN((data[i][2]))) {
-    //         continue;
-    //     }
-    //     if (Number.isNaN((data[i + 1][0])) || Number.isNaN((data[i + 1][1])) || Number.isNaN((data[i + 1][2]))) {
-    //         continue;
-    //     }
-    // }
     if (data.length == offset + 2) {
         vertices.push(data[offset][0], data[offset][1], data[offset][2], data[offset + 1][0], data[offset + 1][1], data[offset + 1][2])
     } else
@@ -1112,48 +1084,28 @@ function addDataLine(drawingGroup, dataLines, data, offset, width, height) {
     dataLines.push(currencyLine);
     drawingGroup.add(currencyLine);
     //}
+    return currencyLine;
 }
 
 // Update the geometry of created data lines
-function updateDataLine(dataLines, data, from, to) {
-    for (let i = from; i < to; i++) {
-        if (i * 3 + 2 >= dataLines[0].geometry.attributes.position.array.length) {
-            break;
-        }
-        //     continue;
-        // }
-        // if (Number.isNaN(parseFloat(data[i][0])) || Number.isNaN(parseFloat(data[i][1])) || Number.isNaN(parseFloat(data[i][2]))) {
-        //     console.log(data[i][0], data[i][1], data[i][2]);
-        //     continue;
-        // }
-        // if (Number.isNaN(parseFloat(data[i + 1][0])) || Number.isNaN(parseFloat(data[i + 1][1])) || Number.isNaN(parseFloat(data[i + 1][2]))) {
-        //     console.log(data[i + 1][0], data[i + 1][1], data[i + 1][2]);
-        //     continue;
-        // }
-        //let currencyLineGeo = new LineGeometry();
-        //currencyLineGeo.setPositions([parseFloat(data[i][0]), parseFloat(data[i][1]), parseFloat(data[i][2]), parseFloat(data[i + 1][0]), parseFloat(data[i + 1][1]), parseFloat(data[i + 1][2])])
-        dataLines[0].geometry.attributes.position.array[i * 3] = data[i][0];
-        dataLines[0].geometry.attributes.position.array[i * 3 + 1] = data[i][1];
-        dataLines[0].geometry.attributes.position.array[i * 3 + 2] = data[i][2];
-    }
+function updateDataLine(dataLines, data, from = 0, to = 0) {
+    console.log(dataLines.length);
+    from = from ? from : 0;
+    to = to ? to : data.length;
+
+    const vertices = [].concat(...data);
+    dataLines[0].geometry.deleteAttribute('position');
+    dataLines[0].geometry.setAttribute( 'position', new THREE.BufferAttribute( new Float32Array(vertices), 3 ) );
     dataLines[0].geometry.attributes.position.needsUpdate = true;
+    dataLines[0].geometry.computeBoundingSphere()
 }
 
 
 // Update the geometry of created data lines
-function updateDataLineSingle(dataLines, x0, y0, x, y, offset) {
-    // if (Number.isNaN(x0) || Number.isNaN(y0) || Number.isNaN(x) || Number.isNaN(y)) {
-    //     console.log(x0, y0, x, y)
-    //     return;
-    // }
-    let i = offset;
-    dataLines[i].geometry.attributes.position.array[0] = x0;
-    dataLines[i].geometry.attributes.position.array[1] = y0;
-    dataLines[i].geometry.attributes.position.array[2] = 0;
-    dataLines[i].geometry.attributes.position.array[3] = x;
-    dataLines[i].geometry.attributes.position.array[4] = y;
-    dataLines[i].geometry.attributes.position.array[5] = 0;
-    dataLines[i].geometry.attributes.position.needsUpdate = true;
+function updateDataLineSingle(dataLine, x0, y0, x, y) {
+    const target = dataLine.geometry.attributes.position.array;
+    target.set([x0, y0, 0, x, y, 0]);
+    dataLine.geometry.attributes.position.needsUpdate = true;
 }
 
 // Draw the purchase line using position of the green points and the remaining time of the countdown timer.
