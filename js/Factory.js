@@ -1033,15 +1033,25 @@ function updatePolygon(poligons, poly, offset = 0) {
         vertices.push(poly[i][0], 0, 0);
     }
 
-    poligons[0].geometry.deleteAttribute('position');
-    poligons[0].geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
+    if (vertices.length != poligons[0].geometry.attributes.position.array.length) {
+        poligons[0].geometry.deleteAttribute('position');
+        poligons[0].geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
+    } else {
+        poligons[0].geometry.attributes.position.array.set(vertices);
+    }
 
     poligons[0].geometry.attributes.position.needsUpdate = true;
     poligons[0].geometry.computeBoundingSphere();
 
 }
-function updatePolygonSingle(poligon, x0, y0, x, y) {
+function updateNewPolygon(poligon, points) {
     let vertices = [];
+    const len = points.length;
+    let x0 = points[len - 2][0]
+    let y0 = points[len - 2][1]
+    let x = points[len - 1][0]
+    let y = points[len - 1][1]
+
     vertices.push(x0, y0, 0);
     vertices.push(x0, 0, 0);
     vertices.push(x, y, 0);
@@ -1094,15 +1104,24 @@ function updateDataLine(dataLines, data, from = 0, to = 0) {
     to = to ? to : data.length;
 
     const vertices = [].concat(...data);
-    dataLines[0].geometry.deleteAttribute('position');
-    dataLines[0].geometry.setAttribute( 'position', new THREE.BufferAttribute( new Float32Array(vertices), 3 ) );
+    if (vertices.length != dataLines[0].geometry.attributes.position.array.length) {
+        dataLines[0].geometry.deleteAttribute('position');
+        dataLines[0].geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
+    } else {
+        dataLines[0].geometry.attributes.position.array.set(vertices);
+    }
     dataLines[0].geometry.attributes.position.needsUpdate = true;
     dataLines[0].geometry.computeBoundingSphere()
 }
 
 
 // Update the geometry of created data lines
-function updateDataLineSingle(dataLine, x0, y0, x, y) {
+function updateNewLine(dataLine, points) {
+    const len = points.length;
+    let x0 = points[len - 2][0]
+    let y0 = points[len - 2][1]
+    let x = points[len - 1][0]
+    let y = points[len - 1][1]
     const target = dataLine.geometry.attributes.position.array;
     target.set([x0, y0, 0, x, y, 0]);
     dataLine.geometry.attributes.position.needsUpdate = true;
@@ -1636,8 +1655,8 @@ export {
     disableHigherActiveLines,
     disableLowerActiveLines,
     drawLowerButton,
-    updatePolygonSingle,
-    updateDataLineSingle,
+    updateNewPolygon,
+    updateNewLine,
     drawFinishLine,
     updateFinishLine,
     drawMark,

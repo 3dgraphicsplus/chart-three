@@ -15,7 +15,7 @@ let camera, scene, raycaster, renderer;
 const DEFAULT_GRID_STEP = 200
 const MAX_GRID_STEP = 300
 const MIN_GRID_STEP = 150
-const ZOOM_STEP = 5;
+const ZOOM_STEP = 10;
 
 const MIN_VIEW_Y = 300;
 const MAX_VIEW_Y = 700;
@@ -63,13 +63,8 @@ let activeDataLineObjs = [];
 let activePoligonObjs = [];
 let activeMarkObjs = [];
 
-let dataObjs = [];
-let wheeling = false;
-let noTween = true;
 //let stretchValue;
 let zoomPoint = { x: 0, y: 0 }
-let zooming = false;
-let tweenZoom;
 
 let lowerButton;
 let higherButton;
@@ -329,18 +324,22 @@ function zoomWithEffect(stretchValue,isButton) {
     //    isZooming = false;
     //}
     let lastVal = 0;
-    tweenZoom = new TWEEN.Tween(gridFrom).to(gridTo, isButton?500:200).onUpdate(function (object) {
+    let tweenZoom = new TWEEN.Tween(gridFrom).to(gridTo, isButton?500:200).onUpdate(function (object) {
         zoom(object.x-lastVal);
         lastVal = object.x;
-        updateView();
+        updateView(true);
     }).onComplete(function () {
         // currentGridStep += stretchValue * Factory.defaultZoomLevel();
         // currentGridStep = Math.abs(points[5][0] - points[0][0])
         // console.log("Steps of 5: ", Math.abs(points[5][0] - points[0][0]))
         Factory.setXStepCount(Math.floor(Factory.GRID_RIGHTMOST_LINE / Factory.axisXConfig.stepX));
-        //Factory.axisYConfig.stepY *= stretchValue > 0 ? 2 : 0.5;//???
-        // console.log(Factory.axisXConfig.stepX, Factory.currentZoom());
-        //updateView(false, true);
+        if(isButton)
+            Factory.axisYConfig.stepY *= stretchValue < 0 ? 2 : 0.5;
+        else{
+            Factory.axisYConfig.stepY *= stretchValue < 0 ? 1.1 : 0.9;
+        }
+        console.log(Factory.axisXConfig.stepX, Factory.currentZoom());
+        updateView(true);
         isZooming = false;
     })
         .easing(TWEEN.Easing.Quadratic.Out).start();
@@ -684,7 +683,7 @@ function calculateAxisY(newConfig) {
 
 // Use to recalculate the data and update view for autoscaling
 var scaleTween = null;
-function updateView(addNewData, refreshView) {
+function updateView(refreshView) {
     // Check current list of showing
     if (moving == true) {
         updateListOfViewingIndex();
@@ -706,7 +705,9 @@ function updateView(addNewData, refreshView) {
             // console.log(object)
             rescale(object.stepY, beginViewingIndex, endViewingIndex, object.initialValueY);
             updateGeometries(beginViewingIndex, endViewingIndex);//FIXME,so risky
-        }).easing(TWEEN.Easing.Quadratic.InOut)
+        }).easing(TWEEN.Easing.Quadratic.Out)
+        .onComplete(()=>{
+        })
             .start();
         Factory.axisYConfig.stepY = newConfig.stepY;
         Factory.axisYConfig.initialValueY = newConfig.initialValueY;
@@ -728,12 +729,6 @@ function updateView(addNewData, refreshView) {
     }
     Factory.updateActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
 
-
-    //TODO Maybe can improve performance later for mobile
-    // Update the data line
-    Factory.updateDataLine(activeDataLineObjs, points);//, beginViewingIndex, endViewingIndex);
-    // Draw the poligon
-    Factory.updatePolygon(activePoligonObjs, points);//, beginViewingIndex, endViewingIndex);
 }
 
 function updateActiveGroup(now, last) {
@@ -823,8 +818,10 @@ function updateOtherStuff(triggerAtPurchaseCallback, triggerAtFinishingCallback)
     Factory.drawVerticalGrid(activeGroup, activeVerticalGridObjs, points, 1, Factory.GRID_TOPLINE, Math.floor(dataClient.currentIndex / Factory.defaultZoomLevel()) * Factory.defaultZoomLevel());
 }
 
+
+var lastAdding = 0;
+var newDataInterpolate
 // Fetch new data from input and draw it with animation
-//function drawNewData(newY, enableAnimation) {
 function drawNewData(newY, count) {
     // Find new pos here based on the old pos and step of X
     let tempPos = [...points[points.length - 1]];
@@ -834,18 +831,21 @@ function drawNewData(newY, count) {
     let tweenTo = { x: newPos[0], y: newPos[1], z: 0 };
     //console.log(activeGroup.position.x);
 
+    if(lastAdding && Date.now() < lastAdding + 500){
+        //not animate, just add points
+        points.push([tweenTo.x, tweenTo.y, 0]);
+        return;
+    }
+    lastAdding = Date.now();
     //Just push new and updating value in real-time
     points.push([tweenFrom.x, tweenFrom.y, 0]);
+
 
     let newPolygon = Factory.addPolygon(activeGroup, activePoligonObjs, points, points.length - 2);
     let newLine = Factory.addDataLine(activeGroup, activeDataLineObjs, points, points.length - 2, container.clientWidth, container.clientHeight)
     let lastX = tempPos[0];
     let lastY = tempPos[1];
-    let newDataInterpolate = new TWEEN.Tween(tweenFrom).to(tweenTo, 400).onUpdate(function (object) {
-        //tempPolyPoints.push([parseFloat(object.x), parseFloat(object.y), 0])
-        // Draw new lines so it make smooth animation but because tween create too many points,
-        // so these temporary lines, polygon will be removed later
-        //Factory.addDataLine(activeGroup, tempDataObjs, tempPolyPoints,tempPolyPoints.length-2, container.clientWidth, container.clientHeight)
+    newDataInterpolate = new TWEEN.Tween(tweenFrom).to(tweenTo, 400).onUpdate(function (object) {
 
         points[points.length - 1][0] += object.x - lastX;
         points[points.length - 1][1] += object.y - lastY;
@@ -855,8 +855,8 @@ function drawNewData(newY, count) {
         //activeGroup.position.y -= (object.y - lastY)/2;
 
 
-        Factory.updatePolygonSingle(newPolygon, tempPos[0], tempPos[1], points[points.length - 1][0], points[points.length - 1][1]);
-        Factory.updateDataLineSingle(newLine, tempPos[0], tempPos[1], points[points.length - 1][0], points[points.length - 1][1]);
+        Factory.updateNewPolygon(newPolygon,points);
+        Factory.updateNewLine(newLine,points);
         lastX = object.x;
         lastY = object.y;
 
@@ -873,7 +873,7 @@ function drawNewData(newY, count) {
         
 
 
-        updateView(false, false);
+        updateView(true);
         updateOtherStuff(triggerAtPurchaseTime, triggerAtFinishingTime);
     })
         .easing(TWEEN.Easing.Quadratic.InOut)
@@ -906,9 +906,9 @@ function updateGeometries(beginIndex, endIndex) {
     beginIndex = beginIndex === undefined ? beginViewingIndex : beginIndex;
     endIndex = endIndex === undefined ? endViewingIndex : endIndex;
     // Update the data line, note that two points make one data line
-    //Factory.updateDataLine(activeDataLineObjs, points, beginIndex, endIndex);
+    Factory.updateDataLine(activeDataLineObjs, points, beginIndex, endIndex);
     //  Two points make one poligon also
-    //Factory.updatePolygon(activePoligonObjs, points, beginIndex, endIndex);
+    Factory.updatePolygon(activePoligonObjs, points, beginIndex, endIndex);
     // activeGroup.position.set(activeGroup.position.x + (stretchValue) * 2, activeGroup.position.y, activeGroup.position.z);
 
     Factory.updateHorizontalGrid(activeHorizontalGridObjs, 0, Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120);
@@ -921,6 +921,7 @@ function updateGeometries(beginIndex, endIndex) {
     Factory.updateFinishLine(activeGroup, activeFinishLineObjs, [points[points.length - 1]], Factory.GRID_TOPLINE, Factory.axisXConfig.stepX, finishTimer);
 
     Factory.updateMarks(activeMarkObjs, points, Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
+    
 }
 
 //dummy or real data from server. Should be prepared asyn into cache
