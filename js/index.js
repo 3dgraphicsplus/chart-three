@@ -2,6 +2,7 @@ import Stats from './libs/stats.module.js';
 import TWEEN from './libs/tween.esm.js';
 import DataClient from './DataClient.js';
 import * as THREE from './libs/three/build/three.module.js'
+import * as BufferGeometryUtils from './libs/three/examples/jsm/BufferGeometryUtils.js'
 
 //FIXME
 import * as Factory from './Factory.js';
@@ -77,7 +78,7 @@ let upMesh, downMesh;
 let lowhighButtons = [];
 
 //Draw demo 100 points at start point??
-const drawCount = 240;
+let drawCount = 1799;
 let beginViewingIndex = 0;
 let endViewingIndex = drawCount;
 let currentProgress = 0;
@@ -90,9 +91,12 @@ let round = 1;
 // let originIndex = 0;
 
 showProgress();
-dataClient.getHistoricalData(drawCount);
 
 function init() {
+
+ drawCount = dataClient.input_value.length;
+ beginViewingIndex = 0;
+ endViewingIndex = drawCount;
 
     let profitPercent = document.getElementById('profit-per').textContent.replace(/\D/g, '')
     let investTotal = document.getElementById('price').value
@@ -151,8 +155,23 @@ function init() {
 function initScene(drawingGroup, gridStepX) {
     //FIXME
     points = [];
-    Factory.drawInitialData(points, drawCount, activeGroup, activePoligonObjs);
+    Factory.initialHistory(points);
+    calculateAxisY(Factory.axisYConfig);
+    rescale(Factory.axisYConfig.stepY, beginViewingIndex, endViewingIndex, Factory.axisYConfig.initialValueY);
+    Factory.addPolygon(activeGroup, activePoligonObjs, points,0);
+    //FIXME - other feature
+    const point = points[points.length-1];
+    if (point[0] > Factory.GRID_RIGHTMOST_LINE / 2) {
+        // activeGroupMovement -= axisXConfig.stepX;
+        // activeGroup.position.set(activeGroup.position.x - axisXConfig.stepX, activeGroup.position.y, activeGroup.position.z);
+        //activeGroupMovement -= (point.x - (GRID_RIGHTMOST_LINE / 2 - activeGroup.position.x));
+        activeGroup.position.x = activeGroup.position.x - (point[0] - (Factory.GRID_RIGHTMOST_LINE / 2 - activeGroup.position.x));
+        //console.log("moving ", activeGroup.position.x);
+    }
     // console.log(points.length, dataClient.currentIndex)
+    // Draw the data line
+    Factory.addDataLine(drawingGroup, activeDataLineObjs, points, 0, container.clientWidth, container.clientHeight);
+    // console.log("lines: ", activeDataLineObjs.length, points.length);
 
     // console.log("totalpoligons: ", activePoligonObjs.length, drawCount)
     beginViewingIndex = 0;
@@ -168,9 +187,6 @@ function initScene(drawingGroup, gridStepX) {
     lowerButton = lower.lowerButton
     lowerText = lower.lowerText
 
-    // Draw the data line
-    Factory.addDataLine(drawingGroup, activeDataLineObjs, points, 0, container.clientWidth, container.clientHeight);
-    // console.log("lines: ", activeDataLineObjs.length, points.length);
 
     // Draw the grid
     Factory.drawHorizontalGrid(activeHorizontalGridObjs, 0, Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120)
@@ -228,9 +244,9 @@ function showProgress() {
         currentProgress = dataClient.input_value.length / drawCount * 100;
         var elem = document.getElementById("myBar");
         var width = currentProgress;
-        var id = setInterval(frame, currentProgress);
+        var id = setInterval(frame, 15);//60fps
         function frame() {
-            if (width > 100) {
+            if (dataClient.loadingDone) {
                 clearInterval(id);
                 elem.remove();
                 var progressElem = document.getElementById("myProgress");
@@ -323,7 +339,7 @@ function zoom(zoomValue) {
     zoomFrom(zoomPoint.x, zoomValue / 10.0);
 
     // Update the data line
-    Factory.updateDataLine(activeDataLineObjs, points, beginViewingIndex, endViewingIndex);
+    //Factory.updateDataLine(activeDataLineObjs, points, beginViewingIndex, endViewingIndex);
 
     // If need to change current zoom level then need to add/remove grids
     if (newDraw == true) {
@@ -336,25 +352,10 @@ function zoom(zoomValue) {
     }
 
     // Draw the poligon
-    Factory.updatePolygon(activePoligonObjs, points, beginViewingIndex, endViewingIndex);
+    //Factory.updatePolygon(activePoligonObjs, points, beginViewingIndex, endViewingIndex);
 
     Factory.updateActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
 
-    //FIXME update 
-    //activeGroup.remove(activePurchaseLineObjs[0].purchaseLine)
-    //activeGroup.remove(activePurchaseLineObjs[0].purchaseText)
-    //activeGroup.remove(activePurchaseLineObjs[0].timeText)
-    //activeGroup.remove(activePurchaseLineObjs[0].countDownText)
-    //activeGroup.remove(activePurchaseLineObjs[0].stopwatch)
-
-    //activePurchaseLineObjs = []
-    //FIXME update , not draw Factory.drawPurchaseLine(activePurchaseLineObjs, [points[points.length-1]], Factory.GRID_TOPLINE, Factory.axisXConfig.stepX, countDownTimer);
-    //activeGroup.add(activePurchaseLineObjs[0].purchaseLine)
-    //activeGroup.add(activePurchaseLineObjs[0].purchaseText)
-    //activeGroup.add(activePurchaseLineObjs[0].timeText)
-    //activeGroup.add(activePurchaseLineObjs[0].countDownText)
-    //activeGroup.add(activePurchaseLineObjs[0].stopwatch)
-    // wheeling = false;
 }
 
 function zoomWithEffect(isZoomIn) {
@@ -363,9 +364,10 @@ function zoomWithEffect(isZoomIn) {
     // Zoom in means negative, zoom out mean positive
     let gridFrom = ({ x: 0.1, y: 0, z: 0 });
     let gridTo = ({ x: stretchValue, y: 0, z: 0 });
-    if (tweenZoom) {
-        tweenZoom.stop();
-    }
+     if (tweenZoom) {
+         tweenZoom.stop();
+         isZooming = false;
+     }
     tweenZoom = new TWEEN.Tween(gridFrom).to(gridTo, 100).onUpdate(function (object) {
         if (isZoomIn) {
             zoom(-object.x);
@@ -377,9 +379,10 @@ function zoomWithEffect(isZoomIn) {
         // currentGridStep = Math.abs(points[5][0] - points[0][0])
         // console.log("Steps of 5: ", Math.abs(points[5][0] - points[0][0]))
         Factory.setXStepCount(Math.floor(Factory.GRID_RIGHTMOST_LINE / Factory.axisXConfig.stepX));
-        Factory.axisYConfig.stepY *= 2;
+        Factory.axisYConfig.stepY *= isZoomIn?2:0.5;//???
         // console.log(Factory.axisXConfig.stepX, Factory.currentZoom());
-        updateView(false, true);
+        //updateView(false, true);
+        isZooming = false;
     })
         .easing(TWEEN.Easing.Linear.None).start();
 }
@@ -423,7 +426,7 @@ function onPointerMove(event) {
                 // console.log(deltaX);
             }
             moving = true;
-            updateView();
+            //updateView();
         } else {
             if (xRightLine > points[dataClient.currentIndex - 2][0]) {
                 moving = false;
@@ -433,7 +436,7 @@ function onPointerMove(event) {
                 // endViewingIndex += Math.floor(deltaX / Factory.axisXConfig.stepX);
                 // console.log(deltaX);
                 moving = true;
-                updateView();
+             //   updateView();
             }
         }
         // otherwise, just update the line at the mouse cursor
@@ -736,9 +739,11 @@ function updateView(addNewData, refreshView) {
     // let need2Update = false;
     // console.log("stepY, initY ", Factory.axisYConfig.stepY, Factory.axisYConfig.initialValueY);
     // console.log("begin, end ", beginViewingIndex, endViewingIndex, dataClient.currentIndex, Factory.XStepCount);
-    if (need2Update) {
+    if (need2Update) 
+    {
         // console.log("Need Update");
-        new TWEEN.Tween(Factory.axisYConfig).to(newConfig, 400).onUpdate(function (object) {
+        let duration = 500
+        new TWEEN.Tween(Factory.axisYConfig).to(newConfig, duration).onUpdate(function (object) {
             //We also update geometry while rescale -> render is updated
             // console.log(object)
             rescale(object.stepY, beginViewingIndex, endViewingIndex, object.initialValueY);
@@ -867,8 +872,14 @@ function drawNewData(newY, count) {
 
         points[points.length - 1][0] += object.x - lastX;
         points[points.length - 1][1] += object.y - lastY;
-        Factory.updatePolygonSingle(activePoligonObjs, tempPos[0][0], tempPos[0][1], points[points.length - 1][0], points[points.length - 1][1], points.length - 2);
-        Factory.updateDataLineSingle(activeDataLineObjs, tempPos[0][0], tempPos[0][1], points[points.length - 1][0], points[points.length - 1][1], points.length - 2);
+
+
+        //test
+        //activeGroup.position.y -= (object.y - lastY)/2;
+
+
+        Factory.updatePolygonSingle(activePoligonObjs, tempPos[0][0], tempPos[0][1], points[points.length - 1][0], points[points.length - 1][1], activePoligonObjs.length - 1);
+        Factory.updateDataLineSingle(activeDataLineObjs, tempPos[0][0], tempPos[0][1], points[points.length - 1][0], points[points.length - 1][1], activeDataLineObjs.length - 1);
         lastX = object.x;
         lastY = object.y;
 
@@ -876,6 +887,23 @@ function drawNewData(newY, count) {
     }).onComplete(function () {
         countDownTimer--;
         finishTimer--;
+
+
+        //merge geo
+        activePoligonObjs[activePoligonObjs.length-2].geometry 
+        =BufferGeometryUtils.mergeBufferGeometries([activePoligonObjs[activePoligonObjs.length-2].geometry,
+            activePoligonObjs[activePoligonObjs.length-1].geometry])
+        activePoligonObjs[activePoligonObjs.length-2].geometry.attributes.position.need2Update = true;
+        activeGroup.remove(activePoligonObjs[activePoligonObjs.length-1]);
+        activePoligonObjs.pop();
+
+        activeDataLineObjs[activeDataLineObjs.length-2].geometry 
+        =BufferGeometryUtils.mergeBufferGeometries([activeDataLineObjs[activeDataLineObjs.length-2].geometry,
+            activeDataLineObjs[activeDataLineObjs.length-1].geometry])
+        activeDataLineObjs[activeDataLineObjs.length-2].geometry.attributes.position.need2Update = true;
+        activeGroup.remove(activeDataLineObjs[activeDataLineObjs.length-1]);
+        activeDataLineObjs.pop();
+
         updateView(false, false);
         updateOtherStuff(triggerAtPurchaseTime, triggerAtFinishingTime);
     })
@@ -909,12 +937,12 @@ function updateGeometries(beginIndex, endIndex) {
     endIndex = endIndex === undefined ? endViewingIndex : endIndex;
     // Update the data line, note that two points make one data line
     Factory.updateDataLine(activeDataLineObjs, points, beginIndex, endIndex);
+    //  Two points make one poligon also
+    //=Factory.updatePolygon(activePoligonObjs, points, beginIndex, endIndex);
     // activeGroup.position.set(activeGroup.position.x + (stretchValue) * 2, activeGroup.position.y, activeGroup.position.z);
 
     Factory.updateHorizontalGrid(activeHorizontalGridObjs, 0, Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120);
 
-    //  Two points make one poligon also
-    Factory.updatePolygon(activePoligonObjs, points, beginIndex, endIndex);
 
     Factory.updateActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
 
@@ -1005,10 +1033,16 @@ function showOverlay() {
     })
 }
 
+var isZooming = false;
 function showZoomButtons() {
     document.getElementById("zoombuttons").style.display = "block";
     //setup gui event
     $("#zoomin").click(function (e) {
+        if(isZooming){
+            console.warn("Still zooming. try again")
+            return;
+        }
+        isZooming = true;
         console.log("Zoom in")
         // Zoom in means negative, zoom out mean positive
         zoomPoint.x = (container.clientWidth + 100) / 2; // zoom using middle point of screen
@@ -1016,6 +1050,11 @@ function showZoomButtons() {
     })
 
     $("#zoomout").click(function (e) {
+        if(isZooming){
+            console.warn("Still zooming. try again")
+            return;
+        }
+        isZooming = true;
         console.log("Zoom out")
         zoomPoint.x = (container.clientWidth + 100) / 2; // zoom using middle point of screen
         zoomWithEffect(false);
