@@ -16,6 +16,7 @@ let BACKGROUND_COLOR = 0x191f2d
 let TIME_TEXT_COLOR = 0x524f56
 let HORIZONTAL_PRICE_TEXT_COLOR = 0x9ca0aa
 let GRID_LINE_CORLOR = 0x9ca0aa
+const EPS = 0.0001;
 let GREEN_COLOR = 0x66ff66;
 let HIGHER_BUTTON_COLOR = 0x2cac40;
 let HIGHER_BUTTON_COLOR_ENABLE = 0x238933;
@@ -607,6 +608,7 @@ function updateVerticalGrid(verticalGrids, data, lastZoomLevel, gridTopBound) {
     }
 }
 
+var prevValue = undefined;
 // Draw the line at the green point, circlePos is the position of the green point
 // movedDistance is the movement of the activeGroup. This function will only be called once.
 function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, movedDistance) {
@@ -664,8 +666,8 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     let priceShape = new THREE.Mesh(geomShape, matShape);
     priceShape.renderOrder = 30;
 
-    let currentValue = dataClient.convertToDisplay((circlePos[0][1] - axisYConfig.initialValueY) / axisYConfig.stepY + dataClient.getOrigin().price)
-    let prevValue = dataClient.convertToDisplay(dataClient.input_value[dataClient.currentIndex - 2].price)
+    let currentValue = dataClient.input_value[dataClient.currentIndex - 1].price;
+    prevValue = dataClient.input_value[dataClient.currentIndex - 2].price;
 
     const isChanged = Math.round((currentValue - prevValue) * 1e2) / 1e2;
 
@@ -852,37 +854,47 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
     activePriceStatusObjs[0].priceShape.geometry.computeBoundingBox();
     activePriceStatusObjs[0].priceShape.geometry.computeBoundingSphere();
 
-    let currentValue = dataClient.convertToDisplay((circlePos[0][1] - axisYConfig.initialValueY) / axisYConfig.stepY + dataClient.getOrigin().price)
-    let prevValue = dataClient.convertToDisplay(dataClient.input_value[dataClient.currentIndex - 2].price)
+    let currentValue = dataClient.input_value[dataClient.currentIndex - 1].price;
+    prevValue = dataClient.input_value[dataClient.currentIndex - 2].price;
+
+    console.log(currentValue - prevValue)
 
     const isChanged = Math.round((currentValue - prevValue) * 1e2) / 1e2;
-    activePriceStatusObjs[0].priceText.text = '' + (currentValue).toFixed(0)
+
     activePriceStatusObjs[0].priceText.position.z = 0
     activePriceStatusObjs[0].priceText.position.x = gridRightBound - 250 + 22
     activePriceStatusObjs[0].priceText.position.y = circlePos[0][1] + 7
-    if (enableHigherActive == true || enableLowerActive == true) {
-        activePriceStatusObjs[0].priceText.color = "white"
-    } else {
-        activePriceStatusObjs[0].priceText.color = isChanged == 0 ? 0x000000 : (isChanged >= 0 ? GREEN_COLOR : 'red');
+    //if (isChanged != 0) 
+    {
+        activePriceStatusObjs[0].priceText.text = '' + (currentValue).toFixed(0)
+        if (enableHigherActive == true || enableLowerActive == true) {
+            activePriceStatusObjs[0].priceText.color = "white"
+        } else {
+            activePriceStatusObjs[0].priceText.color = isChanged == 0 ? 0x000000 : (isChanged >= 0 ? GREEN_COLOR : 'red');
+        }
+
+        // Update the rendering:
+        activePriceStatusObjs[0].priceText.sync()
     }
-
-
-    // Update the rendering:
-    activePriceStatusObjs[0].priceText.sync()
 
 
     activePriceStatusObjs[0].priceActiveText.position.z = 0
     activePriceStatusObjs[0].priceActiveText.position.x = gridRightBound - 250 + 60
     activePriceStatusObjs[0].priceActiveText.position.y = circlePos[0][1] + 12
-    if (enableHigherActive == true || enableLowerActive == true) {
-        activePriceStatusObjs[0].priceActiveText.color = "white"
-    } else {
-        activePriceStatusObjs[0].priceActiveText.color = isChanged == 0 ? 0x000000 : (isChanged >= 0 ? GREEN_COLOR : 'red');
-    }
-    activePriceStatusObjs[0].priceActiveText.text = ('' + Math.abs(currentValue - prevValue).toFixed(2)).substr(2)
 
-    // Update the rendering:
-    activePriceStatusObjs[0].priceActiveText.sync()
+    //if (isChanged != 0) 
+    {
+        if (enableHigherActive == true || enableLowerActive == true) {
+            activePriceStatusObjs[0].priceActiveText.color = "white"
+        } else {
+            activePriceStatusObjs[0].priceActiveText.color = isChanged == 0 ? 0x000000 : (isChanged >= 0 ? GREEN_COLOR : 'red');
+        }
+
+        activePriceStatusObjs[0].priceActiveText.text = ('' + Math.abs(currentValue - prevValue).toFixed(2)).substr(2)
+        // Update the rendering:
+        activePriceStatusObjs[0].priceActiveText.sync()
+    }
+
 
     //let geometry = new THREE.CircleGeometry(3, 50);
     //let material = new THREE.MeshBasicMaterial({ color: GREEN_COLOR, transparent: true, opacity: 1.0 });

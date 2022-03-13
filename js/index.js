@@ -1016,7 +1016,9 @@ function showZoomButtons() {
         isZooming = true;
         console.log("Zoom in")
         // Zoom in means negative, zoom out mean positive
-        zoomPoint.x = (container.clientWidth + 100) / 2; // zoom using middle point of screen
+        //zoomPoint.x = (container.clientWidth + 100) / 2; // zoom using middle point of screen
+        //zoom to green
+        zoomPoint.x = points[points.length - 1][0]+ activeGroup.position.x;
         zoomWithEffect(-ZOOM_STEP,true);
     })
 
@@ -1027,7 +1029,9 @@ function showZoomButtons() {
         }
         isZooming = true;
         console.log("Zoom out")
-        zoomPoint.x = (container.clientWidth + 100) / 2; // zoom using middle point of screen
+        //zoomPoint.x = (container.clientWidth + 100) / 2; // zoom using middle point of screen
+        //zoom to green
+        zoomPoint.x = points[points.length - 1][0]+ activeGroup.position.x;
         zoomWithEffect(ZOOM_STEP,true);
     })
 

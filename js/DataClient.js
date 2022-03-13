@@ -29,11 +29,13 @@ export default class DataClient {
         this.currentIndex = -1;
         let websocket;
         const socket = io("wss://grypto-price-3a6ks.ondigitalocean.app");
+        //const socket = io("wss://wrk-graph-price-5cqsj.ondigitalocean.app");
+        //wss://wrk-graph-price-5cqsj.ondigitalocean.app
         // get only first message to historical data
         let self = this;
         this.loadingDone = false;
         socket.on('message', async (msg) => {
-
+            if(!msg)return;
             //test
             //if (this.currentIndex > 400) return;
             //no need if tab is invisiable
@@ -90,7 +92,7 @@ export default class DataClient {
         let date = datetime.substring(0, 11)
         let time = datetime.substring(11, datetime.length)
         let input_object = {
-            price: (parseFloat(value[1] | value.c)).toFixed(2),// / 100000),
+            price: parseFloat((value[1]?parseFloat(value[1]):parseFloat(value.c)).toFixed(2)),// / 100000),
             date: date,
             time: time
         }
