@@ -26,7 +26,6 @@ export default class DataClient {
         this.input_value = [];
         // this.input_value = TEST_DATA;
         this.last = undefined;
-        this.currentIndex = -1;
         let websocket;
         const socket = io("wss://grypto-price-3a6ks.ondigitalocean.app");
         //const socket = io("wss://wrk-graph-price-5cqsj.ondigitalocean.app");
@@ -58,7 +57,15 @@ export default class DataClient {
         )
 
         this._lastTimestamp = 0;
+
+        this.onNew = undefined;
     }
+
+    currentIndex(){
+        return this.input_value.length-1;
+    }
+
+    getNExt
 
     length(){
         return this.input_value.length;
@@ -87,23 +94,32 @@ export default class DataClient {
             console.warn("Wrong data format " + JSON.stringify(value));
             return;
         }
+        let priceTested = parseFloat((value[1]?parseFloat(value[1]):parseFloat(value.c)).toFixed(2));
+        if(isNaN(priceTested)){
+            console.error("broken data ",value);
+            return;
+        }
+
         let datetime = new Date(d.getTime() - d.getTimezoneOffset() * 60 * 1000).toISOString().substring(0, 19).replace('T', ' ');
         // console.log(datetime)
         let date = datetime.substring(0, 11)
         let time = datetime.substring(11, datetime.length)
         let input_object = {
-            price: parseFloat((value[1]?parseFloat(value[1]):parseFloat(value.c)).toFixed(2)),// / 100000),
+            price: priceTested,// / 100000),
             date: date,
             time: time
         }
         this.input_value.push(input_object);
-        self._internalIndex++;
+        this._internalIndex++;
 
         //limit cache
-        if (this.input_value.length > 3600) {
+        if (this.input_value.length > 5000) {
             this.input_value.shift();
-            self._internalIndex--;
-            self.currentIndex--;
+            this._internalIndex--;
+        }
+
+        if(this.loadingDone && this.onNew){
+            this.onNew(input_object)
         }
     }
 
@@ -139,36 +155,6 @@ export default class DataClient {
                 this.input_value.splice(0, this.input_value.length - totalData);
             }
         });
-    }
-
-    getSyncNext(now) {//FIXME will be diffirent for real data
-        if (this.input_value.length > this.currentIndex + 1) {
-            // this.getDataFromSocket();
-            if (this.currentIndex < this.input_value.length - 1) {
-                // this.currentIndex++;
-                if (this.input_value[this.currentIndex].time != this._lastTimestamp) {
-                    this._lastTimestamp = this.input_value[this.currentIndex].time;
-
-                    this.last = now;
-                    return this.input_value[this.currentIndex++];
-                } else {
-                    this.currentIndex += (this.currentIndex < this.input_value.length - 1 ? 1 : 0);
-                }
-            }
-        }
-    }
-
-    getNext() {
-        if (this.currentIndex < this.input_value.length - 1) {
-            // this.getDataFromSocket();
-            this.currentIndex++;
-            // console.log(this.currentIndex);
-            return this.input_value[this.currentIndex];
-        }
-    }
-
-    updateSequence() {
-        this.currentIndex++;
     }
 
     getOrigin() {

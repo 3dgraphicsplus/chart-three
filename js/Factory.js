@@ -69,11 +69,12 @@ function initialHistory(points) {
     // Get the data
     points.push([parseFloat(axisXConfig.initialValueX), parseFloat(axisYConfig.initialValueY), 0]);
 
-    let originY = dataClient.getNext();
+    let originY = dataClient.input_value[0];
     originY.price = parseFloat(originY.price);
     const point = new THREE.Vector3(axisXConfig.initialValueX, axisYConfig.initialValueY);
-    let nextPoint = undefined;
-    while (nextPoint = dataClient.getNext()) {
+    let index = 1;
+    while (index < dataClient.length()) {
+        let nextPoint = dataClient.input_value[index];
         point.x += (axisXConfig.stepX);
         point.y = (parseFloat(nextPoint.price) - originY.price) * axisYConfig.stepY + axisYConfig.initialValueY;
 
@@ -82,6 +83,8 @@ function initialHistory(points) {
         // }
         //add active point to list
         points.push([parseFloat(point.x), parseFloat(point.y), 0]);
+
+        index++;
     }
 }
 
@@ -666,8 +669,8 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     let priceShape = new THREE.Mesh(geomShape, matShape);
     priceShape.renderOrder = 30;
 
-    let currentValue = dataClient.input_value[dataClient.currentIndex - 1].price;
-    prevValue = dataClient.input_value[dataClient.currentIndex - 2].price;
+    let currentValue = dataClient.input_value[dataClient.currentIndex() - 1].price;
+    prevValue = dataClient.input_value[dataClient.currentIndex() - 2].price;
 
     const isChanged = Math.round((currentValue - prevValue) * 1e2) / 1e2;
 
@@ -854,10 +857,10 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
     activePriceStatusObjs[0].priceShape.geometry.computeBoundingBox();
     activePriceStatusObjs[0].priceShape.geometry.computeBoundingSphere();
 
-    let currentValue = dataClient.input_value[dataClient.currentIndex - 1].price;
-    prevValue = dataClient.input_value[dataClient.currentIndex - 2].price;
+    let currentValue = dataClient.input_value[dataClient.input_value.length - 1].price;
+    prevValue = dataClient.input_value[dataClient.input_value.length - 2].price;
 
-    console.log(currentValue - prevValue)
+    //console.log(currentValue - prevValue)
 
     const isChanged = Math.round((currentValue - prevValue) * 1e2) / 1e2;
 
@@ -867,11 +870,11 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
     //if (isChanged != 0) 
     {
         activePriceStatusObjs[0].priceText.text = '' + (currentValue).toFixed(0)
-        if (enableHigherActive == true || enableLowerActive == true) {
-            activePriceStatusObjs[0].priceText.color = "white"
-        } else {
+        //if (enableHigherActive == true || enableLowerActive == true) {
+        //    activePriceStatusObjs[0].priceText.color = "white"
+        //} else {
             activePriceStatusObjs[0].priceText.color = isChanged == 0 ? 0x000000 : (isChanged >= 0 ? GREEN_COLOR : 'red');
-        }
+        //}
 
         // Update the rendering:
         activePriceStatusObjs[0].priceText.sync()
@@ -884,11 +887,11 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
 
     //if (isChanged != 0) 
     {
-        if (enableHigherActive == true || enableLowerActive == true) {
-            activePriceStatusObjs[0].priceActiveText.color = "white"
-        } else {
+        //if (enableHigherActive == true || enableLowerActive == true) {
+        //    activePriceStatusObjs[0].priceActiveText.color = "white"
+        //} else {
             activePriceStatusObjs[0].priceActiveText.color = isChanged == 0 ? 0x000000 : (isChanged >= 0 ? GREEN_COLOR : 'red');
-        }
+        //}
 
         activePriceStatusObjs[0].priceActiveText.text = ('' + Math.abs(currentValue - prevValue).toFixed(2)).substr(2)
         // Update the rendering:
@@ -940,8 +943,8 @@ function enableHigherActiveLines(higherButton, activePriceStatusObjs) {
     activePriceStatusObjs[0].dashedLine.material.needsUpdate = true;
     activePriceStatusObjs[0].line.material.color.setHex(HIGHER_BUTTON_COLOR);
     activePriceStatusObjs[0].line.material.needsUpdate = true;
-    activePriceStatusObjs[0].priceShape.material.color.setHex(HIGHER_BUTTON_COLOR);
-    activePriceStatusObjs[0].priceShape.material.needsUpdate = true;
+    //activePriceStatusObjs[0].priceShape.material.color.setHex(HIGHER_BUTTON_COLOR);
+    //activePriceStatusObjs[0].priceShape.material.needsUpdate = true;
 }
 
 function disableHigherActiveLines(higherButton, activePriceStatusObjs, disabledCorlor) {
@@ -957,8 +960,8 @@ function disableHigherActiveLines(higherButton, activePriceStatusObjs, disabledC
     activePriceStatusObjs[0].dashedLine.material.needsUpdate = true;
     activePriceStatusObjs[0].line.material.color.setHex(0xffffff);
     activePriceStatusObjs[0].line.material.needsUpdate = true;
-    activePriceStatusObjs[0].priceShape.material.color.setHex(0xffffff);
-    activePriceStatusObjs[0].priceShape.material.needsUpdate = true;
+   // activePriceStatusObjs[0].priceShape.material.color.setHex(0xffffff);
+    //activePriceStatusObjs[0].priceShape.material.needsUpdate = true;
 }
 
 function enableLowerActiveLines(lowerButton, activePriceStatusObjs) {
@@ -970,8 +973,8 @@ function enableLowerActiveLines(lowerButton, activePriceStatusObjs) {
     activePriceStatusObjs[0].dashedLine.material.needsUpdate = true;
     activePriceStatusObjs[0].line.material.color.setHex(LOWER_BUTTON_COLOR);
     activePriceStatusObjs[0].line.material.needsUpdate = true;
-    activePriceStatusObjs[0].priceShape.material.color.setHex(LOWER_BUTTON_COLOR);
-    activePriceStatusObjs[0].priceShape.material.needsUpdate = true;
+    //activePriceStatusObjs[0].priceShape.material.color.setHex(LOWER_BUTTON_COLOR);
+    //activePriceStatusObjs[0].priceShape.material.needsUpdate = true;
 }
 
 function disableLowerActiveLines(lowerButton, activePriceStatusObjs, disabledCorlor) {
@@ -988,8 +991,8 @@ function disableLowerActiveLines(lowerButton, activePriceStatusObjs, disabledCor
     activePriceStatusObjs[0].dashedLine.material.needsUpdate = true;
     activePriceStatusObjs[0].line.material.color.setHex(0xffffff);
     activePriceStatusObjs[0].line.material.needsUpdate = true;
-    activePriceStatusObjs[0].priceShape.material.color.setHex(0xffffff);
-    activePriceStatusObjs[0].priceShape.material.needsUpdate = true;
+    //activePriceStatusObjs[0].priceShape.material.color.setHex(0xffffff);
+    //activePriceStatusObjs[0].priceShape.material.needsUpdate = true;
 }
 
 
@@ -1234,6 +1237,7 @@ function drawPurchaseLine(purchaseLineObjs, circlePos, gridTopBound, stepX, coun
 
 // Update the geometry of the purchase line using greenpoint position
 function updatePurchaseLine(drawingGroup, purchaseLineObjs, circlePos, gridTopBound, stepX, countDownTimer, redraw) {
+    console.log(updatePurchaseLine)
     if (Number.isNaN(circlePos[0][0]) || Number.isNaN(circlePos[0][1])) {
         console.log(circlePos[0])
         return;
