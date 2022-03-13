@@ -118,6 +118,31 @@ body {
     border-bottom-right-radius: 4px;
 }
 
+.line-pickr-container {
+    display: none;
+    position: absolute;
+    left: 1750px;
+    top: 600px;
+    z-index: 300;
+}
+
+.fill-pickr-container {
+    display: none;
+    position: absolute;
+    left: 1750px;
+    top: 670px;
+    z-index: 300;
+}
+
+#zoomin {
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    left: 1110px;
+    bottom: 100px;
+    z-index: 300;
+}
+
 #zoomin {
     width: 20px;
     height: 20px;

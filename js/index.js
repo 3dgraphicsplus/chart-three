@@ -92,7 +92,7 @@ showProgress();
 dataClient.getHistoricalData(drawCount);
 
 function init() {
-
+    initColorPicker();
     let profitPercent = document.getElementById('profit-per').textContent.replace(/\D/g, '')
     let investTotal = document.getElementById('price').value
     let profitVal = document.getElementById('profit-val')
@@ -1004,5 +1004,89 @@ function showZoomButtons() {
 
     $("#focus").click(function (e) {
         console.log("Focus")
+    })
+}
+
+function initColorPicker() {
+    document.getElementById("line-picker").style.display = "block";
+    document.getElementById("fill-picker").style.display = "block";
+    const theme =
+        [
+            'nano',
+            {
+                swatches: [
+                    'rgba(244, 67, 54, 1)',
+                    'rgba(233, 30, 99, 0.95)',
+                    'rgba(156, 39, 176, 0.9)',
+                    'rgba(103, 58, 183, 0.85)',
+                    'rgba(63, 81, 181, 0.8)',
+                    'rgba(33, 150, 243, 0.75)',
+                    'rgba(3, 169, 244, 0.7)'
+                ],
+
+                defaultRepresentation: 'HEXA',
+                components: {
+                    preview: true,
+                    opacity: false,
+                    hue: true,
+
+                    interaction: {
+                        hex: false,
+                        rgba: false,
+                        hsva: false,
+                        input: true,
+                        clear: true,
+                        save: true
+                    }
+                }
+            }
+        ];
+
+    let linePickr = null;
+    const linePickrContainer = document.querySelector('.line-pickr-container');
+    const el = document.createElement('p');
+    linePickrContainer.appendChild(el);
+
+    linePickr = new Pickr(Object.assign({
+        el, theme: theme[0],
+        default: "#f27303"
+    }, theme[1]));
+
+    // Set events
+    linePickr.on('save', (color, instance) => {
+        if (color != undefined && color != null) {
+            // console.log('Event: "save"', color.toHEXA(), instance);
+            let arrayColor = color.toHEXA().slice(0, -1);
+            // console.log(arrayColor.join(""))
+            Factory.changeDataLineColor(activeDataLineObjs, arrayColor.join(""), container.clientWidth, container.clientHeight);
+        }
+
+    }).on('clear', instance => {
+        console.log('Event: "clear"', instance);
+        Factory.changeDataLineColor(activeDataLineObjs, "f27303", container.clientWidth, container.clientHeight);
+    })
+
+    let fillPickr = null;
+    const fillPickrContainer = document.querySelector('.fill-pickr-container');
+    const fillel = document.createElement('p');
+    fillPickrContainer.appendChild(fillel);
+    // Create fresh instance
+    fillPickr = new Pickr(Object.assign({
+        el: fillel, theme: theme[0],
+        default: "#9f561c"
+    }, theme[1]));
+
+    // Set events
+    fillPickr.on('save', (color, instance) => {
+        // console.log('Event: "save"', color.toHEXA(), instance);
+        if (color != undefined && color != null) {
+            let arrayColor = color.toHEXA().slice(0, -1);
+            console.log(arrayColor.join(""))
+            Factory.changePolygonColor(activePoligonObjs, arrayColor.join(""));
+        }
+
+    }).on('clear', instance => {
+        console.log('Event: "clear"', instance);
+        Factory.changePolygonColor(activePoligonObjs, "9f561c");
     })
 }

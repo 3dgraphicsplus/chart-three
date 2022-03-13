@@ -1636,6 +1636,44 @@ function setXStepCount(val) {
     XStepCount = val;
 }
 
+function changeDataLineColor(dataLines, color, width, height) {
+    DATA_LINE_CORLOR = "#" + color
+    matLine = new LineMaterial({
+        color: new THREE.Color(DATA_LINE_CORLOR),
+        vertexColors: false,
+        linewidth: DATA_LINE_WIDTH, // in world units with size attenuation, pixels otherwise
+        resolution: new THREE.Vector2(width, height),//FIXME we need to update, not new material
+        //resolution:  // to be set by renderer, eventually
+        dashed: false,
+        alphaToCoverage: true,
+        transparent: true,
+        opacity: 1.0,
+    });
+    for (let i = 0; i < dataLines.length; i++) {
+        dataLines[i].material.dispose();
+        dataLines[i].material = matLine;
+        dataLines[i].material.needsUpdate = true;
+    }
+}
+
+function changePolygonColor(poligons, color) {
+    GRADIENT_DATALINE_COLOR = "#" + color
+    polygonMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+            color: { value: new THREE.Color(GRADIENT_DATALINE_COLOR) }
+        },
+        vertexShader: document.getElementById('vertexshader').textContent,
+        fragmentShader: document.getElementById('fragmentshader').textContent,
+        transparent: true,
+        opacity: 0.4
+    });
+    for (let i = 0; i < poligons.length; i++) {
+        poligons[i].material.dispose();
+        poligons[i].material = polygonMaterial;
+        poligons[i].material.needsUpdate = true;
+    }
+}
+
 export {
     updatePurchaseLine,
     drawPurchaseLine,
@@ -1668,6 +1706,8 @@ export {
     HIGHER_BUTTON_COLOR_ENABLE,
     LOWER_BUTTON_COLOR,
     HIGHER_BUTTON_COLOR,
+    DATA_LINE_CORLOR,
+    GRADIENT_DATALINE_COLOR,
     enableHigherActiveLines,
     enableLowerActiveLines,
     disableHigherActiveLines,
@@ -1679,5 +1719,7 @@ export {
     updateFinishLine,
     drawMark,
     updateMarks,
-    removeMarks
+    removeMarks,
+    changeDataLineColor,
+    changePolygonColor
 }
