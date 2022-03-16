@@ -332,16 +332,41 @@ function zoom(zoomValue) {
     let lastZoomLevel = Factory.currentZoom();
     let newDraw = false;
 
-    Factory.currentZoom(Factory.currentZoom() + (zoomValue > 0 ? 1 : -1));
+    if (zoomValue < 0) { // Zoom in
+        if (newGridStep > MAX_GRID_STEP) {
+            // zoom in at max for current level, need to change level of zoom
+            if (lastZoomLevel > 0.5) {//avoid float accuracy
+                Factory.currentZoom(Factory.currentZoom() - 1);
+                newDraw = true;
+            } else {
+                return false;
+            }
+        }
+    } else if (zoomValue > 0) { // Zoom out
+        if (newGridStep < MIN_GRID_STEP) {
+            if (lastZoomLevel <= Factory.listZoomLevel().length - 1) {
+                Factory.currentZoom(Factory.currentZoom() + 1);
+                newDraw = true;
+            } else {
+                return false;
+            }
+        }else{
+        }
+    } 
 
     // Init the index of point where the zoom happens
     zoomFrom(zoomPoint.x, zoomValue / 10.0);
-
+    return true;
 }
 
 function zoomWithEffect(stretchValue, isButton) {
-    // console.log("pos: ", activeGroup.position.x)
-    // Zoom in means negative, zoom out mean positive
+    
+    let lastZoomLevel = Factory.currentZoom();
+    if((lastZoomLevel == 0 && stretchValue < 0) || (lastZoomLevel == Factory.listZoomLevel().length-1) && stretchValue >0){
+        console.warn("Zoom limited "+Factory.axisXConfig.stepX)
+        return;
+    }
+
     let gridFrom = ({ x: 0, y: 0, z: 0 });
     let gridTo = ({ x: stretchValue, y: 0, z: 0 });
     //if (tweenZoom) {
@@ -349,8 +374,9 @@ function zoomWithEffect(stretchValue, isButton) {
     //    isZooming = false;
     //}
     let lastVal = 0;
+    let needZoom = undefined;
     let tweenZoom = new TWEEN.Tween(gridFrom).to(gridTo, isButton ? 500 : 200).onUpdate(function (object) {
-        zoom(object.x - lastVal);
+        needZoom = zoom(object.x - lastVal);
         lastVal = object.x;
         updateView(true);
     }).onComplete(function () {
@@ -358,12 +384,15 @@ function zoomWithEffect(stretchValue, isButton) {
         // currentGridStep = Math.abs(points[5][0] - points[0][0])
         // console.log("Steps of 5: ", Math.abs(points[5][0] - points[0][0]))
         Factory.setXStepCount(Math.floor(Factory.GRID_RIGHTMOST_LINE / Factory.axisXConfig.stepX));
-        if (isButton)
-            Factory.axisYConfig.stepY *= stretchValue < 0 ? 2 : 0.5;
-        else {
-            Factory.axisYConfig.stepY *= stretchValue < 0 ? 1.1 : 0.9;
+
+        if (needZoom) {
+            if (isButton)
+                Factory.axisYConfig.stepY *= stretchValue < 0 ? 2 : 0.5;
+            else {
+                Factory.axisYConfig.stepY *= stretchValue < 0 ? 1.1 : 0.9;
+            }
+            console.log(Factory.axisXConfig.stepX, Factory.currentZoom());
         }
-        console.log(Factory.axisXConfig.stepX, Factory.currentZoom());
         updateView(true);
         isZooming = false;
     })
@@ -629,15 +658,15 @@ function onPointerUp(event) {
 // Use to rescale the data so it will fit into the view
 function rescale(newStepDelta, beginIndex, endIndex, newInitialValueYDelta) {
     // console.log("rescale: ", beginIndex, endIndex, points.length);
-    beginIndex = 0;
-    endIndex = points.length-1;
+    //beginIndex = 0;
+    //endIndex = points.length-1;
     for (let i = beginIndex; i <= endIndex; i++) {
         // console.log("rescaled: ", points[i]);
         if (points[i] == undefined || i >= dataClient.input_value.length) {
             continue;
         }
         points[i][1] = (dataClient.input_value[i].price - dataClient.input_value[beginViewingIndex].price) * newStepDelta + newInitialValueYDelta;
-        if(isNaN(points[i][1])){
+        if (isNaN(points[i][1])) {
             debugger;
         }
     }
@@ -659,11 +688,11 @@ function updateListOfViewingIndex() {
             endViewingIndex = i;
         }
     }
-    if(beginViewingIndex > points.length-1)beginViewingIndex = points.length-1;
-    if(beginViewingIndex < 0)beginViewingIndex = 0;
-    
-    endViewingIndex = endViewingIndex < points.length?endViewingIndex:points.length-1;
-    endViewingIndex = endViewingIndex>=0?endViewingIndex:0;
+    if (beginViewingIndex > points.length - 1) beginViewingIndex = points.length - 1;
+    if (beginViewingIndex < 0) beginViewingIndex = 0;
+
+    endViewingIndex = endViewingIndex < points.length ? endViewingIndex : points.length - 1;
+    endViewingIndex = endViewingIndex >= 0 ? endViewingIndex : 0;
 }
 
 function calculateAxisY(newConfig) {
@@ -698,8 +727,8 @@ function calculateAxisY(newConfig) {
         // console.log("Rescale needed: ", maxY, minY, dataClient.input_value[maxYIndex].price, dataClient.input_value[minYIndex].price);
         // To calculate the newY that will fit into the view, use the predefined max, min view Y
         newStepY = ((MAX_VIEW_Y - MIN_VIEW_Y)) / (dataClient.input_value[maxYIndex].price - dataClient.input_value[minYIndex].price);
-        newStepY = Math.max(newStepY,1);
-        newStepY = Math.min(newStepY,500);
+        newStepY = Math.max(newStepY, 0.001);
+        newStepY = Math.min(newStepY, 500);
         let newInitialValueY = Factory.axisYConfig.initialValueY;
         if (minY < MIN_VIEW_Y) {
             // console.log("Rescale needed MIN_VIEW: ", dataClient.input_value[maxYIndex].price - dataClient.input_value[minYIndex].price);
@@ -732,7 +761,7 @@ function updateView(refreshView) {
         endViewingIndex = dataClient.currentIndex();
     }
 
-    let newConfig = {stepY:Factory.axisYConfig.stepY,initialValueY:Factory.axisYConfig.initialValueY};
+    let newConfig = { stepY: Factory.axisYConfig.stepY, initialValueY: Factory.axisYConfig.initialValueY };
     let need2Update = calculateAxisY(newConfig);
     // let need2Update = false;
     // console.log("stepY, initY ", Factory.axisYConfig.stepY, Factory.axisYConfig.initialValueY);
@@ -829,7 +858,7 @@ function updateOtherStuff(triggerAtPurchaseCallback, triggerAtFinishingCallback)
         Factory.disableHigherActiveLines(higherButton, activePriceStatusObjs, 0x1a6625);
         Factory.disableLowerActiveLines(lowerButton, activePriceStatusObjs, 0x782719);
         // Draw new PurchaseLine
-        countDownTimer = PURCHASE_DURATION+1000;//hide it
+        countDownTimer = PURCHASE_DURATION + 1000;//hide it
 
         if (typeof triggerAtPurchaseCallback == "function") {
             triggerAtPurchaseCallback("no problem")
