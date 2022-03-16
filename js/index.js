@@ -629,12 +629,17 @@ function onPointerUp(event) {
 // Use to rescale the data so it will fit into the view
 function rescale(newStepDelta, beginIndex, endIndex, newInitialValueYDelta) {
     // console.log("rescale: ", beginIndex, endIndex, points.length);
+    beginIndex = 0;
+    endIndex = points.length-1;
     for (let i = beginIndex; i <= endIndex; i++) {
         // console.log("rescaled: ", points[i]);
         if (points[i] == undefined || i >= dataClient.input_value.length) {
             continue;
         }
         points[i][1] = (dataClient.input_value[i].price - dataClient.input_value[beginViewingIndex].price) * newStepDelta + newInitialValueYDelta;
+        if(isNaN(points[i][1])){
+            debugger;
+        }
     }
 }
 
@@ -654,6 +659,11 @@ function updateListOfViewingIndex() {
             endViewingIndex = i;
         }
     }
+    if(beginViewingIndex > points.length-1)beginViewingIndex = points.length-1;
+    if(beginViewingIndex < 0)beginViewingIndex = 0;
+    
+    endViewingIndex = endViewingIndex < points.length?endViewingIndex:points.length-1;
+    endViewingIndex = endViewingIndex>=0?endViewingIndex:0;
 }
 
 function calculateAxisY(newConfig) {
@@ -688,6 +698,8 @@ function calculateAxisY(newConfig) {
         // console.log("Rescale needed: ", maxY, minY, dataClient.input_value[maxYIndex].price, dataClient.input_value[minYIndex].price);
         // To calculate the newY that will fit into the view, use the predefined max, min view Y
         newStepY = ((MAX_VIEW_Y - MIN_VIEW_Y)) / (dataClient.input_value[maxYIndex].price - dataClient.input_value[minYIndex].price);
+        newStepY = Math.max(newStepY,1);
+        newStepY = Math.min(newStepY,500);
         let newInitialValueY = Factory.axisYConfig.initialValueY;
         if (minY < MIN_VIEW_Y) {
             // console.log("Rescale needed MIN_VIEW: ", dataClient.input_value[maxYIndex].price - dataClient.input_value[minYIndex].price);
@@ -720,7 +732,7 @@ function updateView(refreshView) {
         endViewingIndex = dataClient.currentIndex();
     }
 
-    let newConfig = Factory.axisYConfig.clone();
+    let newConfig = {stepY:Factory.axisYConfig.stepY,initialValueY:Factory.axisYConfig.initialValueY};
     let need2Update = calculateAxisY(newConfig);
     // let need2Update = false;
     // console.log("stepY, initY ", Factory.axisYConfig.stepY, Factory.axisYConfig.initialValueY);
@@ -823,9 +835,9 @@ function updateOtherStuff(triggerAtPurchaseCallback, triggerAtFinishingCallback)
             triggerAtPurchaseCallback("no problem")
         }
 
-        Factory.updatePurchaseLine(activeGroup, activePurchaseLineObjs, [points[points.length - 1]], Factory.GRID_TOPLINE, Factory.axisXConfig.stepX, countDownTimer, true);
+        //Factory.updatePurchaseLine(activeGroup, activePurchaseLineObjs, [points[points.length - 1]], Factory.GRID_TOPLINE, Factory.axisXConfig.stepX, countDownTimer, true);
     }
-    else {
+    {
         Factory.updatePurchaseLine(activeGroup, activePurchaseLineObjs, [points[points.length - 1]], Factory.GRID_TOPLINE, Factory.axisXConfig.stepX, countDownTimer, false);
     }
     if (finishTimer == 0) {
@@ -898,7 +910,9 @@ function drawNewData(newY, count) {
             finishTimer--;
 
         //remove effect
+        newPolygon.geometry.dispose();
         activeGroup.remove(newPolygon)
+        newLine.geometry.dispose();
         activeGroup.remove(newLine)
         activeDataLineObjs.pop();
         activePoligonObjs.pop();
