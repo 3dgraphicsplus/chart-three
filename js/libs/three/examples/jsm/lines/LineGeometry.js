@@ -33,6 +33,30 @@ class LineGeometry extends LineSegmentsGeometry {
 		return this;
 
 	}
+	setPositions2D( array ) {
+
+		// converts [ x1, y1, z1,  x2, y2, z2, ... ] to pairs format
+
+		var length = array.length*3/2 - 3;
+		var points = new Float32Array( 2 * length );
+		let k = 0;
+		for ( var i = 0; i < length; i += 3 ) {
+
+			points[ 2 * i ] = array[ k++ ];
+			points[ 2 * i + 1 ] = array[ k++ ];
+			points[ 2 * i + 2 ] = 0;
+
+			points[ 2 * i + 3 ] = array[ k++ ];
+			points[ 2 * i + 4 ] = array[ k++ ];
+			points[ 2 * i + 5 ] = 0;
+
+		}
+
+		super.setPositions( points );
+
+		return this;
+
+	}
 
 	setColors( array ) {
 

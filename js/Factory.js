@@ -16,6 +16,7 @@ let BACKGROUND_COLOR = 0x191f2d
 let TIME_TEXT_COLOR = 0x524f56
 let HORIZONTAL_PRICE_TEXT_COLOR = 0x9ca0aa
 let GRID_LINE_CORLOR = 0x9ca0aa
+const EPS = 0.0001;
 let GREEN_COLOR = 0x66ff66;
 let HIGHER_BUTTON_COLOR = 0x2cac40;
 let HIGHER_BUTTON_COLOR_ENABLE = 0x238933;
@@ -62,8 +63,8 @@ let axisYConfig = {
     clone: function () { return { stepY: this.stepY, initialValueY: this.initialValueY }; }
 }
 
-function drawInitialData(points, count, activeGroup, activePoligonObjs) {
-
+function initialHistory(points) {
+    const count = dataClient.length();
     XStepCount = Math.floor(GRID_RIGHTMOST_LINE / axisXConfig.stepX);
     // Get the data
     points.push([parseFloat(axisXConfig.initialValueX), parseFloat(axisYConfig.initialValueY), 0]);
@@ -71,27 +72,17 @@ function drawInitialData(points, count, activeGroup, activePoligonObjs) {
     let originY = dataClient.getNext();
     originY.price = parseFloat(originY.price);
     const point = new THREE.Vector3(axisXConfig.initialValueX, axisYConfig.initialValueY);
-    for (let i = 0; i < count; i++) {
-        let currentIndex = dataClient.currentIndex;
+    let nextPoint = undefined;
+    while (nextPoint = dataClient.getNext()) {
         point.x += (axisXConfig.stepX);
-        point.y = (parseFloat(dataClient.getNext().price) - originY.price) * axisYConfig.stepY + axisYConfig.initialValueY;
 
-        if (Number.isNaN((point.x)) == true || Number.isNaN((point.y)) == true) {
-            continue;
-        }
+        point.y = (parseFloat(nextPoint.price) - originY.price) * axisYConfig.stepY + axisYConfig.initialValueY;
 
-        //FIXME - other feature
-        if (point.x > GRID_RIGHTMOST_LINE / 2) {
-            // move the graph group activeGroup if the line is exceed the middle of view
-            activeGroup.position.x = activeGroup.position.x - (point.x - (GRID_RIGHTMOST_LINE / 2 - activeGroup.position.x));
-            // console.log("moving ", activeGroup.position.x);
-        }
-
+        // if (Number.isNaN((point.x)) == true || Number.isNaN((point.y)) == true) {
+        //     continue;
+        // }
         //add active point to list
         points.push([parseFloat(point.x), parseFloat(point.y), 0]);
-
-        // Draw the poligon for last points
-        addPolygon(activeGroup, activePoligonObjs, points, points.length - 2);
     }
 }
 
@@ -618,6 +609,7 @@ function updateVerticalGrid(verticalGrids, data, lastZoomLevel, gridTopBound) {
     }
 }
 
+var prevValue = undefined;
 // Draw the line at the green point, circlePos is the position of the green point
 // movedDistance is the movement of the activeGroup. This function will only be called once.
 function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, movedDistance) {
@@ -675,8 +667,8 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     let priceShape = new THREE.Mesh(geomShape, matShape);
     priceShape.renderOrder = 30;
 
-    let currentValue = dataClient.convertToDisplay((circlePos[0][1] - axisYConfig.initialValueY) / axisYConfig.stepY + dataClient.getOrigin().price)
-    let prevValue = dataClient.convertToDisplay(dataClient.input_value[dataClient.currentIndex - 2].price)
+    let currentValue = dataClient.input_value[dataClient.currentIndex - 1].price;
+    prevValue = dataClient.input_value[dataClient.currentIndex - 2].price;
 
     const isChanged = Math.round((currentValue - prevValue) * 1e2) / 1e2;
 
@@ -863,37 +855,47 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
     activePriceStatusObjs[0].priceShape.geometry.computeBoundingBox();
     activePriceStatusObjs[0].priceShape.geometry.computeBoundingSphere();
 
-    let currentValue = dataClient.convertToDisplay((circlePos[0][1] - axisYConfig.initialValueY) / axisYConfig.stepY + dataClient.getOrigin().price)
-    let prevValue = dataClient.convertToDisplay(dataClient.input_value[dataClient.currentIndex - 2].price)
+    let currentValue = dataClient.input_value[dataClient.currentIndex - 1].price;
+    prevValue = dataClient.input_value[dataClient.currentIndex - 2].price;
+
+    //console.log(currentValue - prevValue)
 
     const isChanged = Math.round((currentValue - prevValue) * 1e2) / 1e2;
-    activePriceStatusObjs[0].priceText.text = '' + (currentValue).toFixed(0)
+
     activePriceStatusObjs[0].priceText.position.z = 0
     activePriceStatusObjs[0].priceText.position.x = gridRightBound - 250 + 22
     activePriceStatusObjs[0].priceText.position.y = circlePos[0][1] + 7
-    if (enableHigherActive == true || enableLowerActive == true) {
-        activePriceStatusObjs[0].priceText.color = "white"
-    } else {
-        activePriceStatusObjs[0].priceText.color = isChanged == 0 ? 0x000000 : (isChanged >= 0 ? GREEN_COLOR : 'red');
+    //if (isChanged != 0) 
+    {
+        activePriceStatusObjs[0].priceText.text = '' + (currentValue).toFixed(0)
+        if (enableHigherActive == true || enableLowerActive == true) {
+            activePriceStatusObjs[0].priceText.color = "white"
+        } else {
+            activePriceStatusObjs[0].priceText.color = isChanged == 0 ? 0x000000 : (isChanged >= 0 ? GREEN_COLOR : 'red');
+        }
+
+        // Update the rendering:
+        activePriceStatusObjs[0].priceText.sync()
     }
-
-
-    // Update the rendering:
-    activePriceStatusObjs[0].priceText.sync()
 
 
     activePriceStatusObjs[0].priceActiveText.position.z = 0
     activePriceStatusObjs[0].priceActiveText.position.x = gridRightBound - 250 + 60
     activePriceStatusObjs[0].priceActiveText.position.y = circlePos[0][1] + 12
-    if (enableHigherActive == true || enableLowerActive == true) {
-        activePriceStatusObjs[0].priceActiveText.color = "white"
-    } else {
-        activePriceStatusObjs[0].priceActiveText.color = isChanged == 0 ? 0x000000 : (isChanged >= 0 ? GREEN_COLOR : 'red');
-    }
-    activePriceStatusObjs[0].priceActiveText.text = ('' + Math.abs(currentValue - prevValue).toFixed(2)).substr(2)
 
-    // Update the rendering:
-    activePriceStatusObjs[0].priceActiveText.sync()
+    //if (isChanged != 0) 
+    {
+        if (enableHigherActive == true || enableLowerActive == true) {
+            activePriceStatusObjs[0].priceActiveText.color = "white"
+        } else {
+            activePriceStatusObjs[0].priceActiveText.color = isChanged == 0 ? 0x000000 : (isChanged >= 0 ? GREEN_COLOR : 'red');
+        }
+
+        activePriceStatusObjs[0].priceActiveText.text = ('' + Math.abs(currentValue - prevValue).toFixed(2)).substr(2)
+        // Update the rendering:
+        activePriceStatusObjs[0].priceActiveText.sync()
+    }
+
 
     //let geometry = new THREE.CircleGeometry(3, 50);
     //let material = new THREE.MeshBasicMaterial({ color: GREEN_COLOR, transparent: true, opacity: 1.0 });
@@ -991,94 +993,99 @@ function disableLowerActiveLines(lowerButton, activePriceStatusObjs, disabledCor
     activePriceStatusObjs[0].priceShape.material.needsUpdate = true;
 }
 
-// Update the geometry of the polygons in a selected range: from, to
-function updatePolygon(poligons, poly, from, to) {
-    //FIXME call this realtime is  so bad
-    for (let i = from; i < to; i++) {
-        if (poly[i] == undefined || poly[i + 1] == undefined) {
-            continue;
-        }
-
-        if (Number.isNaN(poly[i][0]) || Number.isNaN(poly[i][1]) || Number.isNaN(poly[i + 1][0]) || Number.isNaN(poly[i + 1][1])) {
-            continue;
-        }
-        let shape = new THREE.Shape();
-        shape.moveTo(poly[i][0], poly[i][1]);
-        shape.lineTo(poly[i + 1][0], poly[i + 1][1]);
-        shape.lineTo(poly[i + 1][0], 0);
-        shape.lineTo(poly[i][0], 0);
-        let geometry = new THREE.ShapeGeometry(shape);
-        poligons[i].geometry.dispose();
-        poligons[i].geometry = geometry;
-        poligons[i].geometry.attributes.position.needsUpdate = true;
-    }
-}
-
-function updatePolygonSingle(poligons, x0, y0, x, y, offset) {
-    if (Number.isNaN(x0) || Number.isNaN(y0) || Number.isNaN(x) || Number.isNaN(y)) {
-        console.log(x0, y0, x, y)
-        return;
-    }
-    //FIXME call this realtime is  so bad
-    let i = offset;
-    let shape = new THREE.Shape();
-    shape.moveTo(x0, y0);
-    shape.lineTo(x, y);
-    shape.lineTo(x, 0);
-    shape.lineTo(x0, 0);
-    let geometry = new THREE.ShapeGeometry(shape);
-    poligons[i].geometry.dispose();
-    poligons[offset].geometry = geometry;
-    poligons[offset].geometry.attributes.position.needsUpdate = true;
-}
 
 // Create the polygon using the list of points
 let polygonMaterial = new THREE.ShaderMaterial({
     uniforms: {
         color: { value: new THREE.Color(GRADIENT_DATALINE_COLOR) }
     },
+    //side:THREE.DoubleSide,
     vertexShader: document.getElementById('vertexshader').textContent,
     fragmentShader: document.getElementById('fragmentshader').textContent,
     transparent: true,
     opacity: 0.4
 });
+
 function addPolygon(drawingGroup, poligons, poly, offset = 0) {
-    // activeGroup.remove(poligon);
-    let shape = new THREE.Shape();
-    if (Number.isNaN(parseFloat(poly[0 + offset][0])) || Number.isNaN(parseFloat(poly[0 + offset][1]))) {
-        return;
-    }
-    shape.moveTo(poly[0 + offset][0], poly[0 + offset][1]);
+    let geometry = new THREE.BufferGeometry();
+    let vertices = [];
     for (let i = 1 + offset; i < poly.length; ++i) {
-        if (Number.isNaN(parseFloat(poly[i][0])) || Number.isNaN(parseFloat(poly[i][1]))) {
-            continue;
-        }
-        shape.lineTo(poly[i][0], poly[i][1]);
+        vertices.push(poly[i - 1][0], poly[i - 1][1], 0);
+        vertices.push(poly[i - 1][0], 0, 0);
+        vertices.push(poly[i][0], poly[i][1], 0);
+
+
+        vertices.push(poly[i][0], poly[i][1], 0);
+        vertices.push(poly[i - 1][0], 0, 0);
+        vertices.push(poly[i][0], 0, 0);
     }
 
-    if (Number.isNaN(parseFloat(poly[poly.length - 1][0])) || Number.isNaN(parseFloat(poly[poly.length - 1][1]))) {
-        return;
-    }
-    shape.lineTo(poly[poly.length - 1][0], 0);
-    shape.lineTo(poly[0 + offset][0], 0);
+    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
 
-    let geometry = new THREE.ShapeGeometry(shape);
+    //test
+    //geometry = new THREE.SphereGeometry(300,15,15);
 
     let poligon = new THREE.Mesh(geometry, polygonMaterial);
     poligon.renderOrder = 5;
     drawingGroup.add(poligon);
     poligons.push(poligon);
+
+    return poligon;
 }
 
+function updatePolygon(poligons, poly, offset = 0) {
+    let vertices = [];
+    for (let i = 1 + 0; i < poly.length; ++i) {
+        vertices.push(poly[i - 1][0], poly[i - 1][1], 0);
+        vertices.push(poly[i - 1][0], 0, 0);
+        vertices.push(poly[i][0], poly[i][1], 0);
+
+
+        vertices.push(poly[i][0], poly[i][1], 0);
+        vertices.push(poly[i - 1][0], 0, 0);
+        vertices.push(poly[i][0], 0, 0);
+    }
+
+    if (vertices.length != poligons[0].geometry.attributes.position.array.length) {
+        poligons[0].geometry.deleteAttribute('position');
+        poligons[0].geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
+    } else {
+        poligons[0].geometry.attributes.position.array.set(vertices);
+    }
+
+    poligons[0].geometry.attributes.position.needsUpdate = true;
+    poligons[0].geometry.computeBoundingSphere();
+
+}
+function updateNewPolygon(poligon, points) {
+    let vertices = [];
+    const len = points.length;
+    let x0 = points[len - 2][0]
+    let y0 = points[len - 2][1]
+    let x = points[len - 1][0]
+    let y = points[len - 1][1]
+
+    vertices.push(x0, y0, 0);
+    vertices.push(x0, 0, 0);
+    vertices.push(x, y, 0);
+
+
+    vertices.push(x, y, 0);
+    vertices.push(x0, 0, 0);
+    vertices.push(x, 0, 0);
+    poligon.geometry.attributes.position.array.set(vertices, 0)
+
+    poligon.geometry.attributes.position.needsUpdate = true;
+}
 // Draw the data lines which map data points
 var matLine = null;
 function addDataLine(drawingGroup, dataLines, data, offset, width, height) {
-    if (!matLine || matLine.resolution.x != width || matLine.resolution.y != height) {
-        matLine = new LineMaterial({
+    if (!matLine) {
+        matLine = new THREE.LineBasicMaterial({
             color: DATA_LINE_CORLOR,
             vertexColors: false,
             linewidth: DATA_LINE_WIDTH, // in world units with size attenuation, pixels otherwise
-            resolution: new THREE.Vector2(width, height),//FIXME we need to update, not new material
+            //resolution: new THREE.Vector2(width, height),//FIXME we need to update, not new material
             //resolution:  // to be set by renderer, eventually
             dashed: false,
             alphaToCoverage: true,
@@ -1086,63 +1093,51 @@ function addDataLine(drawingGroup, dataLines, data, offset, width, height) {
             opacity: 1.0,
         });
     }
-    for (let i = offset; i < data.length - 1; i++) {
-        let currencyLineGeo = new LineGeometry();
-        if (data[i] == undefined || data[i + 1] == undefined) {
-            continue;
-        }
-        if (Number.isNaN((data[i][0])) || Number.isNaN((data[i][1])) || Number.isNaN((data[i][2]))) {
-            continue;
-        }
-        if (Number.isNaN((data[i + 1][0])) || Number.isNaN((data[i + 1][1])) || Number.isNaN((data[i + 1][2]))) {
-            continue;
-        }
-        currencyLineGeo.setPositions([(data[i][0]), (data[i][1]), (data[i][2]), (data[i + 1][0]), (data[i + 1][1]), (data[i + 1][2])])
-
-        let currencyLine = new Line2(currencyLineGeo, matLine);
-        // currencyLine.computeLineDistances();
-        currencyLine.scale.set(1, 1, 1);
-        currencyLine.renderOrder = 10;
-        dataLines.push(currencyLine);
-        drawingGroup.add(currencyLine);
-    }
+    let geometry = new THREE.BufferGeometry();
+    let vertices = [];
+    if (data.length == offset + 2) {
+        vertices.push(data[offset][0], data[offset][1], data[offset][2], data[offset + 1][0], data[offset + 1][1], data[offset + 1][2])
+    } else
+        vertices = [].concat(...data)
+    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
+    let currencyLine = new THREE.Line(geometry, matLine);
+    // currencyLine.computeLineDistances();
+    currencyLine.scale.set(1, 1, 1);
+    currencyLine.renderOrder = 10;
+    dataLines.push(currencyLine);
+    drawingGroup.add(currencyLine);
+    //}
+    return currencyLine;
 }
 
 // Update the geometry of created data lines
-function updateDataLine(dataLines, data, from, to) {
-    for (let i = from; i < to; i++) {
-        if (data[i] == undefined || data[i + 1] == undefined) {
-            continue;
-        }
-        if (Number.isNaN(parseFloat(data[i][0])) || Number.isNaN(parseFloat(data[i][1])) || Number.isNaN(parseFloat(data[i][2]))) {
-            console.log(data[i][0], data[i][1], data[i][2]);
-            continue;
-        }
-        if (Number.isNaN(parseFloat(data[i + 1][0])) || Number.isNaN(parseFloat(data[i + 1][1])) || Number.isNaN(parseFloat(data[i + 1][2]))) {
-            console.log(data[i + 1][0], data[i + 1][1], data[i + 1][2]);
-            continue;
-        }
-        let currencyLineGeo = new LineGeometry();
-        currencyLineGeo.setPositions([parseFloat(data[i][0]), parseFloat(data[i][1]), parseFloat(data[i][2]), parseFloat(data[i + 1][0]), parseFloat(data[i + 1][1]), parseFloat(data[i + 1][2])])
-        dataLines[i].geometry.dispose();
-        dataLines[i].geometry = currencyLineGeo;
-        dataLines[i].geometry.attributes.position.needsUpdate = true;
+function updateDataLine(dataLines, data, from = 0, to = 0) {
+    //console.log(dataLines.length);
+    from = from ? from : 0;
+    to = to ? to : data.length;
+
+    const vertices = [].concat(...data);
+    if (vertices.length != dataLines[0].geometry.attributes.position.array.length) {
+        dataLines[0].geometry.deleteAttribute('position');
+        dataLines[0].geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
+    } else {
+        dataLines[0].geometry.attributes.position.array.set(vertices);
     }
+    dataLines[0].geometry.attributes.position.needsUpdate = true;
+    dataLines[0].geometry.computeBoundingSphere()
 }
 
 
 // Update the geometry of created data lines
-function updateDataLineSingle(dataLines, x0, y0, x, y, offset) {
-    if (Number.isNaN(x0) || Number.isNaN(y0) || Number.isNaN(x) || Number.isNaN(y)) {
-        console.log(x0, y0, x, y)
-        return;
-    }
-    let i = offset;
-    let currencyLineGeo = new LineGeometry();
-    currencyLineGeo.setPositions([x0, y0, 0, x, y, 0])
-    dataLines[i].geometry.dispose();
-    dataLines[i].geometry = currencyLineGeo;
-    dataLines[i].geometry.attributes.position.needsUpdate = true;
+function updateNewLine(dataLine, points) {
+    const len = points.length;
+    let x0 = points[len - 2][0]
+    let y0 = points[len - 2][1]
+    let x = points[len - 1][0]
+    let y = points[len - 1][1]
+    const target = dataLine.geometry.attributes.position.array;
+    target.set([x0, y0, 0, x, y, 0]);
+    dataLine.geometry.attributes.position.needsUpdate = true;
 }
 
 // Draw the purchase line using position of the green points and the remaining time of the countdown timer.
@@ -1675,6 +1670,7 @@ function changePolygonColor(poligons, color) {
 }
 
 export {
+    initialHistory,
     updatePurchaseLine,
     drawPurchaseLine,
     updateDataLine,
@@ -1690,7 +1686,6 @@ export {
     updateHorizontalGrid,
     drawBackground,
     updateMouseMoveLine,
-    drawInitialData,
     setGrid,
     GRID_TOPLINE,
     GRID_RIGHTMOST_LINE,
@@ -1713,8 +1708,8 @@ export {
     disableHigherActiveLines,
     disableLowerActiveLines,
     drawLowerButton,
-    updatePolygonSingle,
-    updateDataLineSingle,
+    updateNewPolygon,
+    updateNewLine,
     drawFinishLine,
     updateFinishLine,
     drawMark,
