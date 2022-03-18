@@ -59,8 +59,7 @@ const MIN_DIFF_Y = 200;
 let XStepCount = 50;
 let axisXConfig = { stepX: 20, initialValueX: 0 }
 let axisYConfig = {
-    stepY: 0.5, initialValueY: 0,
-    clone: function () { return { stepY: this.stepY, initialValueY: this.initialValueY }; }
+    stepY: 0.5, initialValueY: 0
 }
 
 function initialHistory(points) {
@@ -69,11 +68,12 @@ function initialHistory(points) {
     // Get the data
     points.push([parseFloat(axisXConfig.initialValueX), parseFloat(axisYConfig.initialValueY), 0]);
 
-    let originY = dataClient.getNext();
+    let originY = dataClient.input_value[0];
     originY.price = parseFloat(originY.price);
     const point = new THREE.Vector3(axisXConfig.initialValueX, axisYConfig.initialValueY);
-    let nextPoint = undefined;
-    while (nextPoint = dataClient.getNext()) {
+    let index = 1;
+    while (index < dataClient.length()) {
+        let nextPoint = dataClient.input_value[index];
         point.x += (axisXConfig.stepX);
 
         point.y = (parseFloat(nextPoint.price) - originY.price) * axisYConfig.stepY + axisYConfig.initialValueY;
@@ -83,6 +83,8 @@ function initialHistory(points) {
         // }
         //add active point to list
         points.push([parseFloat(point.x), parseFloat(point.y), 0]);
+
+        index++;
     }
 }
 
@@ -218,8 +220,15 @@ let mousePriceLineMat = null;
 let mouseTimeLineMat = null;
 let matShape = new THREE.MeshBasicMaterial({ color: 0x525a71, transparent: false });
 function updateMouseMoveLine(scene, posX, posY, initialValueX, timestamp) {
-    scene.remove(mouseTimeLine);
-    scene.remove(mousePriceLine);
+    if (mouseTimeLine) {
+        mouseTimeLine.geometry.dispose();
+        scene.remove(mouseTimeLine);
+    }
+    if (mousePriceLine) {
+        mousePriceLine.geometry.dispose()
+        scene.remove(mousePriceLine);
+    }
+
     mousePriceLineGeo = new LineGeometry();
     mousePriceLineGeo.setPositions([initialValueX - 250, posY, 0, GRID_RIGHTMOST_LINE - 225 - 120, posY, 0]);
 
@@ -563,7 +572,9 @@ function removeRedundantVerticalGrid(drawingGroup, verticalGrids) {
     for (const [key, value] of Object.entries(verticalGrids)) {
         // For example: DEFAULT_ZOOM_LEVEL[currentZoomLevel] = 10 -> draw grids every 10 points so remove grid at point 15th,...
         if (key % DEFAULT_ZOOM_LEVEL[currentZoomLevel] != 0) {
+            value.line.geometry.dispose();
             drawingGroup.remove(value.line)
+            value.text.dispose();
             drawingGroup.remove(value.text)
             delete verticalGrids[key]
         }
@@ -667,8 +678,8 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     let priceShape = new THREE.Mesh(geomShape, matShape);
     priceShape.renderOrder = 30;
 
-    let currentValue = dataClient.input_value[dataClient.currentIndex - 1].price;
-    prevValue = dataClient.input_value[dataClient.currentIndex - 2].price;
+    let currentValue = dataClient.input_value[dataClient.currentIndex() - 1].price;
+    prevValue = dataClient.input_value[dataClient.currentIndex() - 2].price;
 
     const isChanged = Math.round((currentValue - prevValue) * 1e2) / 1e2;
 
@@ -855,8 +866,8 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
     activePriceStatusObjs[0].priceShape.geometry.computeBoundingBox();
     activePriceStatusObjs[0].priceShape.geometry.computeBoundingSphere();
 
-    let currentValue = dataClient.input_value[dataClient.currentIndex - 1].price;
-    prevValue = dataClient.input_value[dataClient.currentIndex - 2].price;
+    let currentValue = dataClient.input_value[dataClient.input_value.length - 1].price;
+    prevValue = dataClient.input_value[dataClient.input_value.length - 2].price;
 
     //console.log(currentValue - prevValue)
 
@@ -868,11 +879,11 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
     //if (isChanged != 0) 
     {
         activePriceStatusObjs[0].priceText.text = '' + (currentValue).toFixed(0)
-        if (enableHigherActive == true || enableLowerActive == true) {
-            activePriceStatusObjs[0].priceText.color = "white"
-        } else {
-            activePriceStatusObjs[0].priceText.color = isChanged == 0 ? 0x000000 : (isChanged >= 0 ? GREEN_COLOR : 'red');
-        }
+        //if (enableHigherActive == true || enableLowerActive == true) {
+        //    activePriceStatusObjs[0].priceText.color = "white"
+        //} else {
+        activePriceStatusObjs[0].priceText.color = isChanged == 0 ? 0x000000 : (isChanged >= 0 ? GREEN_COLOR : 'red');
+        //}
 
         // Update the rendering:
         activePriceStatusObjs[0].priceText.sync()
@@ -885,11 +896,11 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
 
     //if (isChanged != 0) 
     {
-        if (enableHigherActive == true || enableLowerActive == true) {
-            activePriceStatusObjs[0].priceActiveText.color = "white"
-        } else {
-            activePriceStatusObjs[0].priceActiveText.color = isChanged == 0 ? 0x000000 : (isChanged >= 0 ? GREEN_COLOR : 'red');
-        }
+        //if (enableHigherActive == true || enableLowerActive == true) {
+        //    activePriceStatusObjs[0].priceActiveText.color = "white"
+        //} else {
+        activePriceStatusObjs[0].priceActiveText.color = isChanged == 0 ? 0x000000 : (isChanged >= 0 ? GREEN_COLOR : 'red');
+        //}
 
         activePriceStatusObjs[0].priceActiveText.text = ('' + Math.abs(currentValue - prevValue).toFixed(2)).substr(2)
         // Update the rendering:
@@ -941,8 +952,8 @@ function enableHigherActiveLines(higherButton, activePriceStatusObjs) {
     activePriceStatusObjs[0].dashedLine.material.needsUpdate = true;
     activePriceStatusObjs[0].line.material.color.setHex(HIGHER_BUTTON_COLOR);
     activePriceStatusObjs[0].line.material.needsUpdate = true;
-    activePriceStatusObjs[0].priceShape.material.color.setHex(HIGHER_BUTTON_COLOR);
-    activePriceStatusObjs[0].priceShape.material.needsUpdate = true;
+    //activePriceStatusObjs[0].priceShape.material.color.setHex(HIGHER_BUTTON_COLOR);
+    //activePriceStatusObjs[0].priceShape.material.needsUpdate = true;
 }
 
 function disableHigherActiveLines(higherButton, activePriceStatusObjs, disabledCorlor) {
@@ -958,8 +969,8 @@ function disableHigherActiveLines(higherButton, activePriceStatusObjs, disabledC
     activePriceStatusObjs[0].dashedLine.material.needsUpdate = true;
     activePriceStatusObjs[0].line.material.color.setHex(0xffffff);
     activePriceStatusObjs[0].line.material.needsUpdate = true;
-    activePriceStatusObjs[0].priceShape.material.color.setHex(0xffffff);
-    activePriceStatusObjs[0].priceShape.material.needsUpdate = true;
+    // activePriceStatusObjs[0].priceShape.material.color.setHex(0xffffff);
+    //activePriceStatusObjs[0].priceShape.material.needsUpdate = true;
 }
 
 function enableLowerActiveLines(lowerButton, activePriceStatusObjs) {
@@ -971,8 +982,8 @@ function enableLowerActiveLines(lowerButton, activePriceStatusObjs) {
     activePriceStatusObjs[0].dashedLine.material.needsUpdate = true;
     activePriceStatusObjs[0].line.material.color.setHex(LOWER_BUTTON_COLOR);
     activePriceStatusObjs[0].line.material.needsUpdate = true;
-    activePriceStatusObjs[0].priceShape.material.color.setHex(LOWER_BUTTON_COLOR);
-    activePriceStatusObjs[0].priceShape.material.needsUpdate = true;
+    //activePriceStatusObjs[0].priceShape.material.color.setHex(LOWER_BUTTON_COLOR);
+    //activePriceStatusObjs[0].priceShape.material.needsUpdate = true;
 }
 
 function disableLowerActiveLines(lowerButton, activePriceStatusObjs, disabledCorlor) {
@@ -989,8 +1000,8 @@ function disableLowerActiveLines(lowerButton, activePriceStatusObjs, disabledCor
     activePriceStatusObjs[0].dashedLine.material.needsUpdate = true;
     activePriceStatusObjs[0].line.material.color.setHex(0xffffff);
     activePriceStatusObjs[0].line.material.needsUpdate = true;
-    activePriceStatusObjs[0].priceShape.material.color.setHex(0xffffff);
-    activePriceStatusObjs[0].priceShape.material.needsUpdate = true;
+    //activePriceStatusObjs[0].priceShape.material.color.setHex(0xffffff);
+    //activePriceStatusObjs[0].priceShape.material.needsUpdate = true;
 }
 
 
@@ -1047,14 +1058,18 @@ function updatePolygon(poligons, poly, offset = 0) {
     }
 
     if (vertices.length != poligons[0].geometry.attributes.position.array.length) {
-        poligons[0].geometry.deleteAttribute('position');
+
+        poligons[0].geometry.dispose();
+        poligons[0].geometry = new THREE.BufferGeometry();
+        ///poligons[0].geometry.attributes.position.dispose();
+        //poligons[0].geometry.deleteAttribute('position');
         poligons[0].geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
     } else {
         poligons[0].geometry.attributes.position.array.set(vertices);
     }
 
     poligons[0].geometry.attributes.position.needsUpdate = true;
-    poligons[0].geometry.computeBoundingSphere();
+    //poligons[0].geometry.computeBoundingSphere();
 
 }
 function updateNewPolygon(poligon, points) {
@@ -1099,6 +1114,7 @@ function addDataLine(drawingGroup, dataLines, data, offset, width, height) {
         vertices.push(data[offset][0], data[offset][1], data[offset][2], data[offset + 1][0], data[offset + 1][1], data[offset + 1][2])
     } else
         vertices = [].concat(...data)
+
     geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
     let currencyLine = new THREE.Line(geometry, matLine);
     // currencyLine.computeLineDistances();
@@ -1118,13 +1134,16 @@ function updateDataLine(dataLines, data, from = 0, to = 0) {
 
     const vertices = [].concat(...data);
     if (vertices.length != dataLines[0].geometry.attributes.position.array.length) {
-        dataLines[0].geometry.deleteAttribute('position');
+        dataLines[0].geometry.dispose();
+        dataLines[0].geometry = new THREE.BufferGeometry();
+        //dataLines[0].geometry.attributes.position.dispose();
+        //dataLines[0].geometry.deleteAttribute('position');
         dataLines[0].geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
     } else {
         dataLines[0].geometry.attributes.position.array.set(vertices);
     }
     dataLines[0].geometry.attributes.position.needsUpdate = true;
-    dataLines[0].geometry.computeBoundingSphere()
+    //dataLines[0].geometry.computeBoundingSphere()
 }
 
 
@@ -1234,18 +1253,20 @@ function drawPurchaseLine(purchaseLineObjs, circlePos, gridTopBound, stepX, coun
 }
 
 // Update the geometry of the purchase line using greenpoint position
-function updatePurchaseLine(drawingGroup, purchaseLineObjs, circlePos, gridTopBound, stepX, countDownTimer, redraw) {
+function updatePurchaseLine(drawingGroup, purchaseLineObjs, circlePos, gridTopBound, stepX, countDownTimer) {
+    //console.log(updatePurchaseLine)
     if (Number.isNaN(circlePos[0][0]) || Number.isNaN(circlePos[0][1])) {
         console.log(circlePos[0])
         return;
     }
-    if (redraw == true) {
+    //if (redraw == true) 
+    //{
         let verticalPurchaseLinePos = [circlePos[0][0] + countDownTimer * axisXConfig.stepX, 150, 0, circlePos[0][0] + countDownTimer * axisXConfig.stepX, gridTopBound, 0];
 
-        const verticalPurchaseGeo = new LineGeometry();
-        verticalPurchaseGeo.setPositions(verticalPurchaseLinePos);
-        purchaseLineObjs[0].purchaseLine.geometry.dispose();
-        purchaseLineObjs[0].purchaseLine.geometry = verticalPurchaseGeo;
+        // const verticalPurchaseGeo = new LineGeometry();
+        // verticalPurchaseGeo.setPositions(verticalPurchaseLinePos);
+        // purchaseLineObjs[0].purchaseLine.geometry.dispose();
+        purchaseLineObjs[0].purchaseLine.geometry.setPositions(verticalPurchaseLinePos);
         purchaseLineObjs[0].purchaseLine.computeLineDistances();
         purchaseLineObjs[0].purchaseLine.geometry.attributes.position.needsUpdate = true;
 
@@ -1263,59 +1284,25 @@ function updatePurchaseLine(drawingGroup, purchaseLineObjs, circlePos, gridTopBo
         // Update the rendering:
         purchaseLineObjs[0].timeText.sync()
 
-        if (countDownTimer <= 3) {
-            let countDownText = new Text()
-            countDownText.renderOrder = 10;
 
-            // Set properties to configure:
-            countDownText.text = (countDownTimer == 60 ? '01:00' : (countDownTimer < 10 ? '00:' + '0' + countDownTimer : '00:' + countDownTimer))
-            countDownText.font = "https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
-            countDownText.fontSize = 25
-            countDownText.position.z = 0
-            countDownText.position.x = verticalPurchaseLinePos[0] - 32
-            countDownText.position.y = gridTopBound - 35
-            countDownText.color = 0xffffff
-
-            // Update the rendering:
-            countDownText.sync()
-            drawingGroup.remove(purchaseLineObjs[0].countDownText)
-            purchaseLineObjs[0].countDownText.dispose();
-            purchaseLineObjs[0].countDownText = countDownText;
-            drawingGroup.add(purchaseLineObjs[0].countDownText)
-        } else {
-            purchaseLineObjs[0].countDownText.position.x = verticalPurchaseLinePos[0] - 32
-            purchaseLineObjs[0].countDownText.text = (countDownTimer == 60 ? '1:00' : (countDownTimer < 10 ? '00:' + '0' + countDownTimer : '00:' + countDownTimer))
-            // Update the rendering:
-            purchaseLineObjs[0].countDownText.sync()
-        }
         purchaseLineObjs[0].stopwatch.position.set(verticalPurchaseLinePos[0], 160);
         purchaseLineObjs[0].stopwatch.geometry.attributes.position.needsUpdate = true;
+    //}
+    if (countDownTimer <= 3) {
+        let countDownText = purchaseLineObjs[0].countDownText
+        // Set properties to configure:
+        countDownText.text = (countDownTimer == 60 ? '01:00' : (countDownTimer < 10 ? '00:' + '0' + countDownTimer : '00:' + countDownTimer))
+
+        countDownText.position.x = verticalPurchaseLinePos[0] - 32
+        countDownText.position.y = gridTopBound - 35
+
+        // Update the rendering:
+        countDownText.sync()
     } else {
-        if (countDownTimer <= 3) {
-            let countDownText = new Text()
-            countDownText.renderOrder = 10;
-
-            // Set properties to configure:
-            countDownText.text = (countDownTimer == 60 ? '01:00' : (countDownTimer < 10 ? '00:' + '0' + countDownTimer : '00:' + countDownTimer))
-            countDownText.font = "https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
-            countDownText.fontSize = 25
-            countDownText.position.z = 0
-            countDownText.position.x = purchaseLineObjs[0].countDownText.position.x
-            countDownText.position.y = gridTopBound - 35
-            countDownText.color = 0xffffff
-
-            // Update the rendering:
-            countDownText.sync();
-            drawingGroup.remove(purchaseLineObjs[0].countDownText);
-            purchaseLineObjs[0].countDownText.dispose();
-            purchaseLineObjs[0].countDownText = countDownText;
-            drawingGroup.add(purchaseLineObjs[0].countDownText);
-        } else {
-            // purchaseLineObjs[0].countDownText.position.x = verticalPurchaseLinePos[0] - 32
-            purchaseLineObjs[0].countDownText.text = (countDownTimer == 60 ? '1:00' : (countDownTimer < 10 ? '00:' + '0' + countDownTimer : '00:' + countDownTimer))
-            // Update the rendering:
-            purchaseLineObjs[0].countDownText.sync()
-        }
+        purchaseLineObjs[0].countDownText.position.x = verticalPurchaseLinePos[0] - 32
+        purchaseLineObjs[0].countDownText.text = (countDownTimer == 60 ? '1:00' : (countDownTimer < 10 ? '00:' + '0' + countDownTimer : '00:' + countDownTimer))
+        // Update the rendering:
+        purchaseLineObjs[0].countDownText.sync()
     }
 }
 
@@ -1582,29 +1569,29 @@ function updateMarks(markObjs, points, gridRightBound, movedDistance) {
 
 function removeMarks(drawingGroup, markObjs) {
     for (let i = 0; i < markObjs.length; i++) {
-        drawingGroup.remove(markObjs[i].ovalMesh)
         markObjs[i].ovalMesh.geometry.dispose();
         markObjs[i].ovalMesh.material.dispose();
+        drawingGroup.remove(markObjs[i].ovalMesh)
         markObjs[i].ovalMesh = undefined;
-        drawingGroup.remove(markObjs[i].investText)
         markObjs[i].investText.dispose();
-        drawingGroup.remove(markObjs[i].priceText)
         markObjs[i].priceText.dispose();
-        drawingGroup.remove(markObjs[i].markPriceShape)
+        drawingGroup.remove(markObjs[i].investText)
+        drawingGroup.remove(markObjs[i].priceText)
         markObjs[i].markPriceShape.geometry.dispose();
         markObjs[i].markPriceShape.material.dispose();
+        drawingGroup.remove(markObjs[i].markPriceShape)
         markObjs[i].markPriceShape = undefined;
-        drawingGroup.remove(markObjs[i].verdashedLine)
         markObjs[i].verdashedLine.geometry.dispose();
         markObjs[i].verdashedLine.material.dispose();
+        drawingGroup.remove(markObjs[i].verdashedLine)
         markObjs[i].verdashedLine = undefined;
-        drawingGroup.remove(markObjs[i].verLine)
         markObjs[i].verLine.geometry.dispose();
         markObjs[i].verLine.material.dispose();
+        drawingGroup.remove(markObjs[i].verLine)
         markObjs[i].verLine = undefined;
-        drawingGroup.remove(markObjs[i].markMesh)
         markObjs[i].markMesh.geometry.dispose();
         markObjs[i].markMesh.material.dispose();
+        drawingGroup.remove(markObjs[i].markMesh)
         markObjs[i].markMesh = undefined;
     }
 }
