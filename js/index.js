@@ -2,7 +2,6 @@ import Stats from './libs/stats.module.js';
 import TWEEN from './libs/tween.esm.js';
 import DataClient from './DataClient.js';
 import * as THREE from './libs/three/build/three.module.js'
-import * as BufferGeometryUtils from './libs/three/examples/jsm/BufferGeometryUtils.js'
 
 //FIXME
 import * as Factory from './Factory.js';
@@ -86,6 +85,7 @@ let lastDraw = { newY: 0, count: 1 };
 
 let round = 1;
 // let originIndex = 0;
+let totalMouseMovement = 0;
 
 
 function update(newVal) {
@@ -440,6 +440,7 @@ function onPointerMove(event) {
         if (deltaX > 0) {
             if (xLeftLine > points[0][0] - 2 * Factory.axisXConfig.stepX) {
                 activeGroup.position.set(activeGroup.position.x + deltaX, activeGroup.position.y, activeGroup.position.z);
+                totalMouseMovement += deltaX;
                 // beginViewingIndex -= Math.floor(deltaX / Factory.axisXConfig.stepX);
                 // endViewingIndex -= Math.floor(deltaX / Factory.axisXConfig.stepX);
                 // console.log(deltaX);
@@ -450,8 +451,10 @@ function onPointerMove(event) {
 
             if (xRightLine > points[dataClient.currentIndex() - 2][0]) {
                 moving = false;
+                totalMouseMovement = 0;
             } else {
                 activeGroup.position.set(activeGroup.position.x + deltaX, activeGroup.position.y, activeGroup.position.z);
+                totalMouseMovement -= deltaX;
                 // beginViewingIndex += Math.floor(deltaX / Factory.axisXConfig.stepX);
                 // endViewingIndex += Math.floor(deltaX / Factory.axisXConfig.stepX);
                 // console.log(deltaX);
@@ -1085,7 +1088,21 @@ function showZoomButtons() {
     })
 
     $("#focus").click(function (e) {
-        console.log("Focus")
+        // console.log("Focus")
+
+        // console.log("total ", totalMouseMovement);
+        let tweenFrom = ({ x: activeGroup.position.x, y: 0, z: 0 });
+        let tweenTo = ({ x: activeGroup.position.x - totalMouseMovement, y: 0, z: 0 });
+        new TWEEN.Tween(tweenFrom).to(tweenTo, 1000).onUpdate(function (object) {
+            let xRightLine = (Factory.GRID_RIGHTMOST_LINE / 2 - activeGroup.position.x);
+            activeGroup.position.set(object.x, activeGroup.position.y, activeGroup.position.z);
+        }).onComplete(function () {
+            moving = false;
+            totalMouseMovement = 0;
+            updateView();
+        }).easing(TWEEN.Easing.Quadratic.InOut)
+            .start();
+
     })
 }
 function initColorPicker() {
