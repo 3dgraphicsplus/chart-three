@@ -210,7 +210,7 @@ function initScene(drawingGroup, gridStepX) {
 
 
     // Draw the grid
-    Factory.drawHorizontalGrid(activeHorizontalGridObjs, 0, Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120)
+    Factory.drawHorizontalGrid(activeHorizontalGridObjs, 0, Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120,beginViewingIndex)
 
     Factory.drawVerticalGrid(drawingGroup, activeVerticalGridObjs, points, Math.floor(drawCount / Factory.defaultZoomLevel()), Factory.GRID_TOPLINE, 0)
 
@@ -474,7 +474,7 @@ function onPointerMove(event) {
             let dataIndex = x2DataIndex(intersects[0].point.x);
             if (0 <= dataIndex && dataIndex < dataClient.input_value.length) {
                 let val = dataClient.input_value[dataIndex].time;
-                Factory.updateMouseMoveLine(scene, intersects[0].point.x, intersects[0].point.y, Factory.axisXConfig.initialValueX, val);
+                Factory.updateMouseMoveLine(scene, intersects[0].point.x, intersects[0].point.y, Factory.axisXConfig.initialValueX, val,beginViewingIndex);
             }
         }
 
@@ -678,9 +678,8 @@ function rescale(newStepDelta, beginIndex, endIndex, newInitialValueYDelta) {
         if (points[i] == undefined || i >= dataClient.input_value.length) {
             continue;
         }
-        points[i][1] = (dataClient.input_value[i].price - dataClient.input_value[beginViewingIndex].price) * newStepDelta + newInitialValueYDelta;
+        points[i][1] = (dataClient.input_value[i].price - dataClient.input_value[beginIndex].price) * newStepDelta + newInitialValueYDelta;
         if (isNaN(points[i][1])) {
-            debugger;
         }
     }
 }
@@ -844,7 +843,7 @@ function updateActiveGroup(now, last) {
             //console.log("hover point " + dataIndex + " " + val);
             if (intersects.length > 0) {
                 //console.log(intersects[0].point.x)
-                Factory.updateMouseMoveLine(scene, intersects[0].point.x, intersects[0].point.y, Factory.axisXConfig.initialValueX, val);
+                Factory.updateMouseMoveLine(scene, intersects[0].point.x, intersects[0].point.y, Factory.axisXConfig.initialValueX, val,beginViewingIndex);
             }
         }
     }
@@ -995,7 +994,7 @@ function updateGeometries(beginIndex, endIndex) {
     Factory.updatePolygon(activePoligonObjs, points, beginIndex, endIndex);
     // activeGroup.position.set(activeGroup.position.x + (stretchValue) * 2, activeGroup.position.y, activeGroup.position.z);
 
-    Factory.updateHorizontalGrid(activeHorizontalGridObjs, 0, Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120);
+   Factory.updateHorizontalGrid(activeHorizontalGridObjs, 0, Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120,beginViewingIndex);
 
 
     Factory.updateActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);

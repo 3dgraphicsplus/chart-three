@@ -219,7 +219,7 @@ function drawLowerButton(scene, gridRightBound) {
 let mousePriceLineMat = null;
 let mouseTimeLineMat = null;
 let matShape = new THREE.MeshBasicMaterial({ color: 0x525a71, transparent: false });
-function updateMouseMoveLine(scene, posX, posY, initialValueX, timestamp) {
+function updateMouseMoveLine(scene, posX, posY, initialValueX, timestamp, startIndex) {
     if (mouseTimeLine) {
         mouseTimeLine.geometry.dispose();
         scene.remove(mouseTimeLine);
@@ -391,7 +391,7 @@ function updateMouseMoveLine(scene, posX, posY, initialValueX, timestamp) {
     }
 
     if (mousePriceText != undefined) {
-        let priceValue = dataClient.convertToDisplay((posY - axisYConfig.initialValueY) / axisYConfig.stepY + dataClient.getOrigin().price);
+        let priceValue = dataClient.convertToDisplay((posY - axisYConfig.initialValueY) / axisYConfig.stepY + dataClient.input_value[startIndex].price);
         mousePriceText.text = '' + priceValue.toFixed(2);
         mousePriceText.position.z = 0
         mousePriceText.position.x = GRID_RIGHTMOST_LINE - 205 - 120
@@ -407,7 +407,7 @@ function updateMouseMoveLine(scene, posX, posY, initialValueX, timestamp) {
         // scene.add(priceText)
 
         // Set properties to configure:
-        let priceValue = dataClient.convertToDisplay((posY - axisYConfig.initialValueY) / axisYConfig.stepY + dataClient.getOrigin().price);
+        let priceValue = dataClient.convertToDisplay((posY - axisYConfig.initialValueY) / axisYConfig.stepY + dataClient.input_value[startIndex].price);
         mousePriceText.text = '' + priceValue.toFixed(2);
         //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
         mousePriceText.fontSize = 12
@@ -483,11 +483,11 @@ function drawHorizontalGrid(horizontalGrids, startingLine, gridTopBound, gridRig
     }
 }
 
-function updateHorizontalGrid(horizontalGrids, startingLine, gridTopBound, gridRightBound) {
+function updateHorizontalGrid(horizontalGrids, startingLine, gridTopBound, gridRightBound,startIndex) {
     for (let j = NUMBER_OF_Y_LINE - 1; j >= 0; j--) {
         let horizontalGridGeo = new LineGeometry();
         let yValue = gridTopBound - gridTopBound / NUMBER_OF_Y_LINE * j;
-        let priceValue = dataClient.convertToDisplay((yValue - axisYConfig.initialValueY) / axisYConfig.stepY + dataClient.getOrigin().price)
+        let priceValue = dataClient.convertToDisplay((yValue - axisYConfig.initialValueY) / axisYConfig.stepY + dataClient.input_value[startIndex].price)
         horizontalGridGeo.setPositions([startingLine - 200, yValue, 0, gridRightBound - 200, yValue, 0]);
         horizontalGrids[j].line.geometry.dispose();
         horizontalGrids[j].line.geometry = horizontalGridGeo;
