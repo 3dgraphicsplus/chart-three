@@ -33,11 +33,14 @@ const NUMBER_OF_Y_LINE = 6
 
 var GRID_TOPLINE, GRID_RIGHTMOST_LINE;
 
-// const DEFAULT_ZOOM_LEVEL = [5, 10, 15, 30, 60, 120, 300, 900, 1800, 3600, 7200, 3600 * 4, 3600 * 6, 3600 * 12]
-const DEFAULT_ZOOM_LEVEL = [5, 10, 15, 30, 60, 120, 300, 900]
+//if max zoom is 2min: 64,32,16,8,4,2
+//DEPRECATED
+const DEFAULT_ZOOM_LEVEL = [5, 10, 15, 30, 60, 120, 300, 900, 1800, 3600, 7200, 3600 * 4, 3600 * 6, 3600 * 12]
+const MIN_ZOOM_LEVEL = 120;//120s
+const MAX_ZOOM_LEVEL = 120*Math.pow(2,4);
 
-// Index of the DEFAULT_ZOOM_LEVEL array
-let currentZoomLevel = 2;
+var currentZoomLevel = MIN_ZOOM_LEVEL;
+
 
 let timestampShape, timestampText;
 let mousePriceShape, mouseAlertShape;
@@ -48,18 +51,18 @@ let lastVerticalGrid;
 let enableHigherActive = false;
 let enableLowerActive = false;
 
-const DEFAULT_GRID_STEP = 200;
-const MAX_GRID_STEP = 300;
-const MIN_GRID_STEP = 100;
-const SCROLL_STEP = 1;
-
-const MIN_VIEW_Y = 300;
-const MAX_VIEW_Y = 800;
-const MIN_DIFF_Y = 200;
-let XStepCount = 50;
-let axisXConfig = { stepX: 20, initialValueX: 0 }
+let XStepCount = 0;
+let axisXConfig = { stepX: 0, initialValueX: 0 }
 let axisYConfig = {
-    stepY: 0.5, initialValueY: 0
+    stepY: 0, initialValueY: 0
+}
+
+function maxZoom(){
+    return MAX_ZOOM_LEVEL;
+}
+
+function minZoom(){
+    return MIN_ZOOM_LEVEL;
 }
 
 function initialHistory(points) {
@@ -89,7 +92,7 @@ function initialHistory(points) {
 }
 
 function drawHigherButton(scene, gridRightBound) {
-    let initY = 600;
+    let initY = 500;
     let coordinatesList = [
         new THREE.Vector3(gridRightBound - 150 - 120, initY, 0),
         new THREE.Vector3(gridRightBound - 150 - 10, initY, 0),
@@ -102,7 +105,7 @@ function drawHigherButton(scene, gridRightBound) {
     let matShape = new THREE.MeshBasicMaterial({ color: HIGHER_BUTTON_COLOR, transparent: true, opacity: 1.0 });
     let higherButton = new THREE.Mesh(geomShape, matShape);
     higherButton.renderOrder = 10;
-    higherButton.position.x = gridRightBound - 150 - 65;
+    higherButton.position.x = gridRightBound - 150;
     higherButton.position.y = initY - 50;
 
     let upGeo = new THREE.BoxGeometry(110, 110, 1);
@@ -115,7 +118,7 @@ function drawHigherButton(scene, gridRightBound) {
             opacity: 1.0,
             color: 0xffffff,
         }));
-    upMesh.position.x = gridRightBound - 150 - 65;
+    upMesh.position.x = gridRightBound - 150;
     upMesh.position.y = initY - 50;
     upMesh.renderOrder = 100;
 
@@ -129,7 +132,7 @@ function drawHigherButton(scene, gridRightBound) {
             opacity: 1.0,
             color: HIGHER_BUTTON_COLOR,
         }));
-    upMesh2.position.x = gridRightBound - 150 - 65;
+    upMesh2.position.x = gridRightBound - 150;
     upMesh2.position.y = initY + 50;
     upMesh2.renderOrder = 200;
 
@@ -143,7 +146,7 @@ function drawHigherButton(scene, gridRightBound) {
             opacity: 1.0,
             color: LOWER_BUTTON_COLOR,
         }));
-    downMesh2.position.x = gridRightBound - 150 - 65;
+    downMesh2.position.x = gridRightBound - 150;
     downMesh2.position.y = initY - 50;
     downMesh2.renderOrder = 200;
 
@@ -156,7 +159,7 @@ function drawHigherButton(scene, gridRightBound) {
     //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
     higherText.fontSize = 18
     higherText.position.z = 0
-    higherText.position.x = gridRightBound - 150 - 100;
+    higherText.position.x = gridRightBound - 150 - 35;
     higherText.position.y = initY - 70;
     higherText.color = "white"
     // Update the rendering:
@@ -170,14 +173,14 @@ function drawHigherButton(scene, gridRightBound) {
 }
 
 function drawLowerButton(scene, gridRightBound) {
-    let initY = 482;
+    let initY = 382;
     // shape
     // let geomShape = new THREE.ShapeBufferGeometry(new THREE.Shape(coordinatesList));
     let geomShape = new THREE.BoxGeometry(110, 110, 1);
     let matShape = new THREE.MeshBasicMaterial({ color: LOWER_BUTTON_COLOR, transparent: true, opacity: 1.0 });
     let lowerButton = new THREE.Mesh(geomShape, matShape);
     lowerButton.renderOrder = 10;
-    lowerButton.position.x = gridRightBound - 150 - 65;
+    lowerButton.position.x = gridRightBound - 150;
     lowerButton.position.y = initY - 50;
 
     let downGeo = new THREE.BoxGeometry(110, 110, 1);
@@ -190,7 +193,7 @@ function drawLowerButton(scene, gridRightBound) {
             opacity: 1.0,
             color: 0xffffff,
         }));
-    downMesh.position.x = gridRightBound - 150 - 65;
+    downMesh.position.x = gridRightBound - 150;
     downMesh.position.y = initY - 50;
     downMesh.renderOrder = 200;
 
@@ -203,7 +206,7 @@ function drawLowerButton(scene, gridRightBound) {
     //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
     lowerText.fontSize = 18
     lowerText.position.z = 0
-    lowerText.position.x = gridRightBound - 150 - 100;
+    lowerText.position.x = gridRightBound - 150 - 35;
     lowerText.position.y = initY - 70;
     lowerText.color = "white"
     // Update the rendering:
@@ -441,11 +444,11 @@ function drawBackground(startingLine, loopCount, gridStep) {
 }
 
 let horizontalGridMaterial = null;
-function drawHorizontalGrid(horizontalGrids, startingLine, gridTopBound, gridRightBound) {
+function drawHorizontalGrid(horizontalGrids, startingLine, gridTopBound, gridRightBound, startIndex) {
     for (let j = NUMBER_OF_Y_LINE - 1; j >= 0; j--) {
         const horizontalGridGeo = new LineGeometry();
         let yValue = gridTopBound - gridTopBound / NUMBER_OF_Y_LINE * j;
-        let priceValue = dataClient.convertToDisplay((yValue - axisYConfig.initialValueY) / axisYConfig.stepY + dataClient.getOrigin().price)
+        let priceValue = dataClient.convertToDisplay((yValue - axisYConfig.initialValueY) / axisYConfig.stepY + dataClient.input_value[startIndex].price)
         horizontalGridGeo.setPositions([startingLine - 200, yValue, 0, gridRightBound - 200, yValue, 0]);
         if (!horizontalGridMaterial || horizontalGridMaterial.resolution.x != container.clientWidth || horizontalGridMaterial.resolution.y != container.clientHeight) {
 
@@ -1166,7 +1169,7 @@ function drawPurchaseLine(purchaseLineObjs, circlePos, gridTopBound, stepX, coun
         console.log(circlePos[0])
         return;
     }
-    let verticalPurchaseLinePos = [circlePos[0][0] + countDownTimer * axisXConfig.stepX, 150, 0, circlePos[0][0] + countDownTimer * axisXConfig.stepX, gridTopBound, 0];
+    let verticalPurchaseLinePos = [circlePos[0][0] + countDownTimer * axisXConfig.stepX, 50, 0, circlePos[0][0] + countDownTimer * axisXConfig.stepX, gridTopBound, 0];
 
     const verticalPurchaseGeo = new LineGeometry();
     verticalPurchaseGeo.setPositions(verticalPurchaseLinePos);
@@ -1247,7 +1250,7 @@ function drawPurchaseLine(purchaseLineObjs, circlePos, gridTopBound, stepX, coun
             opacity: 1.0,
             color: 0xffffff,
         }));
-    stopwatchMesh.position.set(verticalPurchaseLinePos[0], 160);
+    stopwatchMesh.position.set(verticalPurchaseLinePos[0], verticalPurchaseLinePos[1]);
     stopwatchMesh.renderOrder = 10;
     purchaseLineObjs.push({ purchaseLine: verticalPurchaseLine, purchaseText: purchaseText, timeText: timeText, countDownText: countDownText, stopwatch: stopwatchMesh })
 }
@@ -1261,7 +1264,7 @@ function updatePurchaseLine(drawingGroup, purchaseLineObjs, circlePos, gridTopBo
     }
     //if (redraw == true) 
     //{
-        let verticalPurchaseLinePos = [circlePos[0][0] + countDownTimer * axisXConfig.stepX, 150, 0, circlePos[0][0] + countDownTimer * axisXConfig.stepX, gridTopBound, 0];
+        let verticalPurchaseLinePos = [circlePos[0][0] + countDownTimer * axisXConfig.stepX, 50, 0, circlePos[0][0] + countDownTimer * axisXConfig.stepX, gridTopBound, 0];
 
         // const verticalPurchaseGeo = new LineGeometry();
         // verticalPurchaseGeo.setPositions(verticalPurchaseLinePos);
@@ -1285,7 +1288,7 @@ function updatePurchaseLine(drawingGroup, purchaseLineObjs, circlePos, gridTopBo
         purchaseLineObjs[0].timeText.sync()
 
 
-        purchaseLineObjs[0].stopwatch.position.set(verticalPurchaseLinePos[0], 160);
+        purchaseLineObjs[0].stopwatch.position.set(verticalPurchaseLinePos[0], verticalPurchaseLinePos[1]);
         purchaseLineObjs[0].stopwatch.geometry.attributes.position.needsUpdate = true;
     //}
     if (countDownTimer <= 3) {
@@ -1313,7 +1316,7 @@ function drawFinishLine(finishLineObjs, circlePos, gridTopBound, stepX, countDow
         console.log(circlePos[0])
         return;
     }
-    let verticalFinishLinePos = [circlePos[0][0] + countDownTimer * axisXConfig.stepX, 150, 0, circlePos[0][0] + countDownTimer * axisXConfig.stepX, gridTopBound, 0];
+    let verticalFinishLinePos = [circlePos[0][0] + countDownTimer * axisXConfig.stepX, 50, 0, circlePos[0][0] + countDownTimer * axisXConfig.stepX, gridTopBound, 0];
 
     const verticalFinishGeo = new LineGeometry();
     verticalFinishGeo.setPositions(verticalFinishLinePos);
@@ -1341,7 +1344,7 @@ function drawFinishLine(finishLineObjs, circlePos, gridTopBound, stepX, countDow
             transparent: true,
             opacity: 1.0,
         }));
-    flagMesh.position.set(verticalFinishLinePos[0], 160);
+    flagMesh.position.set(verticalFinishLinePos[0], verticalFinishLinePos[1]);
     flagMesh.renderOrder = 10;
     finishLineObjs.push({ finishLine: verticalFinishLine, flag: flagMesh })
 }
@@ -1352,7 +1355,7 @@ function updateFinishLine(drawingGroup, finishLineObjs, circlePos, gridTopBound,
         console.log(circlePos[0])
         return;
     }
-    let verticalFinishLinePos = [circlePos[0][0] + finishTimer * axisXConfig.stepX, 150, 0, circlePos[0][0] + finishTimer * axisXConfig.stepX, gridTopBound, 0];
+    let verticalFinishLinePos = [circlePos[0][0] + finishTimer * axisXConfig.stepX, 50, 0, circlePos[0][0] + finishTimer * axisXConfig.stepX, gridTopBound, 0];
 
     const verticalFinishGeo = new LineGeometry();
     verticalFinishGeo.setPositions(verticalFinishLinePos);
@@ -1361,7 +1364,7 @@ function updateFinishLine(drawingGroup, finishLineObjs, circlePos, gridTopBound,
     finishLineObjs[0].finishLine.computeLineDistances();
     finishLineObjs[0].finishLine.geometry.attributes.position.needsUpdate = true;
 
-    finishLineObjs[0].flag.position.set(verticalFinishLinePos[0], 160);
+    finishLineObjs[0].flag.position.set(verticalFinishLinePos[0], verticalFinishLinePos[1]);
     finishLineObjs[0].flag.geometry.attributes.position.needsUpdate = true;
 }
 
@@ -1602,7 +1605,7 @@ function setGrid(top, right) {
 }
 
 function defaultZoomLevel() {
-    return DEFAULT_ZOOM_LEVEL[currentZoomLevel];
+    return currentZoomLevel;
 }
 
 function listZoomLevel() {
@@ -1703,5 +1706,7 @@ export {
     updateMarks,
     removeMarks,
     changeDataLineColor,
-    changePolygonColor
+    changePolygonColor,
+    maxZoom,
+    minZoom
 }

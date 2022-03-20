@@ -11,17 +11,14 @@ window.dataClient = new DataClient();
 let container, stats;
 let camera, scene, raycaster, renderer;
 
-const DEFAULT_GRID_STEP = 200
-const MAX_GRID_STEP = 300
-const MIN_GRID_STEP = 150
 const ZOOM_STEP = 10;
 
-const MIN_VIEW_Y = 300;
-const MAX_VIEW_Y = 700;
+var MIN_VIEW_Y = 100;
+var MAX_VIEW_Y = 800;
 const MIN_DIFF_Y = 1;
 
 
-let initialCameraPos = { x: Factory.axisXConfig.initialValueX - 50, y: 100, z: 1 }
+let initialCameraPos = { x: 0, y: 0, z: 1 }
 let GRID_LEFT_MOST_LINE = Factory.axisXConfig.initialValueX
 
 
@@ -81,8 +78,6 @@ let currentProgress = 0;
 
 let enablePriceMark = true;
 
-let lastDraw = { newY: 0, count: 1 };
-
 let round = 1;
 // let originIndex = 0;
 let totalMouseMovement = 0;
@@ -92,18 +87,10 @@ function update(newVal) {
     if (newVal) {//???WHAT IS FOR
         // console.log("before", Factory.axisYConfig.stepY, Factory.axisYConfig.initialValueY)
         let newY = (newVal.price - dataClient.input_value[beginViewingIndex].price) * Factory.axisYConfig.stepY + Factory.axisYConfig.initialValueY;
-        // console.log(dataClient.getOrigin().price, newVal.price, newY);
+        console.log(newVal.price);
 
-        //disable 
-        if (1 || Math.floor(newY) != Math.floor(lastDraw.newY) || lastDraw.count >= 3) {
-            // console.log(newVal.price, newY, Factory.axisYConfig.stepY, Factory.axisYConfig.initialValueY)
-            drawNewData(newY, lastDraw.count);
-            lastDraw.newY = newY;
-            lastDraw.count = 1;
-        } else {
-            updateOtherStuff(triggerAtPurchaseTime, triggerAtFinishingTime);
-            lastDraw.count++;
-        }
+        // console.log(newVal.price, newY, Factory.axisYConfig.stepY, Factory.axisYConfig.initialValueY)
+        drawNewData(newY);
 
         // console.log("after", Factory.axisYConfig.stepY, Factory.axisYConfig.initialValueY)
     }
@@ -111,10 +98,12 @@ function update(newVal) {
 }
 
 function init() {
+
     initColorPicker();
 
     drawCount = dataClient.input_value.length;
-    beginViewingIndex = 0;
+    beginViewingIndex = drawCount - Factory.currentZoom();
+    beginViewingIndex = beginViewingIndex > 0 ? beginViewingIndex : 0;
     endViewingIndex = drawCount;
 
     let profitPercent = document.getElementById('profit-per').textContent.replace(/\D/g, '')
@@ -128,8 +117,15 @@ function init() {
     container = document.getElementById('container');
     camera = new THREE.OrthographicCamera(0, container.clientWidth,
         container.clientHeight, 0, -1, 1);
-    // initialCameraPos.x += container.clientWidth / 10;
+    initialCameraPos.x = 0;//container.clientWidth / 2;
+    initialCameraPos.y = 0;//container.clientHeight / 2;
+    MIN_VIEW_Y = initialCameraPos.y;
+    MAX_VIEW_Y = container.clientHeight;
     camera.position.set(initialCameraPos.x, initialCameraPos.y, initialCameraPos.z);
+
+    Factory.axisXConfig.stepX = container.clientWidth / Factory.currentZoom();//2mins
+    Factory.axisYConfig.stepY = (MAX_VIEW_Y - MIN_VIEW_Y) / Factory.currentZoom();//price range 100 for maximum zoom- level5
+    Factory.axisYConfig.initialValueY = initialCameraPos.y + (MAX_VIEW_Y - MIN_VIEW_Y) / 2;
 
     Factory.setGrid(container.clientHeight + container.offsetTop + 50, container.clientWidth + 100);
 
@@ -199,7 +195,7 @@ function initScene(drawingGroup, gridStepX) {
     // originIndex = beginViewingIndex;
     endViewingIndex = dataClient.currentIndex();
 
-    let higher = Factory.drawHigherButton(scene, Factory.GRID_RIGHTMOST_LINE);
+    let higher = Factory.drawHigherButton(scene, Factory.GRID_RIGHTMOST_LINE - 10);
     upMesh = higher.upMesh
     higherButton = higher.higherButton
     higherText = higher.higherText
@@ -210,11 +206,11 @@ function initScene(drawingGroup, gridStepX) {
 
 
     // Draw the grid
-    Factory.drawHorizontalGrid(activeHorizontalGridObjs, 0, Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120,beginViewingIndex)
+    Factory.drawHorizontalGrid(activeHorizontalGridObjs, 0, Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120, beginViewingIndex)
 
-    Factory.drawVerticalGrid(drawingGroup, activeVerticalGridObjs, points, Math.floor(drawCount / Factory.defaultZoomLevel()), Factory.GRID_TOPLINE, 0)
+    Factory.drawVerticalGrid(drawingGroup, activeVerticalGridObjs, points, Math.floor(drawCount / Factory.defaultZoomLevel()), Factory.GRID_TOPLINE, beginViewingIndex)
 
-    let newbkg = Factory.drawBackground(0, drawCount, gridStepX);
+    //let newbkg = Factory.drawBackground(0, drawCount, gridStepX);
 
     // // Draw the active line
     Factory.drawActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, drawingGroup.position.x);
@@ -249,11 +245,11 @@ function initScene(drawingGroup, gridStepX) {
         scene.add(activeHorizontalGridObjs[i].text)
     }
 
-    drawingGroup.add(newbkg)
-    bkgObjs.push(newbkg)
+    //drawingGroup.add(newbkg)
+    //bkgObjs.push(newbkg)
     lowhighButtons.push(higherButton);
     lowhighButtons.push(lowerButton);
-    scene.add(newbkg);
+    //scene.add(newbkg);
 }
 
 function triggerAtPurchaseTime(value) {
@@ -331,43 +327,33 @@ function zoomFrom(x, zoomValue) {
 // Called when zoomint/out, in onWheel function
 function zoom(zoomValue) {
     // Find the position of wheel
-    let newGridStep = (Factory.axisXConfig.stepX - zoomValue) * Factory.defaultZoomLevel();
     let lastZoomLevel = Factory.currentZoom();
     let newDraw = false;
-    let newZoom = lastZoomLevel + (zoomValue > 0 ? 1 : -1);
-    if (newZoom < 0 || newZoom >= Factory.listZoomLevel().length) return;
-
-    if (zoomValue < 0) { // Zoom in
-        if (newGridStep > MAX_GRID_STEP) {
-            // zoom in at max for current level, need to change level of zoom
-            if (lastZoomLevel > 0.5) {//avoid float accuracy
-                Factory.currentZoom(Factory.currentZoom() - 1);
-                newDraw = true;
-            } else {
-                return false;
-            }
-        }
-    } else if (zoomValue > 0) { // Zoom out
-        if (newGridStep < MIN_GRID_STEP) {
-            if (lastZoomLevel <= Factory.listZoomLevel().length - 1) {
-                Factory.currentZoom(Factory.currentZoom() + 1);
-                newDraw = true;
-            } else {
-                return false;
-            }
-        } else {
-        }
+    let newZoom = lastZoomLevel + zoomValue;
+    if ((newZoom < Factory.minZoom() && zoomValue < 0) || 
+    (newZoom > Factory.maxZoom() && zoomValue > 0)) {
+        console.warn("Out of zoom limitation")
+        return;
     }
+
+    
 
     // Init the index of point where the zoom happens
     zoomFrom(zoomPoint.x, zoomValue / 10.0);
+
+    Factory.currentZoom(container.clientWidth/Factory.axisXConfig.stepX);
+
+    Factory.axisYConfig.stepY = (MAX_VIEW_Y - MIN_VIEW_Y) / Factory.currentZoom();//price range 100 for maximum zoom- level5
+   
+    rescale(Factory.axisYConfig.stepY,beginViewingIndex,endViewingIndex,Factory.axisYConfig.initialValueY);
+
     return true;
 }
 
 function zoomWithEffect(stretchValue, isButton) {
 
     let lastZoomLevel = Factory.currentZoom();
-    if ((lastZoomLevel == 0 && stretchValue < 0) || (lastZoomLevel == Factory.listZoomLevel().length - 1) && stretchValue > 0) {
+    if ((lastZoomLevel == 0 && stretchValue < 0) || (lastZoomLevel == Factory.maxZoom() - 1) && stretchValue > 0) {
         console.warn("Zoom limited " + Factory.axisXConfig.stepX)
         return;
     }
@@ -388,7 +374,7 @@ function zoomWithEffect(stretchValue, isButton) {
     }).onComplete(function () {
         // console.log("Steps of 5: ", Math.abs(points[5][0] - points[0][0]))
         // count number of steps along the x axis, this will be used to determine the list of point on the graph area
-        Factory.setXStepCount(Math.floor(Factory.GRID_RIGHTMOST_LINE / Factory.axisXConfig.stepX));
+        Factory.setXStepCount(Math.floor(Factory.currentZoom()+0.5));
 
         if (needZoom) {
             if (isButton)
@@ -408,19 +394,15 @@ function zoomWithEffect(stretchValue, isButton) {
 function onWheel(event) {
     let pivotPoint = { x: 0, y: 0 }
     // Find the intersect point to detect the data index where the zoom happens
-    pivotPoint.x = ((event.clientX - container.offsetLeft) / (container.clientWidth)) * 2 - 1;
-    pivotPoint.y = - ((event.clientY - container.offsetTop) / (container.clientHeight)) * 2 + 1;
-    let intersects = raycaster.intersectObjects(bkgObjs);
-    if (intersects.length > 0) {
-        zoomPoint.x = intersects[0].point.x;
-        zoomPoint.y = intersects[0].point.y;
-        // basically, from the pivotPoint zoom points on the left of the point to the left
-        // and the right points to the right
-        if (event.deltaY > 0) {
-            zoomWithEffect(event.deltaY / 100.0);
-        } else {
-            zoomWithEffect(event.deltaY / 100.0);
-        }
+    pivotPoint.x = event.clientX;
+    zoomPoint.x = pivotPoint.x;
+    zoomPoint.y = pivotPoint.y;//not use
+    // basically, from the pivotPoint zoom points on the left of the point to the left
+    // and the right points to the right
+    if (event.deltaY > 0) {
+        zoomWithEffect(event.deltaY / 100.0);
+    } else {
+        zoomWithEffect(event.deltaY / 100.0);
     }
 }
 
@@ -474,7 +456,7 @@ function onPointerMove(event) {
             let dataIndex = x2DataIndex(intersects[0].point.x);
             if (0 <= dataIndex && dataIndex < dataClient.input_value.length) {
                 let val = dataClient.input_value[dataIndex].time;
-                Factory.updateMouseMoveLine(scene, intersects[0].point.x, intersects[0].point.y, Factory.axisXConfig.initialValueX, val,beginViewingIndex);
+                Factory.updateMouseMoveLine(scene, intersects[0].point.x, intersects[0].point.y, Factory.axisXConfig.initialValueX, val, beginViewingIndex);
             }
         }
 
@@ -670,6 +652,7 @@ function onPointerUp(event) {
 
 // Use to rescale the data so it will fit into the view by recalculating all points in range
 function rescale(newStepDelta, beginIndex, endIndex, newInitialValueYDelta) {
+
     // console.log("rescale: ", beginIndex, endIndex, points.length);
     //beginIndex = 0;
     //endIndex = points.length-1;
@@ -753,8 +736,8 @@ function calculateAxisY(newConfig) {
             newInitialValueY = (MAX_VIEW_Y - (dataClient.input_value[maxYIndex].price - dataClient.input_value[beginViewingIndex].price) * newStepY);
             // console.log("newInitialValueY: ", newInitialValueY);
         }
-        newConfig.stepY = newStepY;
-        newConfig.initialValueY = newInitialValueY;
+        //newConfig.stepY = newStepY;
+        //newConfig.initialValueY = newInitialValueY;
         // console.log("Changed: ", newConfig.stepY, newConfig.initialValueY);
         // originIndex = beginViewingIndex;
         return true;
@@ -786,7 +769,7 @@ function updateView(refreshView) {
         new TWEEN.Tween(Factory.axisYConfig).to(newConfig, duration).onUpdate(function (object) {
             //We also update geometry while rescale -> render is updated
             // console.log(object)
-            rescale(object.stepY, beginViewingIndex, endViewingIndex, object.initialValueY);
+            //rescale(object.stepY, beginViewingIndex, endViewingIndex, object.initialValueY);
             updateGeometries(beginViewingIndex, endViewingIndex);//FIXME,so risky
         }).easing(TWEEN.Easing.Quadratic.Out)
             .onComplete(() => {
@@ -804,11 +787,11 @@ function updateView(refreshView) {
     let newDraw = true;//FIXME
     if (newDraw == true) {
         Factory.removeRedundantVerticalGrid(activeGroup, activeVerticalGridObjs);
-        Factory.updateVerticalGrid(activeVerticalGridObjs, points, Factory.currentZoom(), Factory.GRID_TOPLINE);
+        Factory.updateVerticalGrid(activeVerticalGridObjs, points, Factory.currentZoom(), Factory.GRID_TOPLINE, beginViewingIndex);
         //??FIXME update?not create
-        Factory.drawVerticalGrid(activeGroup, activeVerticalGridObjs, points, Math.floor(dataClient.currentIndex() / Factory.defaultZoomLevel()), Factory.GRID_TOPLINE, 0)
+        Factory.drawVerticalGrid(activeGroup, activeVerticalGridObjs, points, Math.floor(dataClient.currentIndex() / Factory.defaultZoomLevel()), Factory.GRID_TOPLINE, beginViewingIndex)
     } else { //otherwise, update only the geometry of current grid
-        Factory.updateVerticalGrid(activeVerticalGridObjs, points, Factory.currentZoom(), Factory.GRID_TOPLINE);
+        Factory.updateVerticalGrid(activeVerticalGridObjs, points, Factory.currentZoom(), Factory.GRID_TOPLINE, beginViewingIndex);
     }
     Factory.updateActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
 
@@ -843,7 +826,7 @@ function updateActiveGroup(now, last) {
             //console.log("hover point " + dataIndex + " " + val);
             if (intersects.length > 0) {
                 //console.log(intersects[0].point.x)
-                Factory.updateMouseMoveLine(scene, intersects[0].point.x, intersects[0].point.y, Factory.axisXConfig.initialValueX, val,beginViewingIndex);
+                Factory.updateMouseMoveLine(scene, intersects[0].point.x, intersects[0].point.y, Factory.axisXConfig.initialValueX, val, beginViewingIndex);
             }
         }
     }
@@ -893,22 +876,22 @@ function updateOtherStuff(triggerAtPurchaseCallback, triggerAtFinishingCallback)
         }
         Factory.updateFinishLine(activeGroup, activeFinishLineObjs, [points[points.length - 1]], Factory.GRID_TOPLINE, Factory.axisXConfig.stepX, finishTimer);
     }
-    Factory.drawVerticalGrid(activeGroup, activeVerticalGridObjs, points, 1, Factory.GRID_TOPLINE, Math.floor(dataClient.currentIndex() / Factory.defaultZoomLevel()) * Factory.defaultZoomLevel());
+    Factory.drawVerticalGrid(activeGroup, activeVerticalGridObjs, points, 1, Factory.GRID_TOPLINE, beginViewingIndex);
 }
 
 
 var lastAdding = 0;
 var newDataInterpolate
 // Fetch new data from input and draw it with animation
-function drawNewData(newY, count) {
+function drawNewData(newY) {
     // Find new pos here based on the old pos and step of X
     let tempPos = [...points[points.length - 1]];
-    let newPos = [tempPos[0] + Factory.axisXConfig.stepX * count, newY, 0];
+    let newPos = [tempPos[0] + Factory.axisXConfig.stepX, newY, 0];
 
 
     let tweenFrom = { x: tempPos[0], y: tempPos[1], z: 0 };
     let tweenTo = { x: newPos[0], y: newPos[1], z: 0 };
-    //console.log(activeGroup.position.x);
+    //console.log(tweenTo.y);
 
     if (lastAdding && Date.now() < lastAdding + 500) {
         //not animate, just add points
@@ -922,8 +905,8 @@ function drawNewData(newY, count) {
 
     let newPolygon = Factory.addPolygon(activeGroup, activePoligonObjs, points, points.length - 2);
     let newLine = Factory.addDataLine(activeGroup, activeDataLineObjs, points, points.length - 2, container.clientWidth, container.clientHeight)
-    let lastX = tempPos[0];
-    let lastY = tempPos[1];
+    let lastX = tweenFrom.x;
+    let lastY = tweenFrom.y;
     newDataInterpolate = new TWEEN.Tween(tweenFrom).to(tweenTo, 400).onUpdate(function (object) {
 
         points[points.length - 1][0] += object.x - lastX;
@@ -994,7 +977,7 @@ function updateGeometries(beginIndex, endIndex) {
     Factory.updatePolygon(activePoligonObjs, points, beginIndex, endIndex);
     // activeGroup.position.set(activeGroup.position.x + (stretchValue) * 2, activeGroup.position.y, activeGroup.position.z);
 
-   Factory.updateHorizontalGrid(activeHorizontalGridObjs, 0, Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120,beginViewingIndex);
+    Factory.updateHorizontalGrid(activeHorizontalGridObjs, 0, Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120, beginViewingIndex);
 
 
     Factory.updateActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
