@@ -168,7 +168,7 @@ function init() {
 function calculateAxis() {
     Factory.axisXConfig.stepX = container.clientWidth / Factory.currentZoom();//2mins
     Factory.axisYConfig.stepY = (MAX_VIEW_Y - MIN_VIEW_Y) / Factory.currentZoom();//price range 100 for maximum zoom- level5
-    Factory.axisYConfig.initialValueY = initialCameraPos.y + (MAX_VIEW_Y - MIN_VIEW_Y) / 2;
+    Factory.axisYConfig.initialValueY = initialCameraPos.y + (MAX_VIEW_Y + MIN_VIEW_Y) / 2;
     Factory.axisYConfig.origin = getCenter(dataClient.input_value, beginViewingIndex, endViewingIndex);
 
     if (points.length)//only run for updating, not init
@@ -330,11 +330,11 @@ function zoomFrom(x, zoomValue) {
 
 function zoomAll(pivotIndex) {
     //pivotIndex = endViewingIndex;
-    console.log(beginViewingIndex, "  ", endViewingIndex)
+    console.log(cachedBegin, "  ", cacheEnd)
 
     let offset = Factory.convert(dataClient.input_value[pivotIndex], pivotIndex)[0] - points[pivotIndex][0]
     // Find the point at which the zoom happens
-    for (let i = 0; i <= endViewingIndex; i++) {
+    for (let i = cachedBegin; i <= cacheEnd; i++) {
         points[i] = Factory.convert(dataClient.input_value[i], i); // move the left points of the zoom line to the left, right points of the zoom line to right
         //points[i][0] -= offset
 
@@ -353,13 +353,17 @@ function zoomAll(pivotIndex) {
 }
 
 // Called when zoomint/out, in onWheel function
+let zooming = false;
 function zoom(zoomValue) {
+    if(zooming)return;
+    zooming = true;
     // Find the position of wheel
     let lastZoomLevel = Factory.currentZoom();
     let newZoom = lastZoomLevel + zoomValue;
     if ((newZoom <= Factory.minZoom() && zoomValue < 0) ||
         (newZoom >= Factory.maxZoom() && zoomValue > 0)) {
         console.warn("Out of zoom limitation")
+        zooming = false;
         return;
     }
 
@@ -377,7 +381,7 @@ function zoom(zoomValue) {
     zoomAll(pivotIndex)
 
     //rescale(Factory.axisYConfig.stepY,beginViewingIndex,endViewingIndex,Factory.axisYConfig.initialValueY);
-
+    zooming = false;
     return true;
 }
 
@@ -389,6 +393,9 @@ function zoomWithEffect(stretchValue, isButton) {
     new TWEEN.Tween(gridFrom).to(gridTo, Math.abs(stretchValue)*1).onUpdate(function (current) {
         zoom(current.x);
     }).easing(TWEEN.Easing.Quadratic.Out)
+    .onComplete(()=>{
+        
+    })
     .start()
 
 }
@@ -650,6 +657,7 @@ function rescale(newStepDelta, beginIndex, endIndex, newInitialValueYDelta) {
     }
 }
 
+let cachedBegin,cacheEnd
 // Find the list of points in the current view
 function updateListOfViewingIndex() {
     let beginningLine = initialCameraPos.x;
@@ -672,15 +680,15 @@ function updateListOfViewingIndex() {
 
 
     //add cache view for viewing area
-    let cachedBegin = newBegin - (newEnd - newBegin);
-    let cacheEnd = newEnd + (newEnd - newBegin);
+     cachedBegin = newBegin - (newEnd - newBegin);
+     cacheEnd = newEnd + (newEnd - newBegin);
 
     //limit to real datasize//FIXME should base on points, not input_value
     cachedBegin = Math.min(Math.max(cachedBegin, 0), points.length - 2);//NOTE not support 2 points data
     cacheEnd = Math.min(Math.max(cacheEnd, 0), points.length - 1);
 
-    beginViewingIndex = cachedBegin;//test
-    endViewingIndex = cacheEnd;
+    beginViewingIndex = newBegin;//test
+    endViewingIndex = newEnd;
 
 }
 
@@ -804,7 +812,7 @@ function drawNewData(newPrice) {
     //Factory.updateNewPolygon(newPolygon, points);
     //Factory.updateNewLine(newLine, points);
 
-    updateOtherStuff(triggerAtPurchaseTime, triggerAtFinishingTime);
+    //updateOtherStuff(triggerAtPurchaseTime, triggerAtFinishingTime);
 }
 
 function updateGeometries(beginIndex, endIndex) {
@@ -843,6 +851,7 @@ function animate() {
         newData.shift()
 
         calculateAxis();
+        break;
     }
 
     TWEEN.update();

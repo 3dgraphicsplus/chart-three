@@ -1028,6 +1028,7 @@ function updatePolygon(poligons, poly, offset = 0) {
         poligons.geometry.attributes.position.array.set(vertices);
     }
 
+    poligons.geometry.computeBoundingSphere();
     poligons.geometry.attributes.position.needsUpdate = true;
 
 }
@@ -1098,6 +1099,8 @@ function updateDataLine(dataLines, data, from = 0, to = 0) {
     } else {
         dataLines.geometry.attributes.position.array.set(vertices);
     }
+
+    dataLines.geometry.computeBoundingSphere();
     dataLines.geometry.attributes.position.needsUpdate = true;
 }
 
