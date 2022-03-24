@@ -24,7 +24,7 @@ let LOWER_BUTTON_COLOR = 0xdb4931;
 let LOWER_BUTTON_COLOR_ENABLE = 0xad4235;
 
 // Line Width
-const DATA_LINE_WIDTH = 2.0
+const DATA_LINE_WIDTH = 1.0
 const GRID_LINE_WIDTH = 0.5
 const PURCHASE_LINE_WIDTH = 0.8
 const MOUSE_MOVE_LINE_WIDTH = 1
@@ -36,8 +36,8 @@ var GRID_TOPLINE, GRID_RIGHTMOST_LINE;
 //if max zoom is 2min: 64,32,16,8,4,2
 //DEPRECATED
 const DEFAULT_ZOOM_LEVEL = [5, 10, 15, 30, 60, 120, 300, 900, 1800, 3600, 7200, 3600 * 4, 3600 * 6, 3600 * 12]
-const MIN_ZOOM_LEVEL = 120;//120s
-const MAX_ZOOM_LEVEL = 120 * Math.pow(2, 4);
+const MIN_ZOOM_LEVEL = 240;//120s
+const MAX_ZOOM_LEVEL = MIN_ZOOM_LEVEL * Math.pow(2, 4);
 
 var currentZoomLevel = MIN_ZOOM_LEVEL;
 
@@ -1225,7 +1225,7 @@ function updatePurchaseLine(purchaseLineObjs, countDownTimer) {
         const blinkSpeed = 500;
         countDownText.visible = !(Date.now()%blinkSpeed < blinkSpeed/2);//hide each blinkSpeed ms
     }
-    purchaseLineObjs.visible = countDownTimer >=0
+    countDownText.parent.visible = countDownTimer >=0
 }
 
 // Draw the purchase line using position of the green points and the remaining time of the countdown timer.

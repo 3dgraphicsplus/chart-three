@@ -13,8 +13,8 @@ let camera, scene, raycaster, renderer;
 
 const ZOOM_STEP = 10;
 
-var MIN_VIEW_Y = 100;
-var MAX_VIEW_Y = 800;
+var MIN_VIEW_Y = 50;
+var MAX_VIEW_Y = 900;
 const MIN_DIFF_Y = 1;
 
 
@@ -167,7 +167,7 @@ function init() {
 
 function calculateAxis() {
     Factory.axisXConfig.stepX = container.clientWidth / Factory.currentZoom();//2mins
-    Factory.axisYConfig.stepY = (MAX_VIEW_Y - MIN_VIEW_Y) / Factory.currentZoom();//price range 100 for maximum zoom- level5
+    Factory.axisYConfig.stepY = (MAX_VIEW_Y - MIN_VIEW_Y) / Factory.currentZoom() * 2;//price range 240/2 for maximum zoom- level5
     Factory.axisYConfig.initialValueY = initialCameraPos.y + (MAX_VIEW_Y + MIN_VIEW_Y) / 2;
     Factory.axisYConfig.origin = getCenter(dataClient.input_value, beginViewingIndex, endViewingIndex);
 
@@ -316,17 +316,6 @@ function x2DataIndex(x) {
     return dataIndex
 }
 
-// Zoom along the x axis
-function zoomFrom(x, zoomValue) {
-    console.log(beginViewingIndex, "  ", endViewingIndex)
-    let xLine = x - activeGroup.position.x; // find the actual x value of the viewing area
-
-    // Find the point at which the zoom happens
-    for (let i = beginViewingIndex; i <= endViewingIndex; i++) {
-        points[i][0] -= (zoomValue) * (points[i][0] - xLine); // move the left points of the zoom line to the left, right points of the zoom line to right
-    }
-
-}
 
 function zoomAll(pivotIndex) {
     //pivotIndex = endViewingIndex;
@@ -385,16 +374,18 @@ function zoom(zoomValue) {
     return true;
 }
 
+let animating = 0;
 function zoomWithEffect(stretchValue, isButton) {
 
     let gridFrom = ({ x: 0, y: 0, z: 0 });
     let gridTo = ({ x: stretchValue*10, y: 0, z: 0 });
     const duration = 200;
+    animating++;
     new TWEEN.Tween(gridFrom).to(gridTo, Math.abs(stretchValue)*1).onUpdate(function (current) {
         zoom(current.x);
     }).easing(TWEEN.Easing.Quadratic.Out)
-    .onComplete(()=>{
-        
+    .onComplete(()=>{  
+        animating--;
     })
     .start()
 
@@ -661,8 +652,8 @@ let cachedBegin,cacheEnd
 // Find the list of points in the current view
 function updateListOfViewingIndex() {
     let beginningLine = initialCameraPos.x;
-    let xLeftLine = beginningLine - activeGroup.position.x; // leftline is the left most line of the view
-    let xRightLine = Factory.GRID_RIGHTMOST_LINE - activeGroup.position.x; // right line is the right most line of the view
+    let xLeftLine = beginningLine - activeGroup.position.x;// - activePoligonObjs.position.x; // leftline is the left most line of the view
+    let xRightLine = Factory.GRID_RIGHTMOST_LINE - activeGroup.position.x;//- activePoligonObjs.position.x; // right line is the right most line of the view
     let newBegin = -1;
     let newEnd = points.length-1;
     for (let i = 1; i < points.length; i++) {
@@ -847,11 +838,12 @@ function render() {
 function animate() {
 
     while (newData.length) {
+        if(animating)break;
         drawNewData(newData[0])
         newData.shift()
 
         calculateAxis();
-        break;
+        //break;
     }
 
     TWEEN.update();
@@ -907,7 +899,7 @@ function showZoomButtons() {
         // Zoom in means negative, zoom out mean positive
         //zoomPoint.x = (container.clientWidth + 100) / 2; // zoom using middle point of screen
         //zoom to green
-        zoomPoint.x = points[points.length - 1][0] + activeGroup.position.x;
+        zoomPoint.x = points[points.length - 1][0] + activeGroup.position.x + activePoligonObjs.position.x;
         zoomWithEffect(-ZOOM_STEP, true);
     })
 
@@ -920,7 +912,7 @@ function showZoomButtons() {
         console.log("Zoom out")
         //zoomPoint.x = (container.clientWidth + 100) / 2; // zoom using middle point of screen
         //zoom to green
-        zoomPoint.x = points[points.length - 1][0] + activeGroup.position.x;
+        zoomPoint.x = points[points.length - 1][0] + activeGroup.position.x + activePoligonObjs.position.x;
         zoomWithEffect(ZOOM_STEP, true);
     })
 
@@ -928,10 +920,10 @@ function showZoomButtons() {
         // console.log("Focus")
 
         // console.log("total ", totalMouseMovement);
-        let tweenFrom = ({ x: activeGroup.position.x, y: 0, z: 0 });
-        let tweenTo = ({ x: activeGroup.position.x - totalMouseMovement, y: 0, z: 0 });
+        let tweenFrom = ({ x: activeGroup.position.x + activePoligonObjs.position.x, y: 0, z: 0 });
+        let tweenTo = ({ x: activeGroup.position.x + activePoligonObjs.position.x - totalMouseMovement, y: 0, z: 0 });
         new TWEEN.Tween(tweenFrom).to(tweenTo, 1000).onUpdate(function (object) {
-            let xRightLine = (Factory.GRID_RIGHTMOST_LINE / 2 - activeGroup.position.x);
+            let xRightLine = (Factory.GRID_RIGHTMOST_LINE / 2 - activeGroup.position.x - activePoligonObjs.position.x);
             activeGroup.position.set(object.x, activeGroup.position.y, activeGroup.position.z);
         }).onComplete(function () {
             moving = false;
