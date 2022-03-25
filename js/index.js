@@ -95,6 +95,7 @@ function getRange(points, start, end) {
 }
 
 function getMedium(points, start, end) {
+    console.log("start, end ", start, end)
     let sum = 0;
     for (let i = start; i <= end; i++){
         sum += points[i].price;
@@ -103,7 +104,6 @@ function getMedium(points, start, end) {
 
     let center = sum / (end - start + 1);
 
-    //console.log("Test ", minVal / 2 + maxVal / 2, " ", center)
     //let center = points[end].price;
     return center;
 }
@@ -184,9 +184,9 @@ function calculateAxis(forced) {
 
     Factory.axisXConfig.stepX = container.clientWidth / Factory.currentZoom();//2mins
     Factory.axisYConfig.initialValueY = initialCameraPos.y + (container.clientHeight) / 2;
+    Factory.axisYConfig.stepY = container.clientHeight / Factory.currentZoom();///2;
     if (forced) {
         Factory.axisYConfig.origin = newOrigin;
-        Factory.axisYConfig.stepY = container.clientHeight / Factory.currentZoom()
         return;
     }
     //let newY = container.clientHeight / Factory.currentZoom() / 2
@@ -194,16 +194,9 @@ function calculateAxis(forced) {
     let minY = Factory.convertBack(0, 30, 0)[1];
     let maxY = Factory.convertBack(0, container.clientHeight - 30, 0)[1];
 
-    if (rescaleData.length == 0 && (Math.abs(newOrigin - Factory.axisYConfig.origin)*Factory.axisYConfig.stepY > 100 || minY > newRange[0] || maxY < newRange[1])) {//TODO
-        if (minY > newRange[0]) {
-            newOrigin = newOrigin + newRange[0] - minY;
-        }
-        if (maxY < newRange[1]) {
-            newOrigin = newOrigin + newRange[1] - maxY;
-        }
-
-        newY = container.clientHeight / (newRange[1] - newRange[0]);
-        rescaleData.push({ origin: newOrigin, stepY: newY })
+    if (rescaleData.length == 0 && (Math.abs(newOrigin - Factory.axisYConfig.origin)*Factory.axisYConfig.stepY > 10 || minY > newRange[0] || maxY < newRange[1])) {//TODO
+        console.log("Medium: ",newOrigin)
+        rescaleData.push({ origin: newOrigin, stepY: Factory.axisYConfig.stepY })
         //Factory.axisYConfig.origin = newOrigin;
         //Factory.axisYConfig.stepY = newY;
     }
@@ -330,14 +323,8 @@ function x2DataIndex(x) {
     return Math.floor(x / Factory.axisXConfig.stepX) + beginViewingIndex
 }
 
-
-function zoomAll(pivotIndex) {
-    //pivotIndex = endViewingIndex;
-    //console.log("pivotIndex ",pivotIndex)
-
-    let offset = Factory.convert(dataClient.input_value[pivotIndex], pivotIndex)[0] - points[pivotIndex][0]
-    // Find the point at which the zoom happens
-    for (let i = 0; i < points.length; i++) {
+function recalculate(){
+    for (let i = cachedBegin; i <= cacheEnd; i++) {
         points[i] = Factory.convert(dataClient.input_value[i], i); // move the left points of the zoom line to the left, right points of the zoom line to right
         //points[i][0] -= offset
 
@@ -347,6 +334,15 @@ function zoomAll(pivotIndex) {
         //console.log("offset ", offset)
         //}
     }
+}
+
+function zoomAll(pivotIndex) {
+    //pivotIndex = endViewingIndex;
+    //console.log("pivotIndex ",pivotIndex)
+
+    let offset = Factory.convert(dataClient.input_value[pivotIndex], pivotIndex)[0] - points[pivotIndex][0]
+    // Find the point at which the zoom happens
+    recalculate();
     activePoligonObjs.position.x -= offset;
 
 
@@ -602,7 +598,9 @@ function updateListOfViewingIndex() {
     let newBegin = -1;
     let newEnd = points.length - 1;
 
-    newEnd = Math.ceil((container.clientWidth / 2 - activePoligonObjs.position.x) / Factory.axisXConfig.stepX);
+    //new end default is latest point, but if moving further than right side, newEnd is smaller
+    let xLeft = Math.min(0,activePoligonObjs.position.x);
+    newEnd = points.length - Math.ceil((points[newEnd][0] + xLeft - container.clientWidth) / Factory.axisXConfig.stepX);
 
     newEnd = Math.min(points.length - 1, newEnd);
 
@@ -610,7 +608,10 @@ function updateListOfViewingIndex() {
 
     newBegin = Math.max(newBegin, 0);
 
-    //console.log(newBegin, " ", newEnd);
+    if(newBegin > newEnd){
+        console.log(newBegin, " ", newEnd);
+        debugger;
+    }
 
 
     //add cache view for viewing area
@@ -618,8 +619,8 @@ function updateListOfViewingIndex() {
     cacheEnd = newEnd + (newEnd - newBegin);
 
     //limit to real datasize//FIXME should base on points, not input_value
-    cachedBegin = Math.min(Math.max(cachedBegin, 0), points.length - 2);//NOTE not support 2 points data
-    cacheEnd = Math.min(Math.max(cacheEnd, 0), points.length - 1);
+    cachedBegin = 0;//Math.min(Math.max(cachedBegin, 0), points.length - 2);//NOTE not support 2 points data
+    cacheEnd = points.length - 1;//Math.min(Math.max(cacheEnd, 0), points.length - 1);
 
     beginViewingIndex = newBegin;//test
     endViewingIndex = newEnd;
@@ -734,7 +735,7 @@ var lastAdding = 0;
 // Fetch new data from input and draw it with animation
 let newTween = undefined;
 function drawNewData(newPrice, now) {
-    if (lastAdding && now < lastAdding + 500) {
+    if (mouseDown || (lastAdding && now < lastAdding + 500) ) {
         //not animate, just add points
         points.push(Factory.convert(newPrice, points.length));
         lastAdding = now;
@@ -749,7 +750,7 @@ function drawNewData(newPrice, now) {
     let target = { x: newPoint[0], y: newPoint[1] };
     points.push([source.x, source.y, 0]);
 
-    const maxSpeed = 500;//ms
+    const maxSpeed = 200;//ms
     let duration = maxSpeed + Math.abs(target.y - source.y);
     let lastX = source.x;
     let lastY = source.y;
@@ -868,12 +869,14 @@ function processNewData(now) {
 let scaleTween = undefined;
 function processScale() {
     if (rescaleData.length) {
-        if (newTween || zoomTween) return;
+
+        if (zoomTween) return;
         let newScale = rescaleData.shift();
         let oldScale = { origin: Factory.axisYConfig.origin, stepY: Factory.axisYConfig.stepY };
         scaleTween = new TWEEN.Tween(oldScale).to(newScale, 200).onUpdate(function (current) {
             Factory.axisYConfig.origin = current.origin;
-            Factory.axisYConfig.stepY = current.stepY;
+            //Factory.axisYConfig.stepY = current.stepY;
+            recalculate();
         }).easing(TWEEN.Easing.Quadratic.Out)
             .onComplete(() => {
                 scaleTween = undefined;

@@ -136,27 +136,18 @@ body {
 #zoomin {
     width: 20px;
     height: 20px;
-    position: absolute;
-    left: 1110px;
-    bottom: 80px;
     z-index: 300;
 }
 
 #zoomout {
     width: 20px;
     height: 20px;
-    position: absolute;
-    left: 1050px;
-    bottom: 80px;
     z-index: 300;
 }
 
 #focus {
     width: 20px;
     height: 20px;
-    position: absolute;
-    left: 1080px;
-    bottom: 80px;
     z-index: 300;
 }
 
