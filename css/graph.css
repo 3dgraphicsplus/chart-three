@@ -2,6 +2,7 @@ body {
     background-color: #272f45;
     color: #444;
     overflow: hidden;
+    font-family: Montserrat, Calibri, sans-serif;
 }
 
 #container {
@@ -54,7 +55,6 @@ body {
     top: 74px;
     margin-top:40px;
     overflow: hidden;
-    font-family: Calibri;
     font-size: 1em;
     color: #dddddd
 }
@@ -94,7 +94,6 @@ body {
 #right {
     margin-left: -3px;
     line-height: 0.5em;
-    font-family: Calibri;
     font-weight: bold;
     color: white
 }
@@ -166,11 +165,13 @@ body {
     width: 100%;
     position: relative;
     text-align: center;
-    font-family: Calibri;
 }
 
 #zoombuttons {
     display: none;
+    position: relative;
+    left: 45%;
+    top: 10px;
 }
 
 #profit-per {

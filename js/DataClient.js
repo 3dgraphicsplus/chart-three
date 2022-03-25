@@ -15,12 +15,6 @@ function asyncLoop(arr, callback, onComplete) {
 export default class DataClient {
     constructor() {
 
-        //detect inactive view
-        let isActive = true;
-        document.addEventListener("visibilitychange", event => {
-            isActive = !document.hidden;
-            console.log("Tab visibility changed " + isActive);
-        });
         // Dummy Data
         // Line Step
         this.input_value = [];
@@ -124,8 +118,8 @@ export default class DataClient {
         }
 
 
-        console.log("new data message ",value.E ,": ",value.c )
-        console.log("new data ",input_object.time ,": ",input_object.price )
+        //console.log("new data message ",value.E ,": ",value.c )
+        //console.log("new data ",input_object.time ,": ",input_object.price )
     }
 
     shift() {

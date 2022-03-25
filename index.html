@@ -2,10 +2,12 @@
 <html lang="en">
 
 <head>
-    <title>three.js webgl - interactive lines</title>
+    <title>BTC/USDT - Up or Down</title>
     <base href=".">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
     <link rel="stylesheet" href="css/graph.css">
     <link rel="stylesheet" href="css/nano.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css" />
@@ -143,7 +145,7 @@
 
 <body>
     <div id="myProgress">
-        <div id="myBar">10%</div>
+        <div id="myBar">0%</div>
     </div>
     <div class="line-pickr-container" id="line-picker" style="color: white;">Line Color</div>
     <div class="fill-pickr-container" id="fill-picker" style="color: white;">Fill Color</div>
@@ -158,7 +160,7 @@
                                 <tr id="l1">
                                     <th>Amount</th>
                                     <th><img id="helpicon"
-                                            src="https://img.icons8.com/material-outlined/24/000000/help.png" /></th>
+                                            src="img/help.png" /></th>
                                 </tr>
                                 <tr id="l2">
                                     <th>
@@ -185,7 +187,7 @@
         </table>
         <div id="centergroup">
             <div id="profit">
-                Profit <img id="helpicon" src="https://img.icons8.com/material-outlined/24/000000/help.png" />
+                P/L <img id="helpicon" src="img/help.png" />
             </div>
             <div id="profit-per" class="green">
                 +85%
@@ -196,9 +198,9 @@
         </div>
     </div>
     <div id="zoombuttons">
-        <img id="zoomin" alt="Zoom in" src="/img/plus.png">
-        <img id="zoomout" alt="Zoom out" src="/img/minus.png">
-        <img id="focus" alt="Focus" src="/img/focus.png">
+        <img id="zoomout" alt="Zoom out" src="img/minus.png">
+        <img id="focus" alt="Focus" src="img/focus.png">
+        <img id="zoomin" alt="Zoom in" src="img/plus.png">
     </div>
 
     <script src="./js/TEST_DATA.js"></script>

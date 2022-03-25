@@ -68,7 +68,7 @@ let round = 1;
 let totalMouseMovement = 0;
 
 let newData = [];
-function update(newVal) {
+function onAddNewData(newVal) {
     newData.push(newVal)
 }
 
@@ -92,6 +92,20 @@ function getRange(points, start, end) {
     // console.log("Test ",minVal/2+maxVal/2, " ",center)
     //let center = points[end].price;
     //return center;
+}
+
+function getMedium(points, start, end) {
+    let sum = 0;
+    for (let i = start; i <= end; i++){
+        sum += points[i].price;
+    }
+
+
+    let center = sum / (end - start + 1);
+
+    //console.log("Test ", minVal / 2 + maxVal / 2, " ", center)
+    //let center = points[end].price;
+    return center;
 }
 
 function init() {
@@ -158,30 +172,37 @@ function init() {
 
     showZoomButtons();
 
-    dataClient.onNew = update;
+    dataClient.onNew = onAddNewData;
 }
 
 let rescaleData = []
+
 function calculateAxis(forced) {
+    //in fact, just use lastest point as origin
+    let newRange = getRange(dataClient.input_value, beginViewingIndex, endViewingIndex);
+    let newOrigin = getMedium(dataClient.input_value, beginViewingIndex, endViewingIndex);;//newRange[0] / 2 + newRange[1] / 2
+
     Factory.axisXConfig.stepX = container.clientWidth / Factory.currentZoom();//2mins
     Factory.axisYConfig.initialValueY = initialCameraPos.y + (container.clientHeight) / 2;
-    let newY = container.clientHeight / Factory.currentZoom()
+    if (forced) {
+        Factory.axisYConfig.origin = newOrigin;
+        Factory.axisYConfig.stepY = container.clientHeight / Factory.currentZoom()
+        return;
+    }
+    //let newY = container.clientHeight / Factory.currentZoom() / 2
 
     let minY = Factory.convertBack(0, 30, 0)[1];
     let maxY = Factory.convertBack(0, container.clientHeight - 30, 0)[1];
 
-    Factory.axisYConfig.stepY = newY;
+    if (rescaleData.length == 0 && (Math.abs(newOrigin - Factory.axisYConfig.origin)*Factory.axisYConfig.stepY > 100 || minY > newRange[0] || maxY < newRange[1])) {//TODO
+        if (minY > newRange[0]) {
+            newOrigin = newOrigin + newRange[0] - minY;
+        }
+        if (maxY < newRange[1]) {
+            newOrigin = newOrigin + newRange[1] - maxY;
+        }
 
-    //in fact, just use lastest point as origin
-    let newRange = getRange(dataClient.input_value, beginViewingIndex, endViewingIndex);
-    let newOrigin = newRange[0] / 2 + newRange[1] / 2
-
-    //let newY = (container.clientHeight)/(newRange[1]-newRange[0]);//price range 240/2 for maximum zoom- level5
-    //Factory.axisYConfig.stepY = newY;
-    if (forced) {
-        Factory.axisYConfig.origin = newOrigin;
-    }
-    else if (rescaleData.length == 0 && (Math.abs(newOrigin - Factory.axisYConfig.origin) > 100 || minY > newRange[0] || maxY < newRange[1])) {//TODO
+        newY = container.clientHeight / (newRange[1] - newRange[0]);
         rescaleData.push({ origin: newOrigin, stepY: newY })
         //Factory.axisYConfig.origin = newOrigin;
         //Factory.axisYConfig.stepY = newY;
@@ -710,11 +731,9 @@ function updatePurchaseCycle(triggerAtPurchaseCallback, triggerAtFinishingCallba
 
 
 var lastAdding = 0;
-var newDataInterpolate
-
 // Fetch new data from input and draw it with animation
 let newTween = undefined;
-function drawNewData(newPrice ,now) {
+function drawNewData(newPrice, now) {
     if (lastAdding && now < lastAdding + 500) {
         //not animate, just add points
         points.push(Factory.convert(newPrice, points.length));
@@ -839,7 +858,7 @@ function processZoom() {
 function processNewData(now) {
     if (animating.length || newTween || scaleTween) return;
     while (newData.length) {
-        drawNewData(newData.shift(),now)
+        drawNewData(newData.shift(), now)
 
         calculateAxis();
         //break;
@@ -862,7 +881,7 @@ function processScale() {
     }
 }
 
-function animate() {
+function update() {
     let now = Date.now();
 
     TWEEN.update();
@@ -884,13 +903,18 @@ function animate() {
     updateView(now);
 
     updatePurchaseCycle(triggerAtPurchaseTime, triggerAtFinishingTime);
+    last = now;
+
+}
+
+function animate() {
+
+    update();
 
     render();
-
     stats.update();
 
     requestAnimationFrame(animate);
-    last = now;
 }
 
 function showOverlay() {
@@ -1044,5 +1068,26 @@ function initColorPicker() {
     })
 }
 
-//start
+//handle window active/inactive
+var service
+function onBlur() {
+    console.log("Inactive");
+    service = setInterval(update, 200)
+
+};
+function onFocus() {
+    console.log("Active");
+    if (service) {
+        clearInterval(service);
+        service = undefined;
+    }
+};
+
+//start//detect inactive view
+let isActive = true;
+document.addEventListener("visibilitychange", event => {
+    isActive = !document.hidden;
+    if (isActive) onFocus(event);
+    else onBlur(event);
+});
 showProgress();
