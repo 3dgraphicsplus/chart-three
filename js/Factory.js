@@ -191,7 +191,7 @@ function drawLowerButton(scene, gridRightBound) {
 let mousePriceLineMat = null;
 let mouseTimeLineMat = null;
 let matShape = new THREE.MeshBasicMaterial({ color: 0x525a71, transparent: false });
-function updateMouseMoveLine(scene, posX, posY, initialValueX, timestamp, startIndex) {
+function updateMouseMoveLine(scene, posX, posY, timestamp, priceValue) {
     if (mouseTimeLine) {
         mouseTimeLine.geometry.dispose();
         scene.remove(mouseTimeLine);
@@ -202,7 +202,7 @@ function updateMouseMoveLine(scene, posX, posY, initialValueX, timestamp, startI
     }
 
     mousePriceLineGeo = new LineGeometry();
-    mousePriceLineGeo.setPositions([initialValueX - 250, posY, 0, GRID_RIGHTMOST_LINE - 225 - 120, posY, 0]);
+    mousePriceLineGeo.setPositions([0, posY, 0, GRID_RIGHTMOST_LINE - 225 - 120, posY, 0]);
 
     if (!mousePriceLineMat || mousePriceLineMat.resolution.x != container.clientWidth || mousePriceLineMat.resolution.y != container.clientHeight) {
         mousePriceLineMat = new LineMaterial({
@@ -225,7 +225,7 @@ function updateMouseMoveLine(scene, posX, posY, initialValueX, timestamp, startI
     // scene.add(mouseTimeLine)
 
     mouseTimeLineGeo = new LineGeometry();
-    mouseTimeLineGeo.setPositions([posX, 140, 0, posX, GRID_TOPLINE, 0]);
+    mouseTimeLineGeo.setPositions([posX, 0, 0, posX, GRID_TOPLINE, 0]);
     if (!mouseTimeLineMat || mouseTimeLineMat.resolution.x != container.clientWidth || mouseTimeLineMat.resolution.y != container.clientHeight) {
 
         mouseTimeLineMat = new LineMaterial({
@@ -249,10 +249,10 @@ function updateMouseMoveLine(scene, posX, posY, initialValueX, timestamp, startI
 
     if (timestampShape == undefined) {
         let coordinatesList = [
-            new THREE.Vector3(posX - 60, 140, 0),
-            new THREE.Vector3(posX + 60, 140, 0),
-            new THREE.Vector3(posX + 60, 120, 0),
-            new THREE.Vector3(posX - 60, 120, 0)
+            new THREE.Vector3(posX - 60, 40, 0),
+            new THREE.Vector3(posX + 60, 40, 0),
+            new THREE.Vector3(posX + 60, 20, 0),
+            new THREE.Vector3(posX - 60, 20, 0)
         ];
 
         // shape
@@ -266,47 +266,37 @@ function updateMouseMoveLine(scene, posX, posY, initialValueX, timestamp, startI
         let p = timestampShape.geometry.attributes.position.array;
         let i = 0;
         p[i++] = posX - 70;
-        p[i++] = 142;
+        p[i++] = 42;
         p[i++] = 0;
         p[i++] = posX + 70;
-        p[i++] = 142;
+        p[i++] = 42;
         p[i++] = 0;
         p[i++] = posX + 70;
-        p[i++] = 122;
+        p[i++] = 22;
         p[i++] = 0;
         p[i++] = posX - 70;
-        p[i++] = 122;
+        p[i++] = 22;
         p[i++] = 0;
         timestampShape.geometry.attributes.position.needsUpdate = true;
         // console.log(priceShape.geometry.attributes.position.array)
     }
-    let currentdate = new Date();
-    let datetime = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60 * 1000).toISOString().substring(0, 11).replace('T', ' ') + timestamp;
+    
+    let datetime =  timestamp;
     if (timestampText != undefined) {
-        timestampText.text = datetime
-        timestampText.position.z = 0
-        timestampText.position.x = posX - 55
-        timestampText.position.y = 140
-        timestampText.color = 0xffffff
-        // Update the rendering:
-        timestampText.sync()
     } else {
         timestampText = new Text()
         timestampText.renderOrder = 10;
         scene.add(timestampText);
-        // scene.add(priceText)
-
-        // Set properties to configure:
-        timestampText.text = datetime
         //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
         timestampText.fontSize = 12
+    }
+        timestampText.text = datetime
         timestampText.position.z = 0
         timestampText.position.x = posX - 55
-        timestampText.position.y = 140
+        timestampText.position.y = 40
         timestampText.color = 0xffffff
         // Update the rendering:
         timestampText.sync()
-    }
 
     if (mouseAlertShape == undefined) {
         let geomShape = new THREE.PlaneGeometry(16, 16);
@@ -363,33 +353,21 @@ function updateMouseMoveLine(scene, posX, posY, initialValueX, timestamp, startI
     }
 
     if (mousePriceText != undefined) {
-        let priceValue = dataClient.convertToDisplay((posY - axisYConfig.initialValueY) / axisYConfig.stepY + dataClient.input_value[startIndex].price);
         mousePriceText.text = '' + priceValue.toFixed(2);
-        mousePriceText.position.z = 0
-        mousePriceText.position.x = GRID_RIGHTMOST_LINE - 205 - 120
-        mousePriceText.position.y = posY + 6
-        mousePriceText.color = 'white'
-        mousePriceText.renderOrder = 100;
-        // Update the rendering:
-        mousePriceText.sync()
     } else {
         mousePriceText = new Text()
-        mousePriceText.renderOrder = 100;
         scene.add(mousePriceText);
-        // scene.add(priceText)
-
         // Set properties to configure:
-        let priceValue = dataClient.convertToDisplay((posY - axisYConfig.initialValueY) / axisYConfig.stepY + dataClient.input_value[startIndex].price);
-        mousePriceText.text = '' + priceValue.toFixed(2);
         //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
         mousePriceText.fontSize = 12
+    }
+        mousePriceText.text = '' + priceValue.toFixed(2);
         mousePriceText.position.z = 0
         mousePriceText.position.x = GRID_RIGHTMOST_LINE - 200 - 120
         mousePriceText.position.y = posY + 6
+        mousePriceText.renderOrder = 100;
         mousePriceText.color = 'white'
-        // Update the rendering:
         mousePriceText.sync()
-    }
 }
 
 function drawBackground(startingLine, loopCount, gridStep) {
@@ -1569,6 +1547,17 @@ function convert(point, index) {
     return [axisXConfig.stepX * index + axisXConfig.initialValueX, axisYConfig.stepY * (point.price - axisYConfig.origin) + axisYConfig.initialValueY, 0]
 }
 
+function getTime(seconds){
+    let datetime = (new Date(new Date().getTime() - seconds*1000 - new Date().getTimezoneOffset() * 60 * 1000)).toISOString().split('.')[0].replace("T"," ");
+    return datetime;
+}
+
+function convertBack(x,y,currentX){
+    let secondsOffset = (currentX - (x - axisXConfig.initialValueX))/axisXConfig.stepX;
+    
+    return [getTime(secondsOffset),(y - axisYConfig.initialValueY)/axisYConfig.stepY + axisYConfig.origin]
+}
+
 export {
     updatePurchaseLine,
     drawPurchaseLine,
@@ -1618,5 +1607,6 @@ export {
     changePolygonColor,
     maxZoom,
     minZoom,
-    convert
+    convert,
+    convertBack
 }

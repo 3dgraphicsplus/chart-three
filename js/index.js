@@ -148,10 +148,10 @@ function init() {
     container.appendChild(stats.dom);
 
     window.addEventListener('resize', onWindowResize);
-    document.addEventListener('pointermove', onPointerMove);
-    document.addEventListener('pointerdown', onPointerDown);
-    document.addEventListener('pointerup', onPointerUp);
-    document.addEventListener('wheel', onWheel);
+    renderer.domElement.addEventListener('pointermove', onPointerMove);
+    renderer.domElement.addEventListener('pointerdown', onPointerDown);
+    renderer.domElement.addEventListener('pointerup', onPointerUp);
+    renderer.domElement.addEventListener('wheel', onWheel);
     document.addEventListener('visibilitychange', function () {
         //no need, we will get all latest data
         //last = 0;
@@ -386,25 +386,20 @@ function onPointerMove(event) {
         }
         activePoligonObjs.position.x += deltaX;
 
-        //if (points.length)//only run for updating, not init
+        //if (points.length)//only run (for updating, not init
          //   updateListOfViewingIndex();
 
         // otherwise, just update the line at the mouse cursor
-    } else {
-        mouse.x = ((event.clientX - container.offsetLeft) / (container.clientWidth)) * 2 - 1;
-        mouse.y = - ((event.clientY - container.offsetTop) / (container.clientHeight)) * 2 + 1;
-        raycaster.setFromCamera(mouse, camera);
-        let intersects = raycaster.intersectObjects(bkgObjs);
-        // just handle the mouse click on buttons
-        if (intersects.length > 0) {
-            //console.log(intersects[0].point.x)
-            let dataIndex = x2DataIndex(intersects[0].point.x);
-            if (0 <= dataIndex && dataIndex < dataClient.input_value.length) {
-                let val = dataClient.input_value[dataIndex].time;
-                Factory.updateMouseMoveLine(scene, intersects[0].point.x, intersects[0].point.y, Factory.axisXConfig.initialValueX, val, beginViewingIndex);
-            }
-        }
+    } else { 
+        const rect = event.target.getBoundingClientRect();
+        const x = event.clientX - rect.left; //x position within the element.
+        const y = event.clientY - rect.top;  //y position within the element.
 
+        //calculate mouse time from current time(greenpoint)
+        const currentX = points[points.length-1][0] + activePoligonObjs.position.x;
+        const values = Factory.convertBack(x,container.clientHeight - y,currentX);
+        Factory.updateMouseMoveLine(scene, x, container.clientHeight - y, ...values);
+        
         if (enablePriceMark == true) {
             let intersects2 = raycaster.intersectObjects(lowhighButtons);
             if (intersects2.length > 0) {
