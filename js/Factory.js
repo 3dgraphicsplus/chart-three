@@ -54,7 +54,7 @@ let enableLowerActive = false;
 let XStepCount = 0;
 let axisXConfig = { stepX: 0, initialValueX: 0 }
 let axisYConfig = {
-    stepY: 0, initialValueY: 0,
+    stepY: 1, initialValueY: 0,
     origin: 0
 }
 
@@ -1006,7 +1006,7 @@ function addPolygon(poligons, poly, offset = 0) {
     return poligon;
 }
 
-function updatePolygon(poligons, poly, offset = 0) {
+function updatePolygon(poligon, poly, offset = 0) {
     let vertices = [];
     for (let i = 1 + 0; i < poly.length; ++i) {
         vertices.push(poly[i - 1][0], poly[i - 1][1], 0);
@@ -1019,17 +1019,17 @@ function updatePolygon(poligons, poly, offset = 0) {
         vertices.push(poly[i][0], 0, 0);
     }
 
-    if (vertices.length != poligons.geometry.attributes.position.array.length) {
+    if (vertices.length != poligon.geometry.attributes.position.array.length) {
 
-        poligons.geometry.dispose();
-        poligons.geometry = new THREE.BufferGeometry();
-        poligons.geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
+        poligon.geometry.dispose();
+        poligon.geometry = new THREE.BufferGeometry();
+        poligon.geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
     } else {
-        poligons.geometry.attributes.position.array.set(vertices);
+        poligon.geometry.attributes.position.array.set(vertices);
     }
 
-    poligons.geometry.computeBoundingSphere();
-    poligons.geometry.attributes.position.needsUpdate = true;
+    poligon.geometry.computeBoundingSphere();
+    poligon.geometry.attributes.position.needsUpdate = true;
 
 }
 function updateNewPolygon(poligon, points) {
@@ -1048,7 +1048,7 @@ function updateNewPolygon(poligon, points) {
     vertices.push(x, y, 0);
     vertices.push(x0, 0, 0);
     vertices.push(x, 0, 0);
-    poligon.geometry.attributes.position.array.set(vertices, 0)
+    poligon.geometry.attributes.position.array.set(vertices, poligon.geometry.attributes.position.array.length-vertices.length);
 
     poligon.geometry.attributes.position.needsUpdate = true;
 }
@@ -1106,15 +1106,16 @@ function updateDataLine(dataLines, data, from = 0, to = 0) {
 
 
 // Update the geometry of created data lines
-function updateNewLine(dataLine, points) {
+function updateNewLine(poligon, points) {
     const len = points.length;
     let x0 = points[len - 2][0]
     let y0 = points[len - 2][1]
     let x = points[len - 1][0]
     let y = points[len - 1][1]
-    const target = dataLine.geometry.attributes.position.array;
-    target.set([x0, y0, 0, x, y, 0]);
-    dataLine.geometry.attributes.position.needsUpdate = true;
+    const target = poligon.geometry.attributes.position.array;
+    const vertices = [x0, y0, 0, x, y, 0]
+    target.set(vertices, poligon.geometry.attributes.position.array.length-vertices.length);
+    poligon.geometry.attributes.position.needsUpdate = true;
 }
 
 // Draw the purchase line using position of the green points and the remaining time of the countdown timer.
@@ -1509,16 +1510,15 @@ function setGrid(top, right) {
     GRID_RIGHTMOST_LINE = right;
 }
 
-function defaultZoomLevel() {
-    return currentZoomLevel;
+function setZoom(val) {
+    currentZoomLevel = val;
 }
 
 function listZoomLevel() {
     return DEFAULT_ZOOM_LEVEL;
 }
 
-function currentZoom(val) {
-    if (val !== undefined) currentZoomLevel = val;
+function currentZoom() {
     return currentZoomLevel
 }
 
@@ -1587,7 +1587,7 @@ export {
     setGrid,
     GRID_TOPLINE,
     GRID_RIGHTMOST_LINE,
-    defaultZoomLevel,
+    setZoom,
     listZoomLevel,
     currentZoom,
     axisYConfig,
