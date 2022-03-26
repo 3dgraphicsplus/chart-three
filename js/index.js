@@ -670,7 +670,7 @@ function updateActiveGroup(now, last) {
         activePoligonObjs.position.x -= moveInOneFrame
     }
 
-    //Factory.updateActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
+    Factory.updateActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, activePoligonObjs.position.x);
     // }
 
     //udpate hover line

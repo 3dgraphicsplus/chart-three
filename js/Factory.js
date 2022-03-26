@@ -799,7 +799,7 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
     //FIXME, new in realtime?
     const horizontalDashed = new LineGeometry();
 
-    horizontalDashed.setPositions([0, circlePos[0][1], 0, circlePos[0][0], circlePos[0][1], 0]);
+    horizontalDashed.setPositions([0, circlePos[0][1], 0, circlePos[0][0]+movedDistance, circlePos[0][1], 0]);
 
     activePriceStatusObjs[0].dashedLine.geometry.dispose();
     activePriceStatusObjs[0].dashedLine.geometry = horizontalDashed;
@@ -807,11 +807,12 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
     activePriceStatusObjs[0].dashedLine.geometry.attributes.position.needsUpdate = true;
     activePriceStatusObjs[0].dashedLine.material.needsUpdate = true;
 
-    const verticalline = new LineGeometry();
-    verticalline.setPositions([circlePos[0][0], circlePos[0][1], 0, gridRightBound - 250 - movedDistance, circlePos[0][1], 0]);
+    //FIXME, new in realtime?
+    const futureline = new LineGeometry();
+    futureline.setPositions([circlePos[0][0] + movedDistance, circlePos[0][1], 0, gridRightBound - 250, circlePos[0][1], 0]);
 
     activePriceStatusObjs[0].line.geometry.dispose();
-    activePriceStatusObjs[0].line.geometry = verticalline;
+    activePriceStatusObjs[0].line.geometry = futureline;
     activePriceStatusObjs[0].line.computeLineDistances();
     activePriceStatusObjs[0].line.geometry.attributes.position.needsUpdate = true;
 
