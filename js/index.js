@@ -125,7 +125,7 @@ function init() {
     camera.position.set(initialCameraPos.x, initialCameraPos.y, initialCameraPos.z);
 
     Factory.setGrid(container.clientHeight, container.clientWidth + 100);//FIXME ,fack number
-    calculateAxis();
+    calculateAxis(true);
 
     scene = new THREE.Scene();
     // camera.lookAt( scene.position );
@@ -165,16 +165,22 @@ function init() {
     dataClient.onNew = update;
 }
 
-function calculateAxis() {
+let rescaleData = []
+function calculateAxis(forced) {
     Factory.axisXConfig.stepX = container.clientWidth / Factory.currentZoom();//2mins
     let newY = (MAX_VIEW_Y - MIN_VIEW_Y)*1.0 / Factory.currentZoom() * 1;//price range 240/2 for maximum zoom- level5
     Factory.axisYConfig.initialValueY = initialCameraPos.y + (MAX_VIEW_Y + MIN_VIEW_Y) / 2;
     let newOrigin = getCenter(dataClient.input_value, beginViewingIndex, endViewingIndex);
-    if(Math.abs(newOrigin - Factory.axisYConfig.origin) > 200){
+    
+    if(forced){
         Factory.axisYConfig.origin = newOrigin;
         Factory.axisYConfig.stepY = newY;
     }
-
+    else if(Math.abs(newOrigin - Factory.axisYConfig.origin) > 200){//TODO
+        rescaleData.push({origin:newOrigin,stepY:newY})
+        //Factory.axisYConfig.origin = newOrigin;
+        //Factory.axisYConfig.stepY = newY;
+    }
     if (points.length)//only run for updating, not init
         updateListOfViewingIndex();
 }
@@ -207,7 +213,7 @@ function initScene(drawingGroup) {
 
 
     // Draw the grid
-    Factory.drawHorizontalGrid(activeHorizontalGridObjs,Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120)
+    Factory.drawHorizontalGrid(drawingGroup, activeHorizontalGridObjs,Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120)
 
     const currentX = points[beginViewingIndex][0] + activePoligonObjs.position.x;
     Factory.drawVerticalGrid(activePoligonObjs, Factory.GRID_TOPLINE,currentX)
@@ -233,14 +239,6 @@ function initScene(drawingGroup) {
     scene.add(activePriceStatusObjs[0].priceShape)
     scene.add(activePriceStatusObjs[0].priceText)
     scene.add(activePriceStatusObjs[0].priceActiveText)
-
-    for (let i = 0; i < activeHorizontalGridObjs.length; i++) {
-        scene.remove(activeHorizontalGridObjs[i].line)
-        scene.remove(activeHorizontalGridObjs[i].text)
-
-        scene.add(activeHorizontalGridObjs[i].line)
-        scene.add(activeHorizontalGridObjs[i].text)
-    }
 
     //drawingGroup.add(newbkg)
     //bkgObjs.push(newbkg)
@@ -639,8 +637,6 @@ function updateListOfViewingIndex() {
 }
 
 // Use to recalculate the data and update view for autoscaling
-var scaleTween = null;
-var lastTimestamp = 0;
 var purchaseTime, goalTime
 function updateView(now) {
 
@@ -652,10 +648,13 @@ function updateView(now) {
 
 
     // If need to change current zoom level then need to add/remove grids
+    if(beginViewingIndex< 0 || beginViewingIndex > points.length-1){
+        debugger;
+    }
     const currentX = points[beginViewingIndex][0] + activePoligonObjs.position.x;
     Factory.updateVerticalGrid(activePoligonObjs,  Factory.GRID_TOPLINE, currentX, mouseDown || zoomTween);
     
-    Factory.updateHorizontalGrid(activeHorizontalGridObjs,Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120);
+    Factory.updateHorizontalGrid(activeGroup,activeHorizontalGridObjs,Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120);
 
     
     
@@ -754,7 +753,8 @@ function drawNewData(newPrice) {
     let target = { x: newPoint[0], y: newPoint[1] };
     points.push([source.x, source.y, 0]);
 
-    let duration = 500;
+    const maxSpeed = 500;//ms
+    let duration = maxSpeed + Math.abs(target.y - source.y);
     let lastX = source.x;
     let lastY = source.y;
     newTween = new TWEEN.Tween(source).to(target, duration).onUpdate(current => {
@@ -814,7 +814,7 @@ let zoomTween = undefined;
 function processZoom() {
     while (animating.length) {
 
-        if(zoomTween)return
+        if(zoomTween || scaleTween)return
 
         if (newTween) {
             newTween.stop();
@@ -864,11 +864,27 @@ function processZoom() {
 
 function processNewData() {
     while (newData.length) {
-        if (animating.length || newTween) break;
+        if (animating.length || newTween || scaleTween) break;
         drawNewData(newData.shift())
 
         calculateAxis();
         //break;
+    }
+}
+
+let scaleTween = undefined;
+function processScale(){
+    if(rescaleData.length){
+        if(newTween || zoomTween)return;
+        let newScale = rescaleData.shift();
+        let oldScale = {origin: Factory.axisYConfig.origin, stepY: Factory.axisYConfig.stepY};
+        scaleTween =new TWEEN.Tween(oldScale).to(newScale, 500).onUpdate(function (current) {
+            Factory.axisYConfig.origin = current.origin;
+            Factory.axisYConfig.stepY = current.stepY;
+        }).easing(TWEEN.Easing.Quadratic.Out)
+        .onComplete(()=>{
+            scaleTween = undefined;
+        }).start();
     }
 }
 
@@ -879,6 +895,8 @@ function animate() {
     processNewData()
 
     processZoom()
+
+    processScale();
 
     let now = Date.now();
 

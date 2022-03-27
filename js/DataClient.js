@@ -48,8 +48,9 @@ export default class DataClient {
                         self.loadingDone = true;
                     })
             } else {
-                if (self.loadingDone)
+                if (self.loadingDone){
                     this.addValue(JSON.parse(msg))
+                }
             }
 
 
@@ -121,6 +122,10 @@ export default class DataClient {
         if(this.loadingDone && this.onNew){
             this.onNew(input_object)
         }
+
+
+        console.log("new data message ",value.E ,": ",value.c )
+        console.log("new data ",input_object.time ,": ",input_object.price )
     }
 
     shift() {

@@ -29,7 +29,7 @@ const GRID_LINE_WIDTH = 0.5
 const PURCHASE_LINE_WIDTH = 0.8
 const MOUSE_MOVE_LINE_WIDTH = 1
 
-const NUMBER_OF_YGRID_OFFSET = 10
+const NUMBER_OF_YGRID_OFFSET = 5
 const NUMBER_OF_XGRID_OFFSET = 25
 
 var GRID_TOPLINE, GRID_RIGHTMOST_LINE;
@@ -392,17 +392,18 @@ function drawBackground(startingLine, loopCount, gridStep) {
 }
 
 let horizontalGridMaterial = null;
-function drawHorizontalGrid(horizontalGrids, gridTopBound, gridRightBound) {
-
-    const minY = convertBack(0, 0, 0)[1];
-    const maxY = convertBack(0, container.clientHeight, 0)[1];
-    const stepY = axisYConfig.stepY * NUMBER_OF_YGRID_OFFSET;
-    let gridStepCount = Math.floor((maxY - minY) / stepY);
-    for (let j = gridStepCount - 1; j >= 0; j--) {
+const marginYAxis = 20;
+function drawHorizontalGrid(group, horizontalGrids, gridTopBound, gridRightBound) {
+    const minY = convertBack(0, marginYAxis, 0)[1];
+    const maxY = convertBack(0, container.clientHeight- marginYAxis, 0)[1];
+    let gridStepCount = NUMBER_OF_YGRID_OFFSET;//Math.floor((maxY - minY) / stepY);
+    const stepY = (container.clientHeight- 2 * marginYAxis) / gridStepCount;
+    const stepPrice = (maxY - minY) / gridStepCount;
+    for (let j = 0; j <= gridStepCount; j++) {
         const horizontalGridGeo = new LineGeometry();
-        let yValue = container.clientHeight / gridStepCount * j;
-        let priceValue = stepY * j + minY;
-        horizontalGridGeo.setPositions([0, yValue, 0, gridRightBound - 200, yValue, 0]);
+        let yValue = j * stepY + marginYAxis;
+        let priceValue =  stepPrice * j + minY;
+        horizontalGridGeo.setPositions([0, 0, 0, gridRightBound - 200, 0, 0]);
         if (!horizontalGridMaterial || horizontalGridMaterial.resolution.x != container.clientWidth || horizontalGridMaterial.resolution.y != container.clientHeight) {
 
             horizontalGridMaterial = new LineMaterial({
@@ -431,35 +432,35 @@ function drawHorizontalGrid(horizontalGrids, gridTopBound, gridRightBound) {
         priceText.fontSize = 12
         priceText.position.z = 0
         priceText.position.x = gridRightBound - 195
-        priceText.position.y = yValue + 8
+        priceText.position.y = 0 + 8
         priceText.color = HORIZONTAL_PRICE_TEXT_COLOR
 
         priceText.sync()
-        horizontalGrids.push({ line: horizontalGridLine, text: priceText })
+
+        let eGroup = new THREE.Group();
+        eGroup.add(horizontalGridLine);
+        eGroup.add(priceText);
+        group.add(eGroup)
+
+        eGroup.position.y = yValue;
+
+        horizontalGrids.push(eGroup)
     }
 }
 
-function updateHorizontalGrid(horizontalGrids, gridTopBound, gridRightBound) {
-    const minY = convertBack(0, 0, 0)[1];
-    const maxY = convertBack(0, container.clientHeight, 0)[1];
-    const stepY = axisYConfig.stepY * NUMBER_OF_YGRID_OFFSET;
-    let gridStepCount = Math.floor((maxY - minY) / stepY);
-    for (let j = gridStepCount - 1; j >= 0; j--) {
-        //FIXME
-        const horizontalGridGeo = new LineGeometry();
-        let yValue = container.clientHeight / gridStepCount * j;
-        let priceValue = stepY * j + minY;
-        horizontalGridGeo.setPositions([0, yValue, 0, gridRightBound - 200, yValue, 0]);
-        horizontalGrids[j].line.geometry.dispose();
-        horizontalGrids[j].line.geometry = horizontalGridGeo;
-        horizontalGrids[j].line.geometry.attributes.position.needsUpdate = true;
+function updateHorizontalGrid(group, horizontalGrids, gridTopBound, gridRightBound) {
+    const minY = convertBack(0, marginYAxis, 0)[1];
+    const maxY = convertBack(0, container.clientHeight - marginYAxis, 0)[1];
+    let gridStepCount = NUMBER_OF_YGRID_OFFSET;//Math.floor((maxY - minY) / stepY);
+    //const stepY = container.clientHeight/gridStepCount;
+    const stepPrice = (maxY - minY) / gridStepCount;
+    for (let j = 0; j <= gridStepCount; j++) {
 
+        //let yValue = j*stepY;
+        let priceValue = stepPrice * j + minY;
 
-        horizontalGrids[j].text.text = priceValue.toFixed(2);
-        // console.log(priceValue)
-        // console.log(horizontalGrids[j].text)
-        horizontalGrids[j].text.position.y = yValue + 8
-        horizontalGrids[j].text.sync();
+        horizontalGrids[j].children[1].text = priceValue.toFixed(2);
+        horizontalGrids[j].children[1].sync();
     }
 }
 
