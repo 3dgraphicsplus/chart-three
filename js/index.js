@@ -11,7 +11,7 @@ window.dataClient = new DataClient();
 let container, stats;
 let camera, scene, raycaster, renderer;
 
-const ZOOM_STEP = 10;
+const ZOOM_STEP = 100;
 
 var MIN_VIEW_Y = 50;
 var MAX_VIEW_Y = 900;
@@ -168,16 +168,16 @@ function init() {
 let rescaleData = []
 function calculateAxis(forced) {
     Factory.axisXConfig.stepX = container.clientWidth / Factory.currentZoom();//2mins
-    let newY = (MAX_VIEW_Y - MIN_VIEW_Y)*1.0 / Factory.currentZoom() * 1;//price range 240/2 for maximum zoom- level5
+    let newY = (MAX_VIEW_Y - MIN_VIEW_Y) * 1.0 / Factory.currentZoom() * 1;//price range 240/2 for maximum zoom- level5
     Factory.axisYConfig.initialValueY = initialCameraPos.y + (MAX_VIEW_Y + MIN_VIEW_Y) / 2;
     let newOrigin = getCenter(dataClient.input_value, beginViewingIndex, endViewingIndex);
-    
-    if(forced){
+
+    if (forced) {
         Factory.axisYConfig.origin = newOrigin;
         Factory.axisYConfig.stepY = newY;
     }
-    else if(Math.abs(newOrigin - Factory.axisYConfig.origin) > 200){//TODO
-        rescaleData.push({origin:newOrigin,stepY:newY})
+    else if (Math.abs(newOrigin - Factory.axisYConfig.origin) > 200) {//TODO
+        rescaleData.push({ origin: newOrigin, stepY: newY })
         //Factory.axisYConfig.origin = newOrigin;
         //Factory.axisYConfig.stepY = newY;
     }
@@ -195,7 +195,7 @@ function initScene(drawingGroup) {
     //FIXME - other feature
     const point = points[points.length - 1];
     if (point[0] > Factory.GRID_RIGHTMOST_LINE / 2) {
-        activePoligonObjs.position.x -= (point[0] - container.clientWidth/2);
+        activePoligonObjs.position.x -= (point[0] - container.clientWidth / 2);
     }
 
     // Draw the data line
@@ -213,10 +213,10 @@ function initScene(drawingGroup) {
 
 
     // Draw the grid
-    Factory.drawHorizontalGrid(drawingGroup, activeHorizontalGridObjs,Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120)
+    Factory.drawHorizontalGrid(drawingGroup, activeHorizontalGridObjs, Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120)
 
     const currentX = points[beginViewingIndex][0] + activePoligonObjs.position.x;
-    Factory.drawVerticalGrid(activePoligonObjs, Factory.GRID_TOPLINE,currentX)
+    Factory.drawVerticalGrid(activePoligonObjs, Factory.GRID_TOPLINE, currentX)
 
     //let newbkg = Factory.drawBackground(0, drawCount, gridStepX);
 
@@ -386,19 +386,19 @@ function onPointerMove(event) {
         activePoligonObjs.position.x += deltaX;
 
         //if (points.length)//only run (for updating, not init
-         //   updateListOfViewingIndex();
+        //   updateListOfViewingIndex();
 
         // otherwise, just update the line at the mouse cursor
-    } else { 
+    } else {
         const rect = event.target.getBoundingClientRect();
         const x = event.clientX - rect.left; //x position within the element.
         const y = event.clientY - rect.top;  //y position within the element.
 
         //calculate mouse time from current time(greenpoint)
-        const currentX = points[points.length-1][0] + activePoligonObjs.position.x;
-        const values = Factory.convertBack(x,container.clientHeight - y,currentX);
+        const currentX = points[points.length - 1][0] + activePoligonObjs.position.x;
+        const values = Factory.convertBack(x, container.clientHeight - y, currentX);
         Factory.updateMouseMoveLine(scene, x, container.clientHeight - y, ...values);
-        
+
         if (enablePriceMark == true) {
             let intersects2 = raycaster.intersectObjects(lowhighButtons);
             if (intersects2.length > 0) {
@@ -612,11 +612,11 @@ function updateListOfViewingIndex() {
     let newBegin = -1;
     let newEnd = points.length - 1;
 
-    newEnd = Math.ceil((container.clientWidth/2 - activePoligonObjs.position.x)/Factory.axisXConfig.stepX);
+    newEnd = Math.ceil((container.clientWidth / 2 - activePoligonObjs.position.x) / Factory.axisXConfig.stepX);
 
-    newEnd = Math.min(points.length-1,newEnd);
+    newEnd = Math.min(points.length - 1, newEnd);
 
-    newBegin = newEnd - Math.ceil((points[newEnd][0] + activePoligonObjs.position.x)/Factory.axisXConfig.stepX)
+    newBegin = newEnd - Math.ceil((points[newEnd][0] + activePoligonObjs.position.x) / Factory.axisXConfig.stepX)
 
     newBegin = Math.max(newBegin, 0);
 
@@ -648,17 +648,17 @@ function updateView(now) {
 
 
     // If need to change current zoom level then need to add/remove grids
-    if(beginViewingIndex< 0 || beginViewingIndex > points.length-1){
+    if (beginViewingIndex < 0 || beginViewingIndex > points.length - 1) {
         debugger;
     }
     const currentX = points[beginViewingIndex][0] + activePoligonObjs.position.x;
-    Factory.updateVerticalGrid(activePoligonObjs,  Factory.GRID_TOPLINE, currentX, mouseDown || zoomTween);
-    
-    Factory.updateHorizontalGrid(activeGroup,activeHorizontalGridObjs,Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120);
+    Factory.updateVerticalGrid(activePoligonObjs, Factory.GRID_TOPLINE, currentX, mouseDown || zoomTween);
 
-    
-    
-    
+    Factory.updateHorizontalGrid(activeGroup, activeHorizontalGridObjs, Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120);
+
+
+
+
     //Factory.drawVerticalGrid(activeGroup, activeVerticalGridObjs, points, Math.floor(dataClient.currentIndex() / Factory.defaultZoomLevel()), Factory.GRID_TOPLINE, beginViewingIndex)
     //Factory.updateActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
 
@@ -758,8 +758,8 @@ function drawNewData(newPrice) {
     let lastX = source.x;
     let lastY = source.y;
     newTween = new TWEEN.Tween(source).to(target, duration).onUpdate(current => {
-        points[points.length - 1][0] += (current.x-lastX);
-        points[points.length - 1][1] += (current.y-lastY);
+        points[points.length - 1][0] += (current.x - lastX);
+        points[points.length - 1][1] += (current.y - lastY);
         lastX = current.x;
         lastY = current.y;
         //console.log(current.x)
@@ -769,7 +769,7 @@ function drawNewData(newPrice) {
         .onComplete(() => {
             newTween = undefined;
         })
-        .onStop(()=>{
+        .onStop(() => {
 
         })
         .start();
@@ -814,7 +814,7 @@ let zoomTween = undefined;
 function processZoom() {
     while (animating.length) {
 
-        if(zoomTween || scaleTween)return
+        if (zoomTween || scaleTween) return
 
         if (newTween) {
             newTween.stop();
@@ -837,7 +837,9 @@ function processZoom() {
 
         //find zoom pivot
         let pivotIndex = x2DataIndex(zoomParams[0].x);
-        pivotIndex = Math.min(pivotIndex,points.length-1);
+        if(isNaN(pivotIndex))pivotIndex = points.length-1;
+
+        pivotIndex = Math.min(pivotIndex, points.length - 1);
         //console.log("Zoom pivot ",pivotIndex)
 
         //animate
@@ -873,18 +875,18 @@ function processNewData() {
 }
 
 let scaleTween = undefined;
-function processScale(){
-    if(rescaleData.length){
-        if(newTween || zoomTween)return;
+function processScale() {
+    if (rescaleData.length) {
+        if (newTween || zoomTween) return;
         let newScale = rescaleData.shift();
-        let oldScale = {origin: Factory.axisYConfig.origin, stepY: Factory.axisYConfig.stepY};
-        scaleTween =new TWEEN.Tween(oldScale).to(newScale, 500).onUpdate(function (current) {
+        let oldScale = { origin: Factory.axisYConfig.origin, stepY: Factory.axisYConfig.stepY };
+        scaleTween = new TWEEN.Tween(oldScale).to(newScale, 500).onUpdate(function (current) {
             Factory.axisYConfig.origin = current.origin;
             Factory.axisYConfig.stepY = current.stepY;
         }).easing(TWEEN.Easing.Quadratic.Out)
-        .onComplete(()=>{
-            scaleTween = undefined;
-        }).start();
+            .onComplete(() => {
+                scaleTween = undefined;
+            }).start();
     }
 }
 
@@ -941,45 +943,45 @@ function showZoomButtons() {
     document.getElementById("zoombuttons").style.display = "block";
     //setup gui event
     $("#zoomin").click(function (e) {
-        if (isZooming) {
+        if (zoomTween) {
             console.warn("Still zooming. try again")
             return;
         }
-        isZooming = true;
         console.log("Zoom in")
         // Zoom in means negative, zoom out mean positive
         //zoomPoint.x = (container.clientWidth + 100) / 2; // zoom using middle point of screen
         //zoom to green
-        zoomPoint.x = points[points.length - 1][0] + activeGroup.position.x + activePoligonObjs.position.x;
-        zoomWithEffect(-ZOOM_STEP, true);
+        let pivotX = points[points.length - 1][0] + activeGroup.position.x + activePoligonObjs.position.x;
+        zoomWithEffect([pivotX, -ZOOM_STEP], true);
     })
 
     $("#zoomout").click(function (e) {
-        if (isZooming) {
+        if (zoomTween) {
             console.warn("Still zooming. try again")
             return;
         }
-        isZooming = true;
         console.log("Zoom out")
         //zoomPoint.x = (container.clientWidth + 100) / 2; // zoom using middle point of screen
         //zoom to green
-        zoomPoint.x = points[points.length - 1][0] + activeGroup.position.x + activePoligonObjs.position.x;
-        zoomWithEffect(ZOOM_STEP, true);
+        let pivotX = points[points.length - 1][0] + activeGroup.position.x + activePoligonObjs.position.x;
+        zoomWithEffect([pivotX, ZOOM_STEP], true);
     })
 
     $("#focus").click(function (e) {
-        // console.log("Focus")
 
-        // console.log("total ", totalMouseMovement);
-        let tweenFrom = ({ x: activeGroup.position.x + activePoligonObjs.position.x, y: 0, z: 0 });
-        let tweenTo = ({ x: activeGroup.position.x + activePoligonObjs.position.x - totalMouseMovement, y: 0, z: 0 });
-        new TWEEN.Tween(tweenFrom).to(tweenTo, 1000).onUpdate(function (object) {
-            let xRightLine = (Factory.GRID_RIGHTMOST_LINE / 2 - activeGroup.position.x - activePoligonObjs.position.x);
-            activeGroup.position.set(object.x, activeGroup.position.y, activeGroup.position.z);
+        if (zoomTween) {
+            console.warn("Still zooming. try again")
+            return;
+        }
+        let tweenFrom = ({ x: points[points.length - 1][0] + activeGroup.position.x + activePoligonObjs.position.x });
+        let tweenTo = ({ x: container.clientWidth / 2 });
+        let lastX = tweenFrom.x;
+        zoomTween = new TWEEN.Tween(tweenFrom).to(tweenTo, 500).onUpdate(function (object) {
+            activePoligonObjs.position.x += (object.x - lastX);
+            lastX = object.x
         }).onComplete(function () {
-            moving = false;
-            totalMouseMovement = 0;
-        }).easing(TWEEN.Easing.Quadratic.InOut)
+            zoomTween = undefined;
+        }).easing(TWEEN.Easing.Quadratic.Out)
             .start();
 
     })
