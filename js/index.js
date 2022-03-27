@@ -207,9 +207,10 @@ function initScene(drawingGroup) {
 
 
     // Draw the grid
-    //Factory.drawHorizontalGrid(activeHorizontalGridObjs, 0, Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120, beginViewingIndex)
+    Factory.drawHorizontalGrid(activeHorizontalGridObjs,Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120)
 
-    //Factory.drawVerticalGrid(drawingGroup, activeVerticalGridObjs, points, Math.floor(drawCount / Factory.defaultZoomLevel()), Factory.GRID_TOPLINE, beginViewingIndex)
+    const currentX = points[beginViewingIndex][0] + activePoligonObjs.position.x;
+    Factory.drawVerticalGrid(activePoligonObjs, Factory.GRID_TOPLINE,currentX)
 
     //let newbkg = Factory.drawBackground(0, drawCount, gridStepX);
 
@@ -651,8 +652,14 @@ function updateView(now) {
 
 
     // If need to change current zoom level then need to add/remove grids
-    //Factory.removeRedundantVerticalGrid(activeGroup, activeVerticalGridObjs);
-    //Factory.updateVerticalGrid(activeVerticalGridObjs, points, Factory.currentZoom(), Factory.GRID_TOPLINE, beginViewingIndex);
+    const currentX = points[beginViewingIndex][0] + activePoligonObjs.position.x;
+    Factory.updateVerticalGrid(activePoligonObjs,  Factory.GRID_TOPLINE, currentX, mouseDown || zoomTween);
+    
+    Factory.updateHorizontalGrid(activeHorizontalGridObjs,Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120);
+
+    
+    
+    
     //Factory.drawVerticalGrid(activeGroup, activeVerticalGridObjs, points, Math.floor(dataClient.currentIndex() / Factory.defaultZoomLevel()), Factory.GRID_TOPLINE, beginViewingIndex)
     //Factory.updateActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
 
@@ -782,8 +789,6 @@ function updateGeometries(beginIndex, endIndex) {
     //  Two points make one poligon also
     Factory.updatePolygon(activePoligonObjs.children[0], points, beginIndex, endIndex);
     // activeGroup.position.set(activeGroup.position.x + (stretchValue) * 2, activeGroup.position.y, activeGroup.position.z);
-
-    //Factory.updateHorizontalGrid(activeHorizontalGridObjs, 0, Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120, beginViewingIndex);
 
 
     //Factory.updateActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);

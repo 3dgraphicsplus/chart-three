@@ -29,7 +29,8 @@ const GRID_LINE_WIDTH = 0.5
 const PURCHASE_LINE_WIDTH = 0.8
 const MOUSE_MOVE_LINE_WIDTH = 1
 
-const NUMBER_OF_Y_LINE = 6
+const NUMBER_OF_YGRID_OFFSET = 10
+const NUMBER_OF_XGRID_OFFSET = 25
 
 var GRID_TOPLINE, GRID_RIGHTMOST_LINE;
 
@@ -280,8 +281,8 @@ function updateMouseMoveLine(scene, posX, posY, timestamp, priceValue) {
         timestampShape.geometry.attributes.position.needsUpdate = true;
         // console.log(priceShape.geometry.attributes.position.array)
     }
-    
-    let datetime =  timestamp;
+
+    let datetime = timestamp;
     if (timestampText != undefined) {
     } else {
         timestampText = new Text()
@@ -290,13 +291,13 @@ function updateMouseMoveLine(scene, posX, posY, timestamp, priceValue) {
         //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
         timestampText.fontSize = 12
     }
-        timestampText.text = datetime
-        timestampText.position.z = 0
-        timestampText.position.x = posX - 55
-        timestampText.position.y = 40
-        timestampText.color = 0xffffff
-        // Update the rendering:
-        timestampText.sync()
+    timestampText.text = datetime
+    timestampText.position.z = 0
+    timestampText.position.x = posX - 55
+    timestampText.position.y = 40
+    timestampText.color = 0xffffff
+    // Update the rendering:
+    timestampText.sync()
 
     if (mouseAlertShape == undefined) {
         let geomShape = new THREE.PlaneGeometry(16, 16);
@@ -361,13 +362,13 @@ function updateMouseMoveLine(scene, posX, posY, timestamp, priceValue) {
         //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
         mousePriceText.fontSize = 12
     }
-        mousePriceText.text = '' + priceValue.toFixed(2);
-        mousePriceText.position.z = 0
-        mousePriceText.position.x = GRID_RIGHTMOST_LINE - 200 - 120
-        mousePriceText.position.y = posY + 6
-        mousePriceText.renderOrder = 100;
-        mousePriceText.color = 'white'
-        mousePriceText.sync()
+    mousePriceText.text = '' + priceValue.toFixed(2);
+    mousePriceText.position.z = 0
+    mousePriceText.position.x = GRID_RIGHTMOST_LINE - 200 - 120
+    mousePriceText.position.y = posY + 6
+    mousePriceText.renderOrder = 100;
+    mousePriceText.color = 'white'
+    mousePriceText.sync()
 }
 
 function drawBackground(startingLine, loopCount, gridStep) {
@@ -391,12 +392,17 @@ function drawBackground(startingLine, loopCount, gridStep) {
 }
 
 let horizontalGridMaterial = null;
-function drawHorizontalGrid(horizontalGrids, startingLine, gridTopBound, gridRightBound, startIndex) {
-    for (let j = NUMBER_OF_Y_LINE - 1; j >= 0; j--) {
+function drawHorizontalGrid(horizontalGrids, gridTopBound, gridRightBound) {
+
+    const minY = convertBack(0, 0, 0)[1];
+    const maxY = convertBack(0, container.clientHeight, 0)[1];
+    const stepY = axisYConfig.stepY * NUMBER_OF_YGRID_OFFSET;
+    let gridStepCount = Math.floor((maxY - minY) / stepY);
+    for (let j = gridStepCount - 1; j >= 0; j--) {
         const horizontalGridGeo = new LineGeometry();
-        let yValue = gridTopBound - gridTopBound / NUMBER_OF_Y_LINE * j;
-        let priceValue = dataClient.convertToDisplay((yValue - axisYConfig.initialValueY) / axisYConfig.stepY + dataClient.input_value[startIndex].price)
-        horizontalGridGeo.setPositions([startingLine - 200, yValue, 0, gridRightBound - 200, yValue, 0]);
+        let yValue = container.clientHeight / gridStepCount * j;
+        let priceValue = stepY * j + minY;
+        horizontalGridGeo.setPositions([0, yValue, 0, gridRightBound - 200, yValue, 0]);
         if (!horizontalGridMaterial || horizontalGridMaterial.resolution.x != container.clientWidth || horizontalGridMaterial.resolution.y != container.clientHeight) {
 
             horizontalGridMaterial = new LineMaterial({
@@ -408,7 +414,7 @@ function drawHorizontalGrid(horizontalGrids, startingLine, gridTopBound, gridRig
                 dashed: false,
                 alphaToCoverage: true,
                 transparent: true,
-                opacity: 1.0,
+                opacity: 0.5,
             });
         }
 
@@ -433,12 +439,17 @@ function drawHorizontalGrid(horizontalGrids, startingLine, gridTopBound, gridRig
     }
 }
 
-function updateHorizontalGrid(horizontalGrids, startingLine, gridTopBound, gridRightBound, startIndex) {
-    for (let j = NUMBER_OF_Y_LINE - 1; j >= 0; j--) {
-        let horizontalGridGeo = new LineGeometry();
-        let yValue = gridTopBound - gridTopBound / NUMBER_OF_Y_LINE * j;
-        let priceValue = dataClient.convertToDisplay((yValue - axisYConfig.initialValueY) / axisYConfig.stepY + dataClient.input_value[startIndex].price)
-        horizontalGridGeo.setPositions([startingLine - 200, yValue, 0, gridRightBound - 200, yValue, 0]);
+function updateHorizontalGrid(horizontalGrids, gridTopBound, gridRightBound) {
+    const minY = convertBack(0, 0, 0)[1];
+    const maxY = convertBack(0, container.clientHeight, 0)[1];
+    const stepY = axisYConfig.stepY * NUMBER_OF_YGRID_OFFSET;
+    let gridStepCount = Math.floor((maxY - minY) / stepY);
+    for (let j = gridStepCount - 1; j >= 0; j--) {
+        //FIXME
+        const horizontalGridGeo = new LineGeometry();
+        let yValue = container.clientHeight / gridStepCount * j;
+        let priceValue = stepY * j + minY;
+        horizontalGridGeo.setPositions([0, yValue, 0, gridRightBound - 200, yValue, 0]);
         horizontalGrids[j].line.geometry.dispose();
         horizontalGrids[j].line.geometry = horizontalGridGeo;
         horizontalGrids[j].line.geometry.attributes.position.needsUpdate = true;
@@ -453,28 +464,24 @@ function updateHorizontalGrid(horizontalGrids, startingLine, gridTopBound, gridR
 }
 
 let verticalGridMaterial = null;
-function drawVerticalGrid(drawingGroup, verticalGrids, dataPoints, loopCount, gridTopBound, startingIndex) {
-    // console.log(startingIndex)
-    // console.log(loopCount)
-    for (let i = 0; i < loopCount; i++) {
-        let index = startingIndex + i * DEFAULT_ZOOM_LEVEL[currentZoomLevel];
-        // console.log(index, dataPoints.length)
-        if (verticalGrids.hasOwnProperty(index)) {
+let activeVerticalGridObjs = []
+function drawVerticalGrid(drawingGroup, gridTopBound, currentX) {
+
+    const stepX = axisXConfig.stepX * NUMBER_OF_XGRID_OFFSET;
+    const loopCount = container.clientWidth * 3 / stepX;//we cache around
+    for (let i = -loopCount; i < 2 * loopCount; i++) {
+        let x = i * stepX - drawingGroup.position.x;
+
+        //smart display filter
+        let textViewSize = 120;//px
+        if (activeVerticalGridObjs.length && x < activeVerticalGridObjs[activeVerticalGridObjs.length - 1].position.x + textViewSize) {
             continue;
         }
-        let currentPos = 0;
+        //offset to greenpoint
+        let timeVal = convertBack(i * stepX, 0, currentX)[0];
         const verticalGridGeo = new LineGeometry();
-        if (dataPoints[index] == undefined) {
-            if (verticalGrids[(i - 1) * DEFAULT_ZOOM_LEVEL[currentZoomLevel]] == undefined) {
-                continue;
-            }
-            let previousPos = verticalGrids[(i - 1) * DEFAULT_ZOOM_LEVEL[currentZoomLevel]].text.position.x
-            currentPos = previousPos + axisXConfig.stepX * DEFAULT_ZOOM_LEVEL[currentZoomLevel];
-        } else {
-            // console.log("Draw new ", loopCount, dataPoints[index][0]);
-            currentPos = dataPoints[index][0];
-        }
-        verticalGridGeo.setPositions([currentPos, 150, 0, currentPos, gridTopBound, 0]);
+
+        verticalGridGeo.setPositions([0, 30, 0, 0, gridTopBound, 0]);
         if (!verticalGridMaterial || verticalGridMaterial.resolution.x != container.clientWidth || verticalGridMaterial.resolution.y != container.clientHeight) {
 
             verticalGridMaterial = new LineMaterial({
@@ -485,6 +492,8 @@ function drawVerticalGrid(drawingGroup, verticalGrids, dataPoints, loopCount, gr
                 //resolution:  // to be set by renderer, eventually
                 dashed: false,
                 alphaToCoverage: true,
+                transparent: true,
+                opacity: 0.8
             });
         }
 
@@ -495,79 +504,57 @@ function drawVerticalGrid(drawingGroup, verticalGrids, dataPoints, loopCount, gr
         // verticalGridLine.renderOrder = 1000;
 
         let myText = new Text()
-        // Set properties to configure:
-        if (dataClient.input_value[index] != undefined) {
-            myText.text = dataClient.input_value[index].time
-        }
-        else {
-            // console.log("length ", input_value.length, startingIndex + i * DEFAULT_ZOOM_LEVEL[currentZoomLevel])
-            myText.text = ""
-        }
+        myText.text = timeVal
 
         //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
         myText.fontSize = 12
         myText.position.z = 0
-        myText.position.x = currentPos - 30
-        myText.position.y = 140
+        myText.position.x = - 30
+        myText.position.y = 20
         myText.color = TIME_TEXT_COLOR
         myText.sync()
-        verticalGrids[index] = { line: verticalGridLine, text: myText };
-        drawingGroup.add(verticalGridLine);
-        drawingGroup.add(myText);
+        let group = new THREE.Group();
+        group.add(verticalGridLine);
+        group.add(myText);
+        group.position.x = x;
+
+        drawingGroup.add(group);
+        activeVerticalGridObjs.push(group);
     }
 }
 
-// Call when zoom in/out, remove grids that not belong to the current scale.
-function removeRedundantVerticalGrid(drawingGroup, verticalGrids) {
-    for (const [key, value] of Object.entries(verticalGrids)) {
-        // For example: DEFAULT_ZOOM_LEVEL[currentZoomLevel] = 10 -> draw grids every 10 points so remove grid at point 15th,...
-        if (key % DEFAULT_ZOOM_LEVEL[currentZoomLevel] != 0) {
-            value.line.geometry.dispose();
-            drawingGroup.remove(value.line)
-            value.text.dispose();
-            drawingGroup.remove(value.text)
-            delete verticalGrids[key]
-        }
-    }
-}
 
 // Update geometry of the vertical grid using updated points data
-function updateVerticalGrid(verticalGrids, data, lastZoomLevel, gridTopBound) {
-    let prevX = undefined;
-    for (const [key, value] of Object.entries(verticalGrids)) {
-        let i = key / DEFAULT_ZOOM_LEVEL[lastZoomLevel]
-
-        // Recalculate the position using new points data
-        let currentPos = 0;
-        if (data[key] == undefined) {
-            if (verticalGrids[(i - 1) * DEFAULT_ZOOM_LEVEL[lastZoomLevel]] == undefined) {
-                continue;
-            }
-            let previousPos = verticalGrids[(i - 1) * DEFAULT_ZOOM_LEVEL[lastZoomLevel]].text.position.x;
-            currentPos = previousPos + axisXConfig.stepX * DEFAULT_ZOOM_LEVEL[lastZoomLevel];
-        } else {
-            currentPos = data[key][0];
-        }
-        const verticalGridGeo = new LineGeometry();
-        verticalGridGeo.setPositions([currentPos, 150, 0, currentPos, gridTopBound, 0]);
-        value.line.geometry.dispose();
-        value.line.geometry = verticalGridGeo;
-        value.text.position.x = currentPos - 30
-        // value.line.geometry = currencyLineGeo;
-        value.line.geometry.attributes.position.needsUpdate = true;
-        value.text.sync()
-
-        //clean visual after zoom to avoif text is occluded
-        const minTextSize = 12 * 8
-        if (prevX !== undefined && Math.abs(currentPos - prevX) < minTextSize) {
-            value.text.visible = false
-            value.line.visible = false
-        } else {
-            value.text.visible = true
-            value.line.visible = true
-            prevX = currentPos;
-        }
+let lastTimeTest = 0;
+function updateVerticalGrid(drawingGroup, gridTopBound, currentX, forced) {
+    if (lastTimeTest && Date.now() < lastTimeTest + 1000 * NUMBER_OF_XGRID_OFFSET && !forced) {
+        return;
     }
+
+    if (forced && lastTimeTest && Date.now() < lastTimeTest + 15) {
+        return;
+    }
+
+    lastTimeTest = Date.now();
+    {
+        let begin = activeVerticalGridObjs.shift();
+        let end = activeVerticalGridObjs[activeVerticalGridObjs.length - 1];
+        begin.position.x = end.position.x + axisXConfig.stepX * NUMBER_OF_XGRID_OFFSET;
+        begin.children[1].text = getTimeoffset(end.children[1].text, 1000 * NUMBER_OF_XGRID_OFFSET)
+        begin.children[1].sync();
+        activeVerticalGridObjs.push(begin)
+    }
+
+    if (forced) {
+        activeVerticalGridObjs.forEach((element, index) => {
+            element.children.forEach(mesh => mesh.geometry.dispose());
+            drawingGroup.remove(element);
+        })
+        activeVerticalGridObjs = [];
+        drawVerticalGrid(drawingGroup, gridTopBound, currentX);
+    }
+
+    //drawVerticalGrid(drawingGroup,  gridTopBound, currentX)
 }
 
 var prevValue = undefined;
@@ -674,7 +661,7 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     priceActiveText.sync()
 
     let geometry = new THREE.CircleGeometry(3, 50);
-    let material = new THREE.MeshBasicMaterial({ color: GREEN_COLOR, transparent: true, opacity: 1.0,depthTest:false });
+    let material = new THREE.MeshBasicMaterial({ color: GREEN_COLOR, transparent: true, opacity: 1.0, depthTest: false });
     let greenDot = new THREE.Mesh(geometry, material);
     greenDot.renderOrder = 100;
     // SUPER SIMPLE GLOW EFFECT
@@ -683,7 +670,7 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
         {
             map: new THREE.TextureLoader().load("/img/glow2.png"),
             color: GREEN_COLOR, transparent: false, blending: THREE.AdditiveBlending,
-            depthTest:false 
+            depthTest: false
         });
     let greenGlow = new THREE.Sprite(spriteMaterial);
 
@@ -777,7 +764,7 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
     //FIXME, new in realtime?
     const horizontalDashed = new LineGeometry();
 
-    horizontalDashed.setPositions([0, circlePos[0][1], 0, circlePos[0][0]+movedDistance, circlePos[0][1], 0]);
+    horizontalDashed.setPositions([0, circlePos[0][1], 0, circlePos[0][0] + movedDistance, circlePos[0][1], 0]);
 
     activePriceStatusObjs[0].dashedLine.geometry.dispose();
     activePriceStatusObjs[0].dashedLine.geometry = horizontalDashed;
@@ -1027,7 +1014,7 @@ function updateNewPolygon(poligon, points) {
     vertices.push(x, y, 0);
     vertices.push(x0, 0, 0);
     vertices.push(x, 0, 0);
-    poligon.geometry.attributes.position.array.set(vertices, poligon.geometry.attributes.position.array.length-vertices.length);
+    poligon.geometry.attributes.position.array.set(vertices, poligon.geometry.attributes.position.array.length - vertices.length);
 
     poligon.geometry.attributes.position.needsUpdate = true;
 }
@@ -1093,7 +1080,7 @@ function updateNewLine(poligon, points) {
     let y = points[len - 1][1]
     const target = poligon.geometry.attributes.position.array;
     const vertices = [x0, y0, 0, x, y, 0]
-    target.set(vertices, poligon.geometry.attributes.position.array.length-vertices.length);
+    target.set(vertices, poligon.geometry.attributes.position.array.length - vertices.length);
     poligon.geometry.attributes.position.needsUpdate = true;
 }
 
@@ -1201,11 +1188,11 @@ function updatePurchaseLine(purchaseLineObjs, countDownTimer) {
     countDownText.sync()
 
     //blink effect
-    if(countDownTimer <=3){
+    if (countDownTimer <= 3) {
         const blinkSpeed = 500;
-        countDownText.visible = !(Date.now()%blinkSpeed < blinkSpeed/2);//hide each blinkSpeed ms
+        countDownText.visible = !(Date.now() % blinkSpeed < blinkSpeed / 2);//hide each blinkSpeed ms
     }
-    countDownText.parent.visible = countDownTimer >=0
+    countDownText.parent.visible = countDownTimer >= 0
 }
 
 // Draw the purchase line using position of the green points and the remaining time of the countdown timer.
@@ -1243,7 +1230,7 @@ function drawFinishLine(finishLineObjs, circlePos, gridTopBound, stepX, countDow
     flagMesh.renderOrder = 21;
 
     let object = { finishLine: verticalFinishLine, flag: flagMesh };
-    for(let key in object)
+    for (let key in object)
         finishLineObjs.add(object[key])
     return object
 }
@@ -1547,15 +1534,19 @@ function convert(point, index) {
     return [axisXConfig.stepX * index + axisXConfig.initialValueX, axisYConfig.stepY * (point.price - axisYConfig.origin) + axisYConfig.initialValueY, 0]
 }
 
-function getTime(seconds){
-    let datetime = (new Date(new Date().getTime() - seconds*1000 - new Date().getTimezoneOffset() * 60 * 1000)).toISOString().split('.')[0].replace("T"," ");
+function getTime(seconds) {
+    let datetime = (new Date(new Date().getTime() - seconds * 1000 - new Date().getTimezoneOffset() * 60 * 1000)).toISOString().split('.')[0].replace("T", " ");
     return datetime;
 }
 
-function convertBack(x,y,currentX){
-    let secondsOffset = (currentX - (x - axisXConfig.initialValueX))/axisXConfig.stepX;
-    
-    return [getTime(secondsOffset),(y - axisYConfig.initialValueY)/axisYConfig.stepY + axisYConfig.origin]
+function getTimeoffset(currentString, offset) {
+    return (new Date(new Date(currentString).getTime() - offset * 1000 - new Date().getTimezoneOffset() * 60 * 1000)).toISOString().split('.')[0].replace("T", " ");
+}
+
+function convertBack(x, y, currentX) {
+    let secondsOffset = (currentX - (x - axisXConfig.initialValueX)) / axisXConfig.stepX;
+
+    return [getTime(secondsOffset), (y - axisYConfig.initialValueY) / axisYConfig.stepY + axisYConfig.origin]
 }
 
 export {
@@ -1568,7 +1559,6 @@ export {
     updateActiveLines,
     drawActiveLines,
     updateVerticalGrid,
-    removeRedundantVerticalGrid,
     drawVerticalGrid,
     drawHorizontalGrid,
     updateHorizontalGrid,
