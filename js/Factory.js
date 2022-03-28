@@ -191,42 +191,22 @@ function drawLowerButton(scene, gridRightBound) {
 // Update the position of the line at the mouse cursor
 let mousePriceLineMat = null;
 let mouseTimeLineMat = null;
+let mouseViewPrice = null;
+let mouseViewTime = null;
 let matShape = new THREE.MeshBasicMaterial({ color: 0x525a71, transparent: false });
 function updateMouseMoveLine(scene, posX, posY, timestamp, priceValue) {
-    if (mouseTimeLine) {
-        mouseTimeLine.geometry.dispose();
-        scene.remove(mouseTimeLine);
-    }
-    if (mousePriceLine) {
-        mousePriceLine.geometry.dispose()
-        scene.remove(mousePriceLine);
+
+    if (!mouseViewTime) {
+        mouseViewTime = new THREE.Group();
+        scene.add(mouseViewTime)
     }
 
-    mousePriceLineGeo = new LineGeometry();
-    mousePriceLineGeo.setPositions([0, posY, 0, GRID_RIGHTMOST_LINE - 225 - 120, posY, 0]);
-
-    if (!mousePriceLineMat || mousePriceLineMat.resolution.x != container.clientWidth || mousePriceLineMat.resolution.y != container.clientHeight) {
-        mousePriceLineMat = new LineMaterial({
-            color: TIME_TEXT_COLOR,
-            linewidth: MOUSE_MOVE_LINE_WIDTH, // in world units with size attenuation, pixels otherwise
-            vertexColors: false,
-            resolution: new THREE.Vector2(container.clientWidth, container.clientHeight),
-            //resolution:  // to be set by renderer, eventually
-            dashed: false,
-            alphaToCoverage: false,
-
-        });
+    if (!mouseViewPrice) {
+        mouseViewPrice = new THREE.Group();
+        scene.add(mouseViewPrice)
     }
 
-    mousePriceLine = new Line2(mousePriceLineGeo, mousePriceLineMat);
-    mousePriceLine.computeLineDistances();
-    mousePriceLine.scale.set(1, 1, 1);
-    mousePriceLine.renderOrder = 10;
-    scene.add(mousePriceLine)
-    // scene.add(mouseTimeLine)
 
-    mouseTimeLineGeo = new LineGeometry();
-    mouseTimeLineGeo.setPositions([posX, 0, 0, posX, GRID_TOPLINE, 0]);
     if (!mouseTimeLineMat || mouseTimeLineMat.resolution.x != container.clientWidth || mouseTimeLineMat.resolution.y != container.clientHeight) {
 
         mouseTimeLineMat = new LineMaterial({
@@ -241,19 +221,25 @@ function updateMouseMoveLine(scene, posX, posY, timestamp, priceValue) {
         });
     }
 
-    mouseTimeLine = new Line2(mouseTimeLineGeo, mouseTimeLineMat);
-    mouseTimeLine.computeLineDistances();
-    mouseTimeLine.scale.set(1, 1, 1);
-    mouseTimeLine.renderOrder = 10;
-    scene.add(mouseTimeLine)
-    // scene.add(mousePrice)
+
+    if (!mouseTimeLine) {
+        mouseTimeLineGeo = new LineGeometry();
+        mouseTimeLineGeo.setPositions([0, 40, 0, 0, GRID_TOPLINE, 0]);
+
+        mouseTimeLine = new Line2(mouseTimeLineGeo, mouseTimeLineMat);
+        mouseTimeLine.computeLineDistances();
+        mouseTimeLine.scale.set(1, 1, 1);
+        mouseTimeLine.renderOrder = 10;
+        mouseViewTime.add(mouseTimeLine)
+    }
+    mouseViewTime.position.x = posX;
 
     if (timestampShape == undefined) {
         let coordinatesList = [
-            new THREE.Vector3(posX - 60, 40, 0),
-            new THREE.Vector3(posX + 60, 40, 0),
-            new THREE.Vector3(posX + 60, 20, 0),
-            new THREE.Vector3(posX - 60, 20, 0)
+            new THREE.Vector3(-60, 40, 0),
+            new THREE.Vector3(60, 40, 0),
+            new THREE.Vector3(60, 25, 0),
+            new THREE.Vector3(-60, 25, 0)
         ];
 
         // shape
@@ -261,43 +247,53 @@ function updateMouseMoveLine(scene, posX, posY, timestamp, priceValue) {
 
         timestampShape = new THREE.Mesh(geomShape, matShape);
         timestampShape.renderOrder = 10;
-        scene.add(timestampShape);
+        mouseViewTime.add(timestampShape);
         // console.log(priceShape.geometry.attributes.position.array);
-    } else {
-        let p = timestampShape.geometry.attributes.position.array;
-        let i = 0;
-        p[i++] = posX - 70;
-        p[i++] = 42;
-        p[i++] = 0;
-        p[i++] = posX + 70;
-        p[i++] = 42;
-        p[i++] = 0;
-        p[i++] = posX + 70;
-        p[i++] = 22;
-        p[i++] = 0;
-        p[i++] = posX - 70;
-        p[i++] = 22;
-        p[i++] = 0;
-        timestampShape.geometry.attributes.position.needsUpdate = true;
-        // console.log(priceShape.geometry.attributes.position.array)
     }
 
     let datetime = timestamp;
-    if (timestampText != undefined) {
-    } else {
+    if (timestampText == undefined) {
+
         timestampText = new Text()
         timestampText.renderOrder = 10;
-        scene.add(timestampText);
+        mouseViewTime.add(timestampText);
         //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
         timestampText.fontSize = 12
+        timestampText.position.z = 0
+        timestampText.position.x = -55
+        timestampText.position.y = 40
+        timestampText.color = 0xffffff
     }
     timestampText.text = datetime
-    timestampText.position.z = 0
-    timestampText.position.x = posX - 55
-    timestampText.position.y = 40
-    timestampText.color = 0xffffff
     // Update the rendering:
     timestampText.sync()
+
+
+
+    if (!mousePriceLineMat || mousePriceLineMat.resolution.x != container.clientWidth || mousePriceLineMat.resolution.y != container.clientHeight) {
+        mousePriceLineMat = new LineMaterial({
+            color: TIME_TEXT_COLOR,
+            linewidth: MOUSE_MOVE_LINE_WIDTH, // in world units with size attenuation, pixels otherwise
+            vertexColors: false,
+            resolution: new THREE.Vector2(container.clientWidth, container.clientHeight),
+            //resolution:  // to be set by renderer, eventually
+            dashed: false,
+            alphaToCoverage: false,
+
+        });
+    }
+
+    if (!mousePriceLineGeo) {
+        mousePriceLineGeo = new LineGeometry();
+        mousePriceLineGeo.setPositions([0, 0, 0, GRID_RIGHTMOST_LINE - 200 - 120, 0, 0]);
+        mousePriceLine = new Line2(mousePriceLineGeo, mousePriceLineMat);
+        mousePriceLine.computeLineDistances();
+        mousePriceLine.scale.set(1, 1, 1);
+        mousePriceLine.renderOrder = 10;
+        mouseViewPrice.add(mousePriceLine)
+    }
+
+    mouseViewPrice.position.y = posY;
 
     if (mouseAlertShape == undefined) {
         let geomShape = new THREE.PlaneGeometry(16, 16);
@@ -308,23 +304,18 @@ function updateMouseMoveLine(scene, posX, posY, timestamp, priceValue) {
             color: 0xffffff, transparent: true, opacity: 1.0
         });
         mouseAlertShape = new THREE.Mesh(geomShape, matShape);
-        mouseAlertShape.position.set(GRID_RIGHTMOST_LINE - 223 - 120, posY, 0)
+        mouseAlertShape.position.set(GRID_RIGHTMOST_LINE - 210 - 120, 0, 0)
         mouseAlertShape.renderOrder = 100;
-        scene.add(mouseAlertShape);
+        mouseViewPrice.add(mouseAlertShape);
         // console.log(priceShape.geometry.attributes.position.array);
-    } else {
-        mouseAlertShape.renderOrder = 100;
-        mouseAlertShape.position.set(GRID_RIGHTMOST_LINE - 223 - 120, posY, 0)
-        mouseAlertShape.geometry.attributes.position.needsUpdate = true;
-        // console.log(priceShape.geometry.attributes.position.array)
     }
 
     if (mousePriceShape == undefined) {
         let coordinatesList = [
-            new THREE.Vector3(GRID_RIGHTMOST_LINE - 213 - 120, posY + 8, 0),
-            new THREE.Vector3(GRID_RIGHTMOST_LINE - 155 - 120, posY + 8, 0),
-            new THREE.Vector3(GRID_RIGHTMOST_LINE - 155 - 120, posY - 8, 0),
-            new THREE.Vector3(GRID_RIGHTMOST_LINE - 213 - 120, posY - 8, 0)
+            new THREE.Vector3(GRID_RIGHTMOST_LINE - 200 - 120, 8, 0),
+            new THREE.Vector3(GRID_RIGHTMOST_LINE - 140 - 120, 8, 0),
+            new THREE.Vector3(GRID_RIGHTMOST_LINE - 140 - 120, -8, 0),
+            new THREE.Vector3(GRID_RIGHTMOST_LINE - 200 - 120, -8, 0)
         ];
 
         // shape
@@ -332,42 +323,23 @@ function updateMouseMoveLine(scene, posX, posY, timestamp, priceValue) {
         let matShape = new THREE.MeshBasicMaterial({ color: 0x525a71, transparent: true, opacity: 0.9 });
         mousePriceShape = new THREE.Mesh(geomShape, matShape);
         mousePriceShape.renderOrder = 100;
-        scene.add(mousePriceShape);
+        mouseViewPrice.add(mousePriceShape);
         // console.log(priceShape.geometry.attributes.position.array);
-    } else {
-        let p = mousePriceShape.geometry.attributes.position.array;
-        let i = 0;
-        p[i++] = GRID_RIGHTMOST_LINE - 213 - 120;
-        p[i++] = posY + 8;
-        p[i++] = 0;
-        p[i++] = GRID_RIGHTMOST_LINE - 155 - 120;
-        p[i++] = posY + 8;
-        p[i++] = 0;
-        p[i++] = GRID_RIGHTMOST_LINE - 155 - 120;
-        p[i++] = posY - 8;
-        p[i++] = 0;
-        p[i++] = GRID_RIGHTMOST_LINE - 213 - 120;
-        p[i++] = posY - 8;
-        p[i++] = 0;
-        mousePriceShape.geometry.attributes.position.needsUpdate = true;
-        // console.log(priceShape.geometry.attributes.position.array)
     }
 
-    if (mousePriceText != undefined) {
-        mousePriceText.text = '' + priceValue.toFixed(2);
-    } else {
+    if (mousePriceText == undefined) {
         mousePriceText = new Text()
-        scene.add(mousePriceText);
+        mouseViewPrice.add(mousePriceText);
         // Set properties to configure:
         //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
         mousePriceText.fontSize = 12
+        mousePriceText.position.z = 0
+        mousePriceText.position.x = GRID_RIGHTMOST_LINE - 195 - 120
+        mousePriceText.position.y = 6
+        mousePriceText.renderOrder = 100;
+        mousePriceText.color = 'white'
     }
     mousePriceText.text = '' + priceValue.toFixed(2);
-    mousePriceText.position.z = 0
-    mousePriceText.position.x = GRID_RIGHTMOST_LINE - 200 - 120
-    mousePriceText.position.y = posY + 6
-    mousePriceText.renderOrder = 100;
-    mousePriceText.color = 'white'
     mousePriceText.sync()
 }
 
@@ -395,14 +367,14 @@ let horizontalGridMaterial = null;
 const marginYAxis = 20;
 function drawHorizontalGrid(group, horizontalGrids, gridTopBound, gridRightBound) {
     const minY = convertBack(0, marginYAxis, 0)[1];
-    const maxY = convertBack(0, container.clientHeight- marginYAxis, 0)[1];
+    const maxY = convertBack(0, container.clientHeight - marginYAxis, 0)[1];
     let gridStepCount = NUMBER_OF_YGRID_OFFSET;//Math.floor((maxY - minY) / stepY);
-    const stepY = (container.clientHeight- 2 * marginYAxis) / gridStepCount;
+    const stepY = (container.clientHeight - 2 * marginYAxis) / gridStepCount;
     const stepPrice = (maxY - minY) / gridStepCount;
     for (let j = 0; j <= gridStepCount; j++) {
         const horizontalGridGeo = new LineGeometry();
         let yValue = j * stepY + marginYAxis;
-        let priceValue =  stepPrice * j + minY;
+        let priceValue = stepPrice * j + minY;
         horizontalGridGeo.setPositions([0, 0, 0, gridRightBound - 200, 0, 0]);
         if (!horizontalGridMaterial || horizontalGridMaterial.resolution.x != container.clientWidth || horizontalGridMaterial.resolution.y != container.clientHeight) {
 
@@ -466,10 +438,10 @@ function updateHorizontalGrid(group, horizontalGrids, gridTopBound, gridRightBou
 
 let verticalGridMaterial = null;
 let activeVerticalGridObjs = []
-function drawVerticalGrid(drawingGroup, gridTopBound, currentX) {
+function drawVerticalGrid(drawingGroup, gridTopBound, currentX, beginX) {
 
     const stepX = axisXConfig.stepX * NUMBER_OF_XGRID_OFFSET;
-    const loopCount = container.clientWidth * 3 / stepX;//we cache around
+    const loopCount = container.clientWidth * 3 / stepX + (beginX !== undefined ? (currentX - beginX) / axisXConfig.stepX / NUMBER_OF_YGRID_OFFSET : 0);//we cache around
     for (let i = -loopCount; i < 2 * loopCount; i++) {
         let x = i * stepX - drawingGroup.position.x;
 
@@ -510,7 +482,7 @@ function drawVerticalGrid(drawingGroup, gridTopBound, currentX) {
         //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
         myText.fontSize = 12
         myText.position.z = 0
-        myText.position.x = - 30
+        myText.position.x = -60
         myText.position.y = 20
         myText.color = TIME_TEXT_COLOR
         myText.sync()
@@ -527,24 +499,9 @@ function drawVerticalGrid(drawingGroup, gridTopBound, currentX) {
 
 // Update geometry of the vertical grid using updated points data
 let lastTimeTest = 0;
-function updateVerticalGrid(drawingGroup, gridTopBound, currentX, forced) {
-    if (lastTimeTest && Date.now() < lastTimeTest + 1000 * NUMBER_OF_XGRID_OFFSET && !forced) {
-        return;
-    }
+function updateVerticalGrid(drawingGroup, gridTopBound, beginX, currentX, forced) {
 
-    if (forced && lastTimeTest && Date.now() < lastTimeTest + 15) {
-        return;
-    }
-
-    lastTimeTest = Date.now();
-    {
-        let begin = activeVerticalGridObjs.shift();
-        let end = activeVerticalGridObjs[activeVerticalGridObjs.length - 1];
-        begin.position.x = end.position.x + axisXConfig.stepX * NUMBER_OF_XGRID_OFFSET;
-        begin.children[1].text = getTimeoffset(end.children[1].text, 1000 * NUMBER_OF_XGRID_OFFSET)
-        begin.children[1].sync();
-        activeVerticalGridObjs.push(begin)
-    }
+    if (activeVerticalGridObjs.length == 0) return;
 
     if (forced) {
         activeVerticalGridObjs.forEach((element, index) => {
@@ -552,7 +509,18 @@ function updateVerticalGrid(drawingGroup, gridTopBound, currentX, forced) {
             drawingGroup.remove(element);
         })
         activeVerticalGridObjs = [];
-        drawVerticalGrid(drawingGroup, gridTopBound, currentX);
+        drawVerticalGrid(drawingGroup, gridTopBound, currentX, beginX);
+    } else if (lastTimeTest && Date.now() > lastTimeTest + 1000 * NUMBER_OF_XGRID_OFFSET) {
+
+        let begin = activeVerticalGridObjs.shift();
+        let end = activeVerticalGridObjs[activeVerticalGridObjs.length - 1];
+        begin.position.x = end.position.x + axisXConfig.stepX * NUMBER_OF_XGRID_OFFSET;
+        begin.children[1].text = getTimeoffset(end.children[1].text, 1000 * NUMBER_OF_XGRID_OFFSET)
+        begin.children[1].sync();
+        activeVerticalGridObjs.push(begin)
+
+        lastTimeTest = Date.now();
+
     }
 
     //drawVerticalGrid(drawingGroup,  gridTopBound, currentX)
@@ -562,14 +530,13 @@ var prevValue = undefined;
 // Draw the line at the green point, circlePos is the position of the green point
 // movedDistance is the movement of the activeGroup. This function will only be called once.
 function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, movedDistance) {
-    if (Number.isNaN(circlePos[0][0]) || Number.isNaN(circlePos[0][1])) {
-        console.log(circlePos[0])
-        return;
-    }
+
+    let group = new THREE.Group();
+    group.position.y = circlePos[0][1];
 
     const horizontalDashed = new LineGeometry();
 
-    horizontalDashed.setPositions([0, circlePos[0][1], 0, circlePos[0][0], circlePos[0][1], 0]);
+    horizontalDashed.setPositions([0, 0, 0, circlePos[0][0], 0, 0]);
     let horizontalMat = new LineMaterial({
         color: "white",
         linewidth: MOUSE_MOVE_LINE_WIDTH, // in world units with size attenuation, pixels otherwise
@@ -587,7 +554,7 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     verdashedLine.renderOrder = 10;
 
     const verticalline = new LineGeometry();
-    verticalline.setPositions([circlePos[0][0], circlePos[0][1], 0, gridRightBound - 250 - movedDistance, circlePos[0][1], 0]);
+    verticalline.setPositions([circlePos[0][0], 0, 0, gridRightBound - 200, 0, 0]);
     let verlineMat = new LineMaterial({
         color: "white",
         linewidth: MOUSE_MOVE_LINE_WIDTH, // in world units with size attenuation, pixels otherwise
@@ -603,11 +570,11 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     verLine.renderOrder = 10;
 
     let coordinatesList = [
-        new THREE.Vector3(gridRightBound - 250, circlePos[0][1], 0),
-        new THREE.Vector3(gridRightBound - 250 + 15, circlePos[0][1] + 15, 0),
-        new THREE.Vector3(gridRightBound - 250 + 90, circlePos[0][1] + 15, 0),
-        new THREE.Vector3(gridRightBound - 250 + 90, circlePos[0][1] - 15, 0),
-        new THREE.Vector3(gridRightBound - 250 + 15, circlePos[0][1] - 15, 0)
+        new THREE.Vector3(gridRightBound - 200, 0, 0),
+        new THREE.Vector3(gridRightBound - 200 + 15, + 15, 0),
+        new THREE.Vector3(gridRightBound - 200 + 90, + 15, 0),
+        new THREE.Vector3(gridRightBound - 200 + 90, - 15, 0),
+        new THREE.Vector3(gridRightBound - 200 + 15, - 15, 0)
     ];
 
     // shape
@@ -630,8 +597,8 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
     priceText.fontSize = 12
     priceText.position.z = 0
-    priceText.position.x = gridRightBound - 250 + 22
-    priceText.position.y = circlePos[0][1] + 7
+    priceText.position.x = gridRightBound - 200 + 22
+    priceText.position.y = + 7
     priceText.color = 0x000000
     if (enableHigherActive == true || enableLowerActive == true) {
         priceText.color = "white"
@@ -650,8 +617,8 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
     priceActiveText.fontSize = 18
     priceActiveText.position.z = 0
-    priceActiveText.position.x = gridRightBound - 250 + 60
-    priceActiveText.position.y = circlePos[0][1] + 12
+    priceActiveText.position.x = gridRightBound - 200 + 60
+    priceActiveText.position.y = + 12
     priceActiveText.color = (currentValue - prevValue) >= 0 ? GREEN_COLOR : 'red'
     if (enableHigherActive == true || enableLowerActive == true) {
         priceActiveText.color = "white"
@@ -679,10 +646,10 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     greenDot.add(greenGlow);
 
     let lowerAreaShape = new THREE.Shape();
-    lowerAreaShape.moveTo(-100, circlePos[0][1]);
-    lowerAreaShape.lineTo(gridRightBound - 250 + 90, circlePos[0][1]);
-    lowerAreaShape.lineTo(gridRightBound - 250 + 90, 0);
-    lowerAreaShape.lineTo(-100, 0);
+    lowerAreaShape.moveTo(-100, 0);
+    lowerAreaShape.lineTo(gridRightBound - 200 + 90, 0);
+    lowerAreaShape.lineTo(gridRightBound - 200 + 90, -container.clientHeight * 2);
+    lowerAreaShape.lineTo(-100, -container.clientHeight * 2);
     let lowerAreaGeo = new THREE.ShapeGeometry(lowerAreaShape);
     let lowerAreaMaterial = new THREE.ShaderMaterial({
         uniforms: {
@@ -697,9 +664,9 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     lowerArea.renderOrder = 1;
 
     let higherAreaShape = new THREE.Shape();
-    higherAreaShape.moveTo(-100, circlePos[0][1]);
-    higherAreaShape.lineTo(gridRightBound - 250 + 90, circlePos[0][1]);
-    higherAreaShape.lineTo(gridRightBound - 250 + 90, container.clientHeight * 2);
+    higherAreaShape.moveTo(-100, 0);
+    higherAreaShape.lineTo(gridRightBound - 200 + 90, 0);
+    higherAreaShape.lineTo(gridRightBound - 200 + 90, container.clientHeight * 2);
     higherAreaShape.lineTo(-100, container.clientHeight * 2);
     let higherAreaGeo = new THREE.ShapeGeometry(higherAreaShape);
     let higherAreaMaterial = new THREE.ShaderMaterial({
@@ -714,107 +681,78 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     let higherArea = new THREE.Mesh(higherAreaGeo, higherAreaMaterial);
     higherArea.renderOrder = 1;
 
-    let upGeo2 = new THREE.BoxGeometry(80, 80, 1);
+    let upGeo2 = new THREE.BoxGeometry(66/2, 58/2, 1);
     let upMesh2 = new THREE.Mesh(upGeo2, new THREE.MeshBasicMaterial(
         {
             map: new THREE.TextureLoader().load("/img/upArrow.png", map => {
-                upMesh2.scale.set(map.image.width * 0.004, map.image.height * 0.004);
+                //upMesh2.scale.set(map.image.width * 0.004, map.image.height * 0.004);
             }),
             transparent: true,
             opacity: 1.0,
             color: HIGHER_BUTTON_COLOR,
         }));
     upMesh2.position.x = circlePos[0][0] + 10;
-    upMesh2.position.y = circlePos[0][1] + 40;
+    upMesh2.position.y = 0 + 40;
     upMesh2.renderOrder = 200;
 
-    let downGeo2 = new THREE.BoxGeometry(80, 80, 1);
+    let downGeo2 = new THREE.BoxGeometry(66/2, 58/2, 1);
     let downMesh2 = new THREE.Mesh(downGeo2, new THREE.MeshBasicMaterial(
         {
             map: new THREE.TextureLoader().load("/img/downArrow.png", map => {
-                downMesh2.scale.set(map.image.width * 0.004, map.image.height * 0.004);
+                //downMesh2.scale.set(map.image.width * 0.004, map.image.height * 0.004);
             }),
             transparent: true,
             opacity: 1.0,
             color: LOWER_BUTTON_COLOR,
         }));
     downMesh2.position.x = circlePos[0][0] + 10;
-    downMesh2.position.y = circlePos[0][1] - 40;
+    downMesh2.position.y = 0 - 40;
     downMesh2.renderOrder = 200;
 
     let higherText = new Text()
     higherText.renderOrder = 200;
 
-    activePriceStatusObjs.push({
+    let obj = {
         dashedLine: verdashedLine, line: verLine, priceShape: priceShape,
         priceText: priceText, priceActiveText: priceActiveText, greenDot: greenDot,
         greenGlow: greenGlow, lowerArea: lowerArea, higherArea: higherArea,
         upArrow: upMesh2, downArrow: downMesh2
-    })
+    }
+
+    for (const key in obj) {
+        if (key != "greenGlow" && key != "greenDot")//FIXME
+            group.add(obj[key])
+    }
+
+    activePriceStatusObjs.push(obj)
+
+
+    return group;
+
 }
 
 // Update the geometry if the line at the green points, almost the same as drawActiveLines, only not
 // creating new objects.
 function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, movedDistance) {
-    if (circlePos == undefined || activePriceStatusObjs[0] == undefined) { return; }
 
-    if (Number.isNaN(circlePos[0][0]) || Number.isNaN(circlePos[0][1])) {
-        console.log(circlePos[0])
-        return;
-    }
-    //FIXME, new in realtime?
-    const horizontalDashed = new LineGeometry();
+    if (activePriceStatusObjs.length == 0) return
 
-    horizontalDashed.setPositions([0, circlePos[0][1], 0, circlePos[0][0] + movedDistance, circlePos[0][1], 0]);
+    activePriceStatusObjs[0].dashedLine.parent.position.y = circlePos[0][1];
 
-    activePriceStatusObjs[0].dashedLine.geometry.dispose();
-    activePriceStatusObjs[0].dashedLine.geometry = horizontalDashed;
+    activePriceStatusObjs[0].dashedLine.geometry.setPositions([0, 0, 0, circlePos[0][0] + movedDistance, 0, 0]);
     activePriceStatusObjs[0].dashedLine.computeLineDistances();
     activePriceStatusObjs[0].dashedLine.geometry.attributes.position.needsUpdate = true;
     activePriceStatusObjs[0].dashedLine.material.needsUpdate = true;
 
     //FIXME, new in realtime?
-    const futureline = new LineGeometry();
-    futureline.setPositions([circlePos[0][0] + movedDistance, circlePos[0][1], 0, gridRightBound - 250, circlePos[0][1], 0]);
-
-    activePriceStatusObjs[0].line.geometry.dispose();
-    activePriceStatusObjs[0].line.geometry = futureline;
+    activePriceStatusObjs[0].line.geometry.setPositions([circlePos[0][0] + movedDistance, 0, 0, gridRightBound - 200, 0, 0]);
     activePriceStatusObjs[0].line.computeLineDistances();
     activePriceStatusObjs[0].line.geometry.attributes.position.needsUpdate = true;
-
-    // Update price shape
-    let pricePolygon = activePriceStatusObjs[0].priceShape.geometry.attributes.position.array;
-    let i = 0;
-    pricePolygon[i++] = gridRightBound - 250;
-    pricePolygon[i++] = circlePos[0][1];
-    pricePolygon[i++] = 0;
-    pricePolygon[i++] = gridRightBound - 250 + 15;
-    pricePolygon[i++] = circlePos[0][1] + 15;
-    pricePolygon[i++] = 0;
-    pricePolygon[i++] = gridRightBound - 250 + 90;
-    pricePolygon[i++] = circlePos[0][1] + 15;
-    pricePolygon[i++] = 0;
-    pricePolygon[i++] = gridRightBound - 250 + 90;
-    pricePolygon[i++] = circlePos[0][1] - 15;
-    pricePolygon[i++] = 0;
-    pricePolygon[i++] = gridRightBound - 250 + 15;
-    pricePolygon[i++] = circlePos[0][1] - 15;
-    pricePolygon[i++] = 0;
-    activePriceStatusObjs[0].priceShape.renderOrder = 30;
-    activePriceStatusObjs[0].priceShape.geometry.attributes.position.needsUpdate = true;
-    activePriceStatusObjs[0].priceShape.geometry.computeBoundingBox();
-    activePriceStatusObjs[0].priceShape.geometry.computeBoundingSphere();
 
     let currentValue = dataClient.input_value[dataClient.input_value.length - 1].price;
     prevValue = dataClient.input_value[dataClient.input_value.length - 2].price;
 
-    //console.log(currentValue - prevValue)
-
     const isChanged = Math.round((currentValue - prevValue) * 1e2) / 1e2;
-
-    activePriceStatusObjs[0].priceText.position.z = 0
-    activePriceStatusObjs[0].priceText.position.x = gridRightBound - 250 + 22
-    activePriceStatusObjs[0].priceText.position.y = circlePos[0][1] + 7
     //if (isChanged != 0) 
     {
         activePriceStatusObjs[0].priceText.text = '' + (currentValue).toFixed(0)
@@ -827,11 +765,7 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
         // Update the rendering:
         activePriceStatusObjs[0].priceText.sync()
     }
-
-
-    activePriceStatusObjs[0].priceActiveText.position.z = 0
-    activePriceStatusObjs[0].priceActiveText.position.x = gridRightBound - 250 + 60
-    activePriceStatusObjs[0].priceActiveText.position.y = circlePos[0][1] + 12
+    
 
     //if (isChanged != 0) 
     {
@@ -846,32 +780,8 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
         activePriceStatusObjs[0].priceActiveText.sync()
     }
 
-
-    let lowerAreaShape = new THREE.Shape();
-    lowerAreaShape.moveTo(-100, circlePos[0][1]);
-    lowerAreaShape.lineTo(gridRightBound - 250 + 90, circlePos[0][1]);
-    lowerAreaShape.lineTo(gridRightBound - 250 + 90, 0);
-    lowerAreaShape.lineTo(-100, 0);
-    let lowerAreaGeo = new THREE.ShapeGeometry(lowerAreaShape);
-    activePriceStatusObjs[0].lowerArea.geometry.dispose();
-    activePriceStatusObjs[0].lowerArea.geometry = lowerAreaGeo;
-    activePriceStatusObjs[0].lowerArea.geometry.attributes.position.needsUpdate = true;
-
-    let higherAreaShape = new THREE.Shape();
-    higherAreaShape.moveTo(-100, circlePos[0][1]);
-    higherAreaShape.lineTo(gridRightBound - 250 + 90, circlePos[0][1]);
-    higherAreaShape.lineTo(gridRightBound - 250 + 90, container.clientHeight * 2);
-    higherAreaShape.lineTo(-100, container.clientHeight * 2);
-    let higherAreaGeo = new THREE.ShapeGeometry(higherAreaShape);
-    activePriceStatusObjs[0].higherArea.geometry.dispose();
-    activePriceStatusObjs[0].higherArea.geometry = higherAreaGeo;
-    activePriceStatusObjs[0].higherArea.geometry.attributes.position.needsUpdate = true;
-
-    activePriceStatusObjs[0].upArrow.position.x = circlePos[0][0] + 10;
-    activePriceStatusObjs[0].upArrow.position.y = circlePos[0][1] + 40;
-
-    activePriceStatusObjs[0].downArrow.position.x = circlePos[0][0] + 10;
-    activePriceStatusObjs[0].downArrow.position.y = circlePos[0][1] - 40;
+    activePriceStatusObjs[0].upArrow.position.x = circlePos[0][0] + 10 + movedDistance;
+    activePriceStatusObjs[0].downArrow.position.x = circlePos[0][0] + 10 + movedDistance;
 }
 
 function enableHigherActiveLines(higherButton, activePriceStatusObjs) {
@@ -1087,9 +997,11 @@ function updateNewLine(poligon, points) {
 
 // Draw the purchase line using position of the green points and the remaining time of the countdown timer.
 // circlePos is the pos of the greenpoint
-function drawPurchaseLine(purchaseLineObjs, circlePos, gridTopBound, stepX, countDownTimer) {
+function drawPurchaseLine(purchaseLineObjs, currentX, gridTopBound, stepX, countDownTimer) {
+    let verticalPurchaseLinePos = [0, 50, 0, 0, gridTopBound - 80, 0];
 
-    let verticalPurchaseLinePos = [circlePos[0][0] + countDownTimer * stepX, 50, 0, circlePos[0][0] + countDownTimer * stepX, gridTopBound, 0];
+    let group = new THREE.Group();
+    purchaseLineObjs.add(group)
 
     const verticalPurchaseGeo = new LineGeometry();
     verticalPurchaseGeo.setPositions(verticalPurchaseLinePos);
@@ -1174,12 +1086,16 @@ function drawPurchaseLine(purchaseLineObjs, circlePos, gridTopBound, stepX, coun
     stopwatchMesh.renderOrder = 21;
     let object = { purchaseLine: verticalPurchaseLine, purchaseText: purchaseText, timeText: timeText, countDownText: countDownText, stopwatch: stopwatchMesh };
     for (let key in object)
-        purchaseLineObjs.add(object[key]);
+        group.add(object[key]);
+
+    //this group include finishline
+    purchaseLineObjs.position.x = currentX + countDownTimer * stepX;
+
     return object
 }
 
 // Update the geometry of the purchase line using greenpoint position
-function updatePurchaseLine(purchaseLineObjs, countDownTimer) {
+function updatePurchaseLine(purchaseLineObjs, countDownTimer, currentX) {
     //let verticalPurchaseLinePos = [circlePos[0][0] + countDownTimer * stepX, 50, 0, circlePos[0][0] + countDownTimer * axisXConfig.stepX, gridTopBound, 0];
 
     //console.log(countDownTimer)
@@ -1194,12 +1110,18 @@ function updatePurchaseLine(purchaseLineObjs, countDownTimer) {
         countDownText.visible = !(Date.now() % blinkSpeed < blinkSpeed / 2);//hide each blinkSpeed ms
     }
     countDownText.parent.visible = countDownTimer >= 0
+
+    if (currentX != undefined)
+        countDownText.parent.parent.position.x = currentX + countDownTimer * axisXConfig.stepX;
 }
 
 // Draw the purchase line using position of the green points and the remaining time of the countdown timer.
 // circlePos is the pos of the greenpoint
-function drawFinishLine(finishLineObjs, circlePos, gridTopBound, stepX, countDownTimer) {
-    let verticalFinishLinePos = [circlePos[0][0] + countDownTimer * stepX, 50, 0, circlePos[0][0] + countDownTimer * stepX, gridTopBound, 0];
+function drawFinishLine(finishLineObjs, gridTopBound, goalDuration) {
+    let group = new THREE.Group();
+    finishLineObjs.add(group);
+
+    let verticalFinishLinePos = [0, 50, 0, 0, gridTopBound - 80, 0];
 
     const verticalFinishGeo = new LineGeometry();
     verticalFinishGeo.setPositions(verticalFinishLinePos);
@@ -1232,13 +1154,16 @@ function drawFinishLine(finishLineObjs, circlePos, gridTopBound, stepX, countDow
 
     let object = { finishLine: verticalFinishLine, flag: flagMesh };
     for (let key in object)
-        finishLineObjs.add(object[key])
-    return object
+        group.add(object[key])
+
+    group.position.x = goalDuration * axisXConfig.stepX;
+
+    return group
 }
 
 // Update the geometry of the purchase line using greenpoint position
-function updateFinishLine(drawingGroup, finishLineObjs, circlePos, gridTopBound, stepX, finishTimer) {
-
+function updateFinishLine(finishLine, goalDuration) {
+    finishLine.position.x = goalDuration * axisXConfig.stepX;
 }
 
 function drawMark(drawingGroup, markObjs, circlePos, isLower, index, gridRightBound, movedDistance, invest, onloaded) {
@@ -1599,5 +1524,6 @@ export {
     maxZoom,
     minZoom,
     convert,
-    convertBack
+    convertBack,
+    NUMBER_OF_YGRID_OFFSET
 }

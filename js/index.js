@@ -60,6 +60,7 @@ let activePurchaseModel = {}
 let activeDataLineObjs = [];
 let activePoligonObjs = new THREE.Group();
 let activeMarkObjs = [];
+let finishLine;
 
 //let stretchValue;
 let zoomPoint = { x: 0, y: 0 }
@@ -87,7 +88,7 @@ function update(newVal) {
     newData.push(newVal)
 }
 
-function getCenter(points, start, end) {
+function getRange(points, start, end) {
     let minVal = Infinity;
     let maxVal = -Infinity
     for (let i = start; i <= end; i++) {
@@ -95,7 +96,18 @@ function getCenter(points, start, end) {
         minVal = Math.min(minVal, point.price);
         maxVal = Math.max(maxVal, point.price);
     }
-    return (minVal + maxVal) / 2
+    return [minVal, maxVal]
+
+    // let sum = 0;
+    // for(let i = start; i <= end; i++)
+    //     sum += points[i].price;
+
+
+    // let center = sum/(end - start + 1);
+
+    // console.log("Test ",minVal/2+maxVal/2, " ",center)
+    //let center = points[end].price;
+    //return center;
 }
 
 function init() {
@@ -168,15 +180,24 @@ function init() {
 let rescaleData = []
 function calculateAxis(forced) {
     Factory.axisXConfig.stepX = container.clientWidth / Factory.currentZoom();//2mins
-    let newY = (MAX_VIEW_Y - MIN_VIEW_Y) * 1.0 / Factory.currentZoom() * 1;//price range 240/2 for maximum zoom- level5
-    Factory.axisYConfig.initialValueY = initialCameraPos.y + (MAX_VIEW_Y + MIN_VIEW_Y) / 2;
-    let newOrigin = getCenter(dataClient.input_value, beginViewingIndex, endViewingIndex);
+    Factory.axisYConfig.initialValueY = initialCameraPos.y + (container.clientHeight) / 2;
+    let newY = container.clientHeight / Factory.currentZoom()
 
+    let minY = Factory.convertBack(0, 30, 0)[1];
+    let maxY = Factory.convertBack(0, container.clientHeight - 30, 0)[1];
+
+    Factory.axisYConfig.stepY = newY;
+
+    //in fact, just use lastest point as origin
+    let newRange = getRange(dataClient.input_value, beginViewingIndex, endViewingIndex);
+    let newOrigin = newRange[0] / 2 + newRange[1] / 2
+
+    //let newY = (container.clientHeight)/(newRange[1]-newRange[0]);//price range 240/2 for maximum zoom- level5
+    //Factory.axisYConfig.stepY = newY;
     if (forced) {
         Factory.axisYConfig.origin = newOrigin;
-        Factory.axisYConfig.stepY = newY;
     }
-    else if (Math.abs(newOrigin - Factory.axisYConfig.origin) > 200) {//TODO
+    else if (Math.abs(newOrigin - Factory.axisYConfig.origin) > 100) {//TODO
         rescaleData.push({ origin: newOrigin, stepY: newY })
         //Factory.axisYConfig.origin = newOrigin;
         //Factory.axisYConfig.stepY = newY;
@@ -212,33 +233,28 @@ function initScene(drawingGroup) {
     lowerText = lower.lowerText
 
 
+
+    const currentX = points[points.length - 1][0] + activePoligonObjs.position.x;
+    Factory.drawVerticalGrid(activePoligonObjs, Factory.GRID_TOPLINE, currentX);
+
     // Draw the grid
     Factory.drawHorizontalGrid(drawingGroup, activeHorizontalGridObjs, Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120)
 
-    const currentX = points[beginViewingIndex][0] + activePoligonObjs.position.x;
-    Factory.drawVerticalGrid(activePoligonObjs, Factory.GRID_TOPLINE, currentX)
-
-    //let newbkg = Factory.drawBackground(0, drawCount, gridStepX);
-
     // // Draw the active line
-    Factory.drawActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, drawingGroup.position.x);
+    let activePriceView = Factory.drawActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, drawingGroup.position.x);
 
     // Draw the purchase line
     purchaseTime = Date.now();
     activePurchaseModel = Factory.drawPurchaseLine(activePurchaseView, [points[points.length - 1]], Factory.GRID_TOPLINE, Factory.axisXConfig.stepX, countDownTimer);
     // Draw the finish line
     goalTime = purchaseTime;
-    Factory.drawFinishLine(activePurchaseView, [points[points.length - 1]], Factory.GRID_TOPLINE, Factory.axisXConfig.stepX, finishTimer);
+    finishLine = Factory.drawFinishLine(activePurchaseView, Factory.GRID_TOPLINE, GOAL_DURATION);
 
-    activeGroup.add(activePurchaseView)
+    activePoligonObjs.add(activePurchaseView)
 
 
-    drawingGroup.add(activePriceStatusObjs[0].dashedLine)
-    drawingGroup.add(activePriceStatusObjs[0].line)
-    activePoligonObjs.add(activePriceStatusObjs[0].greenDot)
-    scene.add(activePriceStatusObjs[0].priceShape)
-    scene.add(activePriceStatusObjs[0].priceText)
-    scene.add(activePriceStatusObjs[0].priceActiveText)
+    drawingGroup.add(activePriceView);
+    activePoligonObjs.add(activePriceStatusObjs[0].greenDot)//FIXME
 
     //drawingGroup.add(newbkg)
     //bkgObjs.push(newbkg)
@@ -328,9 +344,10 @@ function zoomAll(pivotIndex) {
     }
     activePoligonObjs.position.x -= offset;
 
-    //keep pivot static
-    //test focus on green points
-    //activeGroup.position.x = activeGroup.position.x - (points[endViewingIndex][0]+ activeGroup.position.x) + container.clientWidth/2;
+
+    //force update purchase sline
+
+    Factory.updatePurchaseLine(activePurchaseModel, countDownTimer, points[points.length - 1][0]);
 
 }
 
@@ -400,33 +417,37 @@ function onPointerMove(event) {
         Factory.updateMouseMoveLine(scene, x, container.clientHeight - y, ...values);
 
         if (enablePriceMark == true) {
+            let mouseClick = { x: 0, y: 0 };
+            mouseClick.x = ((event.clientX - container.offsetLeft) / (container.clientWidth)) * 2 - 1;
+            mouseClick.y = - ((event.clientY - container.offsetTop) / (container.clientHeight)) * 2 + 1;
+            raycaster.setFromCamera(mouseClick, camera);
             let intersects2 = raycaster.intersectObjects(lowhighButtons);
-            if (intersects2.length > 0) {
+            if (intersects2.length > 0) {//FIXME
                 // updateMouseMoveLine(intersects[0].point.x, intersects[0].point.y);
                 if (higherButton == intersects2[0].object) {
                     // console.log("HIGHER");
-                    scene.add(activePriceStatusObjs[0].higherArea)
-                    activeGroup.remove(activePriceStatusObjs[0].downArrow)
-                    activeGroup.add(activePriceStatusObjs[0].upArrow)
+                    activePriceStatusObjs[0].higherArea.scale.y = 1;
+                    activePriceStatusObjs[0].downArrow.scale.y = 0
+                    activePriceStatusObjs[0].upArrow.scale.y = 1;
                     Factory.enableHigherActiveLines(higherButton, activePriceStatusObjs);
-                    scene.remove(activePriceStatusObjs[0].lowerArea)
+                    activePriceStatusObjs[0].lowerArea.scale.y = 0;
                 }
 
                 if (lowerButton == intersects2[0].object) {
                     // console.log("LOWER");
-                    activeGroup.remove(activePriceStatusObjs[0].upArrow)
-                    activeGroup.add(activePriceStatusObjs[0].downArrow)
+                    activePriceStatusObjs[0].upArrow.scale.y = 0;
+                    activePriceStatusObjs[0].downArrow.scale.y = 1;
                     Factory.enableLowerActiveLines(lowerButton, activePriceStatusObjs);
-                    scene.add(activePriceStatusObjs[0].lowerArea)
-                    scene.remove(activePriceStatusObjs[0].higherArea)
+                    activePriceStatusObjs[0].lowerArea.scale.y = 1
+                    activePriceStatusObjs[0].higherArea.scale.y = 0;
                 }
             } else {
-                activeGroup.remove(activePriceStatusObjs[0].downArrow)
-                activeGroup.remove(activePriceStatusObjs[0].upArrow)
+                activePriceStatusObjs[0].downArrow.scale.y = 0;
+                activePriceStatusObjs[0].upArrow.scale.y = 0;
                 Factory.disableHigherActiveLines(higherButton, activePriceStatusObjs);
                 Factory.disableLowerActiveLines(lowerButton, activePriceStatusObjs);
-                scene.remove(activePriceStatusObjs[0].lowerArea)
-                scene.remove(activePriceStatusObjs[0].higherArea)
+                activePriceStatusObjs[0].lowerArea.scale.y = 0
+                activePriceStatusObjs[0].higherArea.scale.y = 0
             }
         }
     }
@@ -436,7 +457,7 @@ function handleHigherButtonClick(invest) {
     let from = { x: 1, y: 1 };
     let to = { x: 0.8, y: 0.8 };
     let initialScale = upMesh.scale.clone();
-    Factory.drawMark(activeGroup, activeMarkObjs, [points[points.length - 1]], false, points.length - 1, Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x, invest, flipflop);
+    Factory.drawMark(activePoligonObjs, activeMarkObjs, [points[points.length - 1]], false, points.length - 1, Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x, invest, flipflop);
     new TWEEN.Tween(from).to(to, 150).onUpdate(function (object) {
         // higherGroup.scale.set(object.x, object.y)
         higherButton.scale.set(object.x, object.y);
@@ -464,7 +485,7 @@ function handleHigherButtonClick(invest) {
 function higherButtonClickCallback(value, price) {
     console.log("Callback when click on HigherButton with ", value)
     document.getElementById('audio').play();
-    let url = 'http://192.168.136.134:10000/bets/'
+    let url = 'http://localhost:10000/bets/'
     let amount = document.getElementById('price').value;
     let currentTimeStamp = Date.now();
     let betContent = JSON.stringify({
@@ -479,7 +500,7 @@ function higherButtonClickCallback(value, price) {
     let xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
         if (xhr.readyState == 4 && xhr.status == 201) {
-            alert(xhr.responseText); // Another callback here
+            console.log(xhr.responseText); // Another callback here
         }
     };
     xhr.open("POST", url, true);
@@ -489,37 +510,14 @@ function higherButtonClickCallback(value, price) {
 }
 
 function lowerButtonClickCallback(value, price) {
-    console.log("Callback when click on LowerButton with ", value);
-    document.getElementById('audio').play();
-    let url = 'http://192.168.136.134:10000/bets/'
-    let amount = document.getElementById('price').value;
-    let currentTimeStamp = Date.now();
-    let betContent = JSON.stringify({
-        "bets": {
-            "amount": amount,
-            "point": price,
-            "type": "below",
-            "time": currentTimeStamp
-        },
-        "round": round
-    })
-    let xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState == 4 && xhr.status == 201) {
-            alert(xhr.responseText); // Another callback here
-        }
-    };
-    xhr.open("POST", url, true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.send(betContent);
-    console.log(betContent)
+    higherButtonClickCallback(value, price);
 }
 
 function handleLowerButtonClick(invest) {
     let from = { x: 1, y: 1 };
     let to = { x: 0.8, y: 0.8 };
 
-    Factory.drawMark(activeGroup, activeMarkObjs, [points[points.length - 1]], true, points.length - 1, Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x, invest, flipflop);
+    Factory.drawMark(activePoligonObjs, activeMarkObjs, [points[points.length - 1]], true, points.length - 1, Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x, invest, flipflop);
     new TWEEN.Tween(from).to(to, 200).onUpdate(function (object) { // zoom out button
         lowerButton.scale.set(object.x, object.y);
         lowerText.scale.set(object.x, object.y);
@@ -589,23 +587,6 @@ function onPointerUp(event) {
     mouseDown = false;
 }
 
-// Use to rescale the data so it will fit into the view by recalculating all points in range
-function rescale(newStepDelta, beginIndex, endIndex, newInitialValueYDelta) {
-
-    // console.log("rescale: ", beginIndex, endIndex, points.length);
-    //beginIndex = 0;
-    //endIndex = points.length-1;
-    for (let i = beginIndex; i <= endIndex; i++) {
-        // console.log("rescaled: ", points[i]);
-        if (points[i] == undefined || i >= dataClient.input_value.length) {
-            continue;
-        }
-        points[i][1] = (dataClient.input_value[i].price - dataClient.input_value[beginIndex].price) * newStepDelta + newInitialValueYDelta;
-        if (isNaN(points[i][1])) {
-        }
-    }
-}
-
 let cachedBegin, cacheEnd
 // Find the list of points in the current view
 function updateListOfViewingIndex() {
@@ -634,33 +615,38 @@ function updateListOfViewingIndex() {
     beginViewingIndex = newBegin;//test
     endViewingIndex = newEnd;
 
+    //FIXME, not update here
+    const beginX = points[beginViewingIndex][0] + activePoligonObjs.position.x;
+    const currentX = points[points.length - 1][0] + activePoligonObjs.position.x;
+    Factory.updateVerticalGrid(activePoligonObjs, Factory.GRID_TOPLINE, beginX, currentX, mouseDown || zoomTween);
+
+
+
+
 }
 
 // Use to recalculate the data and update view for autoscaling
 var purchaseTime, goalTime
 function updateView(now) {
 
-    //update purchase line and goal line lifetime
-    countDownTimer = PURCHASE_DURATION - Math.floor((now - purchaseTime) / 1000);
-    finishTimer = GOAL_DURATION - Math.floor((now - goalTime) / 1000);
-
     updateGeometries(beginViewingIndex, endViewingIndex);
+
+
+    Factory.updatePurchaseLine(activePurchaseModel, countDownTimer, countDownTimer == PURCHASE_DURATION ? points[points.length - 1][0] : undefined);
+    Factory.updateFinishLine(finishLine, GOAL_DURATION)
 
 
     // If need to change current zoom level then need to add/remove grids
     if (beginViewingIndex < 0 || beginViewingIndex > points.length - 1) {
         debugger;
     }
-    const currentX = points[beginViewingIndex][0] + activePoligonObjs.position.x;
-    Factory.updateVerticalGrid(activePoligonObjs, Factory.GRID_TOPLINE, currentX, mouseDown || zoomTween);
 
     Factory.updateHorizontalGrid(activeGroup, activeHorizontalGridObjs, Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120);
 
 
-
-
-    //Factory.drawVerticalGrid(activeGroup, activeVerticalGridObjs, points, Math.floor(dataClient.currentIndex() / Factory.defaultZoomLevel()), Factory.GRID_TOPLINE, beginViewingIndex)
-    //Factory.updateActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
+    //update purchase line and goal line lifetime
+    countDownTimer = PURCHASE_DURATION - Math.floor((now - purchaseTime) / 1000);
+    finishTimer = PURCHASE_DURATION + GOAL_DURATION - Math.floor((now - goalTime) / 1000);
 
 }
 
@@ -698,37 +684,40 @@ function triggerAtFinishingTime(value) {
 }
 
 //FIXME????
-function updateOtherStuff(triggerAtPurchaseCallback, triggerAtFinishingCallback) {
+function updatePurchaseCycle(triggerAtPurchaseCallback, triggerAtFinishingCallback) {
 
     if (countDownTimer == 0) {
+        console.warn("Pass purchase line")
         // Greyout buttons
         enablePriceMark = false;
         Factory.disableHigherActiveLines(higherButton, activePriceStatusObjs, 0x1a6625);
         Factory.disableLowerActiveLines(lowerButton, activePriceStatusObjs, 0x782719);
         // Draw new PurchaseLine
-        countDownTimer = PURCHASE_DURATION + 1000;//hide it
+        //countDownTimer = PURCHASE_DURATION + 1000;//hide it
 
         if (typeof triggerAtPurchaseCallback == "function") {
             triggerAtPurchaseCallback("no problem")
         }
     }
     if (finishTimer == 0) {
+        console.warn("Pass goal line")
         round += 1;
         // Remove all marks
-        Factory.removeMarks(activeGroup, activeMarkObjs);
+        Factory.removeMarks(activePoligonObjs, activeMarkObjs);
         activeMarkObjs = []
         // Re-enable buttons
         Factory.enableHigherActiveLines(higherButton, activePriceStatusObjs);
         Factory.enableLowerActiveLines(lowerButton, activePriceStatusObjs);
         enablePriceMark = true;
         countDownTimer = PURCHASE_DURATION;
-        finishTimer = countDownTimer + fromCountDownToFinish;
+        finishTimer = countDownTimer + GOAL_DURATION;
+        purchaseTime = Date.now();
+        goalTime = purchaseTime;
 
         if (typeof triggerAtFinishingCallback == "function") {
             triggerAtFinishingCallback("no problem")
         }
     }
-    Factory.drawVerticalGrid(activeGroup, activeVerticalGridObjs, points, 1, Factory.GRID_TOPLINE, beginViewingIndex);
 }
 
 
@@ -793,7 +782,6 @@ function updateGeometries(beginIndex, endIndex) {
 
     //Factory.updateActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
 
-    Factory.updatePurchaseLine(activePurchaseModel, countDownTimer);
 
     Factory.updateMarks(activeMarkObjs, points, Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
 
@@ -837,7 +825,7 @@ function processZoom() {
 
         //find zoom pivot
         let pivotIndex = x2DataIndex(zoomParams[0].x);
-        if(isNaN(pivotIndex))pivotIndex = points.length-1;
+        if (isNaN(pivotIndex)) pivotIndex = points.length - 1;
 
         pivotIndex = Math.min(pivotIndex, points.length - 1);
         //console.log("Zoom pivot ",pivotIndex)
@@ -880,7 +868,7 @@ function processScale() {
         if (newTween || zoomTween) return;
         let newScale = rescaleData.shift();
         let oldScale = { origin: Factory.axisYConfig.origin, stepY: Factory.axisYConfig.stepY };
-        scaleTween = new TWEEN.Tween(oldScale).to(newScale, 500).onUpdate(function (current) {
+        scaleTween = new TWEEN.Tween(oldScale).to(newScale, 100).onUpdate(function (current) {
             Factory.axisYConfig.origin = current.origin;
             Factory.axisYConfig.stepY = current.stepY;
         }).easing(TWEEN.Easing.Quadratic.Out)
@@ -911,6 +899,8 @@ function animate() {
 
     updateView(now);
 
+    updatePurchaseCycle(triggerAtPurchaseTime, triggerAtFinishingTime);
+
     render();
 
     stats.update();
@@ -938,7 +928,7 @@ function showOverlay() {
     })
 }
 
-var isZooming = false;
+
 function showZoomButtons() {
     document.getElementById("zoombuttons").style.display = "block";
     //setup gui event
