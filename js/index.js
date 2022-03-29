@@ -12,8 +12,6 @@ let container, stats;
 let camera, scene, raycaster, renderer;
 
 const ZOOM_STEP = 100;
-const MARK_RIGHT_BORDER = 350
-
 
 let initialCameraPos = { x: 0, y: 0, z: 1 }
 let last = 0; // timestamp of the last render() call
@@ -224,10 +222,10 @@ function initScene(drawingGroup) {
     Factory.drawVerticalGrid(activePoligonObjs, Factory.GRID_TOPLINE, currentX);
 
     // Draw the grid
-    Factory.drawHorizontalGrid(drawingGroup, activeHorizontalGridObjs, Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120)
+    Factory.drawHorizontalGrid(drawingGroup, activeHorizontalGridObjs, Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE)
 
     // // Draw the active line
-    let activePriceView = Factory.drawActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, activePoligonObjs.position.x);
+    let activePriceView = Factory.drawActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE, activePoligonObjs.position.x);
 
     // Draw the purchase line
     purchaseTime = Date.now();
@@ -447,7 +445,7 @@ function handleHigherButtonClick(invest) {
     let from = { x: 1, y: 1 };
     let to = { x: 0.8, y: 0.8 };
     let initialScale = upMesh.scale.clone();
-    Factory.drawMark(activePoligonObjs, activeMarkObjs, [points[points.length - 1]], false, points.length - 1, Factory.GRID_RIGHTMOST_LINE - MARK_RIGHT_BORDER, activePoligonObjs.position.x, invest, flipflop);
+    Factory.drawMark(activePoligonObjs, activeMarkObjs, [points[points.length - 1]], false, points.length - 1, Factory.GRID_RIGHTMOST_LINE, activePoligonObjs.position.x, invest, flipflop);
     new TWEEN.Tween(from).to(to, 150).onUpdate(function (object) {
         // higherGroup.scale.set(object.x, object.y)
         higherButton.scale.set(object.x, object.y);
@@ -507,7 +505,7 @@ function handleLowerButtonClick(invest) {
     let from = { x: 1, y: 1 };
     let to = { x: 0.8, y: 0.8 };
 
-    Factory.drawMark(activePoligonObjs, activeMarkObjs, [points[points.length - 1]], true, points.length - 1, Factory.GRID_RIGHTMOST_LINE - MARK_RIGHT_BORDER, activeGroup.position.x, invest, flipflop);
+    Factory.drawMark(activePoligonObjs, activeMarkObjs, [points[points.length - 1]], true, points.length - 1, Factory.GRID_RIGHTMOST_LINE, activeGroup.position.x, invest, flipflop);
     new TWEEN.Tween(from).to(to, 200).onUpdate(function (object) { // zoom out button
         lowerButton.scale.set(object.x, object.y);
         lowerText.scale.set(object.x, object.y);
@@ -631,7 +629,7 @@ function updateView(now) {
         debugger;
     }
 
-    Factory.updateHorizontalGrid(activeGroup, activeHorizontalGridObjs, Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120);
+    Factory.updateHorizontalGrid(activeHorizontalGridObjs);
 
 
     //update purchase line and goal line lifetime
@@ -647,7 +645,7 @@ function updateActiveGroup(now, last) {
         activePoligonObjs.position.x -= moveInOneFrame
     }
 
-    Factory.updateActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, activePoligonObjs.position.x);
+    Factory.updateActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE, activePoligonObjs.position.x);
     // }
 
     //udpate hover line
@@ -769,11 +767,7 @@ function updateGeometries(beginIndex, endIndex) {
     Factory.updatePolygon(activePoligonObjs.children[0], points, beginIndex, endIndex);
     // activeGroup.position.set(activeGroup.position.x + (stretchValue) * 2, activeGroup.position.y, activeGroup.position.z);
 
-
-    //Factory.updateActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
-
-
-    Factory.updateMarks(activeMarkObjs, points, Factory.GRID_RIGHTMOST_LINE - MARK_RIGHT_BORDER, activePoligonObjs.position.x);
+    Factory.updateMarks(activeMarkObjs, points, Factory.GRID_RIGHTMOST_LINE, activePoligonObjs.position.x);
 
     //green is alway same with final points
 

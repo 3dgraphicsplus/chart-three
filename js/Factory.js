@@ -32,6 +32,10 @@ const MOUSE_MOVE_LINE_WIDTH = 1
 const NUMBER_OF_YGRID_OFFSET = 5
 const NUMBER_OF_XGRID_OFFSET = 25
 
+const MARK_RIGHT_BORDER = 350//FIXME
+const Y_RIGHT_BORDER = 100
+
+
 var GRID_TOPLINE, GRID_RIGHTMOST_LINE;
 
 //if max zoom is 2min: 64,32,16,8,4,2
@@ -285,7 +289,7 @@ function updateMouseMoveLine(scene, posX, posY, timestamp, priceValue) {
 
     if (!mousePriceLineGeo) {
         mousePriceLineGeo = new LineGeometry();
-        mousePriceLineGeo.setPositions([0, 0, 0, GRID_RIGHTMOST_LINE - 200 - 120, 0, 0]);
+        mousePriceLineGeo.setPositions([0, 0, 0, GRID_RIGHTMOST_LINE - 200 - Y_RIGHT_BORDER, 0, 0]);
         mousePriceLine = new Line2(mousePriceLineGeo, mousePriceLineMat);
         mousePriceLine.computeLineDistances();
         mousePriceLine.scale.set(1, 1, 1);
@@ -304,7 +308,7 @@ function updateMouseMoveLine(scene, posX, posY, timestamp, priceValue) {
             color: 0xffffff, transparent: true, opacity: 1.0
         });
         mouseAlertShape = new THREE.Mesh(geomShape, matShape);
-        mouseAlertShape.position.set(GRID_RIGHTMOST_LINE - 210 - 120, 0, 0)
+        mouseAlertShape.position.set(GRID_RIGHTMOST_LINE - 210 - Y_RIGHT_BORDER, 0, 0)
         mouseAlertShape.renderOrder = 100;
         mouseViewPrice.add(mouseAlertShape);
         // console.log(priceShape.geometry.attributes.position.array);
@@ -312,10 +316,10 @@ function updateMouseMoveLine(scene, posX, posY, timestamp, priceValue) {
 
     if (mousePriceShape == undefined) {
         let coordinatesList = [
-            new THREE.Vector3(GRID_RIGHTMOST_LINE - 200 - 120, 8, 0),
-            new THREE.Vector3(GRID_RIGHTMOST_LINE - 140 - 120, 8, 0),
-            new THREE.Vector3(GRID_RIGHTMOST_LINE - 140 - 120, -8, 0),
-            new THREE.Vector3(GRID_RIGHTMOST_LINE - 200 - 120, -8, 0)
+            new THREE.Vector3(GRID_RIGHTMOST_LINE - 200 - Y_RIGHT_BORDER, 8, 0),
+            new THREE.Vector3(GRID_RIGHTMOST_LINE - 140 - Y_RIGHT_BORDER, 8, 0),
+            new THREE.Vector3(GRID_RIGHTMOST_LINE - 140 - Y_RIGHT_BORDER, -8, 0),
+            new THREE.Vector3(GRID_RIGHTMOST_LINE - 200 - Y_RIGHT_BORDER, -8, 0)
         ];
 
         // shape
@@ -334,7 +338,7 @@ function updateMouseMoveLine(scene, posX, posY, timestamp, priceValue) {
         //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
         mousePriceText.fontSize = 12
         mousePriceText.position.z = 0
-        mousePriceText.position.x = GRID_RIGHTMOST_LINE - 195 - 120
+        mousePriceText.position.x = GRID_RIGHTMOST_LINE - 195 - Y_RIGHT_BORDER
         mousePriceText.position.y = 6
         mousePriceText.renderOrder = 100;
         mousePriceText.color = 'white'
@@ -366,6 +370,9 @@ function drawBackground(startingLine, loopCount, gridStep) {
 let horizontalGridMaterial = null;
 const marginYAxis = 20;
 function drawHorizontalGrid(group, horizontalGrids, gridTopBound, gridRightBound) {
+
+    gridRightBound -= Y_RIGHT_BORDER
+
     const minY = convertBack(0, marginYAxis, 0)[1];
     const maxY = convertBack(0, container.clientHeight - marginYAxis, 0)[1];
     let gridStepCount = NUMBER_OF_YGRID_OFFSET;//Math.floor((maxY - minY) / stepY);
@@ -420,7 +427,7 @@ function drawHorizontalGrid(group, horizontalGrids, gridTopBound, gridRightBound
     }
 }
 
-function updateHorizontalGrid(group, horizontalGrids, gridTopBound, gridRightBound) {
+function updateHorizontalGrid(horizontalGrids) {
     const minY = convertBack(0, marginYAxis, 0)[1];
     const maxY = convertBack(0, container.clientHeight - marginYAxis, 0)[1];
     let gridStepCount = NUMBER_OF_YGRID_OFFSET;//Math.floor((maxY - minY) / stepY);
@@ -530,6 +537,8 @@ var prevValue = undefined;
 // Draw the line at the green point, circlePos is the position of the green point
 // movedDistance is the movement of the activeGroup. This function will only be called once.
 function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, movedDistance) {
+
+    gridRightBound -= Y_RIGHT_BORDER;
 
     let group = new THREE.Group();
     group.position.y = circlePos[0][1];
@@ -683,7 +692,7 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     higherArea.scale.y = 0;
     higherArea.renderOrder = 1;
 
-    let upGeo2 = new THREE.BoxGeometry(66/2, 58/2, 1);
+    let upGeo2 = new THREE.BoxGeometry(66 / 2, 58 / 2, 1);
     let upMesh2 = new THREE.Mesh(upGeo2, new THREE.MeshBasicMaterial(
         {
             map: new THREE.TextureLoader().load("/img/upArrow.png", map => {
@@ -698,7 +707,7 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     upMesh2.renderOrder = 200;
     upMesh2.visible = false;
 
-    let downGeo2 = new THREE.BoxGeometry(66/2, 58/2, 1);
+    let downGeo2 = new THREE.BoxGeometry(66 / 2, 58 / 2, 1);
     let downMesh2 = new THREE.Mesh(downGeo2, new THREE.MeshBasicMaterial(
         {
             map: new THREE.TextureLoader().load("/img/downArrow.png", map => {
@@ -739,6 +748,8 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
 // creating new objects.
 function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, movedDistance) {
 
+    gridRightBound -= Y_RIGHT_BORDER;
+
     if (activePriceStatusObjs.length == 0) return
 
     activePriceStatusObjs[0].dashedLine.parent.position.y = circlePos[0][1];
@@ -769,7 +780,7 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
         // Update the rendering:
         activePriceStatusObjs[0].priceText.sync()
     }
-    
+
 
     //if (isChanged != 0) 
     {
@@ -1176,6 +1187,8 @@ function drawMark(drawingGroup, markObjs, circlePos, isLower, index, gridRightBo
         console.log(circlePos[0])
         return;
     }
+    gridRightBound -= MARK_RIGHT_BORDER
+
     let w = 16, h = 16;
     let color = isLower ? LOWER_BUTTON_COLOR : HIGHER_BUTTON_COLOR;
     let markImage = isLower ? "/img/lowermark.png" : "/img/highermark.png"
@@ -1316,6 +1329,9 @@ function drawMark(drawingGroup, markObjs, circlePos, isLower, index, gridRightBo
 
 //FIXME
 function updateMarks(markObjs, points, gridRightBound, movedDistance) {
+
+    gridRightBound -= MARK_RIGHT_BORDER
+
     for (let index = 0; index < markObjs.length; index++) {
         if (markObjs[index] == undefined) {
             continue;
