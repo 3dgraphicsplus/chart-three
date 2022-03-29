@@ -661,6 +661,7 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
         opacity: 0.4
     });
     let lowerArea = new THREE.Mesh(lowerAreaGeo, lowerAreaMaterial);
+    lowerArea.scale.y = 0
     lowerArea.renderOrder = 1;
 
     let higherAreaShape = new THREE.Shape();
@@ -679,6 +680,7 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
         opacity: 0.4
     });
     let higherArea = new THREE.Mesh(higherAreaGeo, higherAreaMaterial);
+    higherArea.scale.y = 0;
     higherArea.renderOrder = 1;
 
     let upGeo2 = new THREE.BoxGeometry(66/2, 58/2, 1);
@@ -694,6 +696,7 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     upMesh2.position.x = circlePos[0][0] + 10;
     upMesh2.position.y = 0 + 40;
     upMesh2.renderOrder = 200;
+    upMesh2.visible = false;
 
     let downGeo2 = new THREE.BoxGeometry(66/2, 58/2, 1);
     let downMesh2 = new THREE.Mesh(downGeo2, new THREE.MeshBasicMaterial(
@@ -708,6 +711,7 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     downMesh2.position.x = circlePos[0][0] + 10;
     downMesh2.position.y = 0 - 40;
     downMesh2.renderOrder = 200;
+    downMesh2.visible = false;
 
     let higherText = new Text()
     higherText.renderOrder = 200;
@@ -1166,6 +1170,7 @@ function updateFinishLine(finishLine, goalDuration) {
     finishLine.position.x = goalDuration * axisXConfig.stepX;
 }
 
+//FIXME
 function drawMark(drawingGroup, markObjs, circlePos, isLower, index, gridRightBound, movedDistance, invest, onloaded) {
     if (Number.isNaN(circlePos[0][0]) || Number.isNaN(circlePos[0][1])) {
         console.log(circlePos[0])
@@ -1208,15 +1213,15 @@ function drawMark(drawingGroup, markObjs, circlePos, isLower, index, gridRightBo
 
     // Draw price shape
     let coordinatesList = [
-        new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20, circlePos[0][1] + 10, 0),
-        new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20 + 50, circlePos[0][1] + 10, 0),
-        new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20 + 50, circlePos[0][1] - 10, 0),
-        new THREE.Vector3(GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20, circlePos[0][1] - 10, 0)
+        new THREE.Vector3(gridRightBound - movedDistance - 20, circlePos[0][1] + 10, 0),
+        new THREE.Vector3(gridRightBound - movedDistance - 20 + 50, circlePos[0][1] + 10, 0),
+        new THREE.Vector3(gridRightBound - movedDistance - 20 + 50, circlePos[0][1] - 10, 0),
+        new THREE.Vector3(gridRightBound - movedDistance - 20, circlePos[0][1] - 10, 0)
     ];
 
     // shape
     let geomShape = new THREE.ShapeBufferGeometry(new THREE.Shape(coordinatesList));
-    let matShape = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.9 });
+    let matShape = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.7 });
     let markPriceShape = new THREE.Mesh(geomShape, matShape);
     markPriceShape.renderOrder = 50;
 
@@ -1226,7 +1231,7 @@ function drawMark(drawingGroup, markObjs, circlePos, isLower, index, gridRightBo
     priceText.font = "https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
     priceText.fontSize = 11
     priceText.position.z = 0
-    priceText.position.x = GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20 + 5
+    priceText.position.x = gridRightBound - movedDistance - 20 + 5
     priceText.position.y = circlePos[0][1] + 5
     priceText.color = 0xffffff
     priceText.sync();
@@ -1270,7 +1275,7 @@ function drawMark(drawingGroup, markObjs, circlePos, isLower, index, gridRightBo
     verdashedLine.renderOrder = 60;
 
     const verticalline = new LineGeometry();
-    verticalline.setPositions([circlePos[0][0], circlePos[0][1], 0, gridRightBound - 250 - movedDistance, circlePos[0][1], 0]);
+    verticalline.setPositions([circlePos[0][0], circlePos[0][1], 0, gridRightBound - movedDistance, circlePos[0][1], 0]);
     let verlineMat = new LineMaterial({
         color: HIGHER_BUTTON_COLOR,
         linewidth: MOUSE_MOVE_LINE_WIDTH, // in world units with size attenuation, pixels otherwise
@@ -1309,6 +1314,7 @@ function drawMark(drawingGroup, markObjs, circlePos, isLower, index, gridRightBo
 
 }
 
+//FIXME
 function updateMarks(markObjs, points, gridRightBound, movedDistance) {
     for (let index = 0; index < markObjs.length; index++) {
         if (markObjs[index] == undefined) {
@@ -1328,22 +1334,22 @@ function updateMarks(markObjs, points, gridRightBound, movedDistance) {
         markObjs[index].investText.position.y = circlePos[0][1] + 10 + 6;
         markObjs[index].investText.sync();
         // Update price shape
-        markObjs[index].priceText.position.x = GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20 + 5;
+        markObjs[index].priceText.position.x = gridRightBound - movedDistance - 20 + 5;
         markObjs[index].priceText.position.y = circlePos[0][1] + 5;
         markObjs[index].priceText.sync();
 
         let p = markObjs[index].markPriceShape.geometry.attributes.position.array;
         let i = 0;
-        p[i++] = GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20;
+        p[i++] = gridRightBound - movedDistance - 20;
         p[i++] = circlePos[0][1] + 10;
         p[i++] = 0;
-        p[i++] = GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance + 60 - 20;
+        p[i++] = gridRightBound - movedDistance + 60 - 20;
         p[i++] = circlePos[0][1] + 10;
         p[i++] = 0;
-        p[i++] = GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance + 60 - 20;
+        p[i++] = gridRightBound - movedDistance + 60 - 20;
         p[i++] = circlePos[0][1] - 10;
         p[i++] = 0;
-        p[i++] = GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance - 20;
+        p[i++] = gridRightBound - movedDistance - 20;
         p[i++] = circlePos[0][1] - 10;
         p[i++] = 0;
         markObjs[index].markPriceShape.geometry.computeBoundingBox();
@@ -1357,7 +1363,7 @@ function updateMarks(markObjs, points, gridRightBound, movedDistance) {
         markObjs[index].verdashedLine.geometry.attributes.position.needsUpdate = true;
 
         const verticalline = new LineGeometry();
-        verticalline.setPositions([circlePos[0][0], circlePos[0][1], 0, GRID_RIGHTMOST_LINE - 205 - 120 - movedDistance, circlePos[0][1], 0]);
+        verticalline.setPositions([circlePos[0][0], circlePos[0][1], 0, gridRightBound - movedDistance, circlePos[0][1], 0]);
         markObjs[index].verLine.geometry.dispose();
         markObjs[index].verLine.geometry = verticalline;
         markObjs[index].verLine.computeLineDistances();

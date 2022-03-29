@@ -12,28 +12,14 @@ let container, stats;
 let camera, scene, raycaster, renderer;
 
 const ZOOM_STEP = 100;
-
-var MIN_VIEW_Y = 50;
-var MAX_VIEW_Y = 900;
-const MIN_DIFF_Y = 1;
+const MARK_RIGHT_BORDER = 350
 
 
 let initialCameraPos = { x: 0, y: 0, z: 1 }
-let GRID_LEFT_MOST_LINE = Factory.axisXConfig.initialValueX
-
-
-const pointer = new THREE.Vector2();
-let mouseTimeLine, mousePriceText, mousePriceLine;
-let mouse = { x: 0, y: 0 };
-// let circlePos = [0, 0, 0];
-let bkgObjs = [];
 let last = 0; // timestamp of the last render() call
-let lastBlink; // green dot
 let points = [];
 
 let activeGroup = new THREE.Group();
-
-let groupTo = { x: 0, y: 0, z: 0 };
 
 // Initial number of second to trigger count down, for example: graph drawing at 13:05:15, if countDownTimer 
 // is set 15, then the countdown will be at 13:05:30
@@ -132,8 +118,8 @@ function init() {
         container.clientHeight, 0, -1, 1);
     initialCameraPos.x = 0;//container.clientWidth / 2;
     initialCameraPos.y = 0;//container.clientHeight / 2;
-    MIN_VIEW_Y = initialCameraPos.y;
-    MAX_VIEW_Y = container.clientHeight;
+    //MIN_VIEW_Y = initialCameraPos.y;
+    //MAX_VIEW_Y = container.clientHeight;
     camera.position.set(initialCameraPos.x, initialCameraPos.y, initialCameraPos.z);
 
     Factory.setGrid(container.clientHeight, container.clientWidth + 100);//FIXME ,fack number
@@ -241,7 +227,7 @@ function initScene(drawingGroup) {
     Factory.drawHorizontalGrid(drawingGroup, activeHorizontalGridObjs, Factory.GRID_TOPLINE, Factory.GRID_RIGHTMOST_LINE - 120)
 
     // // Draw the active line
-    let activePriceView = Factory.drawActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, drawingGroup.position.x);
+    let activePriceView = Factory.drawActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, activePoligonObjs.position.x);
 
     // Draw the purchase line
     purchaseTime = Date.now();
@@ -420,36 +406,40 @@ function onPointerMove(event) {
             let mouseClick = { x: 0, y: 0 };
             mouseClick.x = ((event.clientX - container.offsetLeft) / (container.clientWidth)) * 2 - 1;
             mouseClick.y = - ((event.clientY - container.offsetTop) / (container.clientHeight)) * 2 + 1;
-            raycaster.setFromCamera(mouseClick, camera);
-            let intersects2 = raycaster.intersectObjects(lowhighButtons);
-            if (intersects2.length > 0) {//FIXME
-                // updateMouseMoveLine(intersects[0].point.x, intersects[0].point.y);
-                if (higherButton == intersects2[0].object) {
-                    // console.log("HIGHER");
-                    activePriceStatusObjs[0].higherArea.scale.y = 1;
-                    activePriceStatusObjs[0].downArrow.scale.y = 0
-                    activePriceStatusObjs[0].upArrow.scale.y = 1;
-                    Factory.enableHigherActiveLines(higherButton, activePriceStatusObjs);
-                    activePriceStatusObjs[0].lowerArea.scale.y = 0;
-                }
-
-                if (lowerButton == intersects2[0].object) {
-                    // console.log("LOWER");
-                    activePriceStatusObjs[0].upArrow.scale.y = 0;
-                    activePriceStatusObjs[0].downArrow.scale.y = 1;
-                    Factory.enableLowerActiveLines(lowerButton, activePriceStatusObjs);
-                    activePriceStatusObjs[0].lowerArea.scale.y = 1
-                    activePriceStatusObjs[0].higherArea.scale.y = 0;
-                }
-            } else {
-                activePriceStatusObjs[0].downArrow.scale.y = 0;
-                activePriceStatusObjs[0].upArrow.scale.y = 0;
-                Factory.disableHigherActiveLines(higherButton, activePriceStatusObjs);
-                Factory.disableLowerActiveLines(lowerButton, activePriceStatusObjs);
-                activePriceStatusObjs[0].lowerArea.scale.y = 0
-                activePriceStatusObjs[0].higherArea.scale.y = 0
-            }
+            updateHigherLower(mouseClick)//FIXME
         }
+    }
+}
+
+function updateHigherLower(mouseClick) {
+    raycaster.setFromCamera(mouseClick, camera);
+    let intersects2 = raycaster.intersectObjects(lowhighButtons);
+    if (intersects2.length > 0) {//FIXME
+        // updateMouseMoveLine(intersects[0].point.x, intersects[0].point.y);
+        if (higherButton == intersects2[0].object) {
+            // console.log("HIGHER");
+            activePriceStatusObjs[0].higherArea.scale.y = 1;
+            activePriceStatusObjs[0].downArrow.visible = false;
+            activePriceStatusObjs[0].upArrow.visible = true;
+            Factory.enableHigherActiveLines(higherButton, activePriceStatusObjs);
+            activePriceStatusObjs[0].lowerArea.scale.y = 0;
+        }
+
+        if (lowerButton == intersects2[0].object) {
+            // console.log("LOWER");
+            activePriceStatusObjs[0].lowerArea.scale.y = 1
+            activePriceStatusObjs[0].upArrow.visible = false
+            activePriceStatusObjs[0].downArrow.visible = true
+            Factory.enableLowerActiveLines(lowerButton, activePriceStatusObjs);
+            activePriceStatusObjs[0].higherArea.scale.y = 0;
+        }
+    } else {
+        activePriceStatusObjs[0].downArrow.visible = false;
+        activePriceStatusObjs[0].upArrow.visible = false;
+        Factory.disableHigherActiveLines(higherButton, activePriceStatusObjs);
+        Factory.disableLowerActiveLines(lowerButton, activePriceStatusObjs);
+        activePriceStatusObjs[0].lowerArea.scale.y = 0
+        activePriceStatusObjs[0].higherArea.scale.y = 0
     }
 }
 
@@ -457,7 +447,7 @@ function handleHigherButtonClick(invest) {
     let from = { x: 1, y: 1 };
     let to = { x: 0.8, y: 0.8 };
     let initialScale = upMesh.scale.clone();
-    Factory.drawMark(activePoligonObjs, activeMarkObjs, [points[points.length - 1]], false, points.length - 1, Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x, invest, flipflop);
+    Factory.drawMark(activePoligonObjs, activeMarkObjs, [points[points.length - 1]], false, points.length - 1, Factory.GRID_RIGHTMOST_LINE - MARK_RIGHT_BORDER, activePoligonObjs.position.x, invest, flipflop);
     new TWEEN.Tween(from).to(to, 150).onUpdate(function (object) {
         // higherGroup.scale.set(object.x, object.y)
         higherButton.scale.set(object.x, object.y);
@@ -517,7 +507,7 @@ function handleLowerButtonClick(invest) {
     let from = { x: 1, y: 1 };
     let to = { x: 0.8, y: 0.8 };
 
-    Factory.drawMark(activePoligonObjs, activeMarkObjs, [points[points.length - 1]], true, points.length - 1, Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x, invest, flipflop);
+    Factory.drawMark(activePoligonObjs, activeMarkObjs, [points[points.length - 1]], true, points.length - 1, Factory.GRID_RIGHTMOST_LINE - MARK_RIGHT_BORDER, activeGroup.position.x, invest, flipflop);
     new TWEEN.Tween(from).to(to, 200).onUpdate(function (object) { // zoom out button
         lowerButton.scale.set(object.x, object.y);
         lowerText.scale.set(object.x, object.y);
@@ -783,7 +773,7 @@ function updateGeometries(beginIndex, endIndex) {
     //Factory.updateActiveLines(activePriceStatusObjs, [points[points.length - 1]], Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
 
 
-    Factory.updateMarks(activeMarkObjs, points, Factory.GRID_RIGHTMOST_LINE - 120, activeGroup.position.x);
+    Factory.updateMarks(activeMarkObjs, points, Factory.GRID_RIGHTMOST_LINE - MARK_RIGHT_BORDER, activePoligonObjs.position.x);
 
     //green is alway same with final points
 
