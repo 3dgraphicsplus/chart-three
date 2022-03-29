@@ -181,7 +181,7 @@ function calculateAxis(forced) {
     if (forced) {
         Factory.axisYConfig.origin = newOrigin;
     }
-    else if (Math.abs(newOrigin - Factory.axisYConfig.origin) > 100) {//TODO
+    else if (rescaleData.length == 0 && (Math.abs(newOrigin - Factory.axisYConfig.origin) > 100 || minY > newRange[0] || maxY < newRange[1])) {//TODO
         rescaleData.push({ origin: newOrigin, stepY: newY })
         //Factory.axisYConfig.origin = newOrigin;
         //Factory.axisYConfig.stepY = newY;
@@ -674,8 +674,8 @@ function triggerAtFinishingTime(value) {
 //FIXME????
 function updatePurchaseCycle(triggerAtPurchaseCallback, triggerAtFinishingCallback) {
 
-    if (countDownTimer == 0) {
-        console.warn("Pass purchase line")
+    if (countDownTimer <= 0 && enablePriceMark) {
+        //console.warn("Pass purchase line")
         // Greyout buttons
         enablePriceMark = false;
         Factory.disableHigherActiveLines(higherButton, activePriceStatusObjs, 0x1a6625);
@@ -687,7 +687,7 @@ function updatePurchaseCycle(triggerAtPurchaseCallback, triggerAtFinishingCallba
             triggerAtPurchaseCallback("no problem")
         }
     }
-    if (finishTimer == 0) {
+    if (finishTimer <= 0 && !enablePriceMark) {
         console.warn("Pass goal line")
         round += 1;
         // Remove all marks
@@ -714,14 +714,14 @@ var newDataInterpolate
 
 // Fetch new data from input and draw it with animation
 let newTween = undefined;
-function drawNewData(newPrice) {
-    if (lastAdding && Date.now() < lastAdding + 500) {
+function drawNewData(newPrice ,now) {
+    if (lastAdding && now < lastAdding + 500) {
         //not animate, just add points
         points.push(Factory.convert(newPrice, points.length));
-        lastAdding = Date.now();
+        lastAdding = now;
         return;
     }
-    lastAdding = Date.now();
+    lastAdding = now;
 
 
     //Just push new and updating value in real-time
@@ -836,10 +836,10 @@ function processZoom() {
     }
 }
 
-function processNewData() {
+function processNewData(now) {
+    if (animating.length || newTween || scaleTween) return;
     while (newData.length) {
-        if (animating.length || newTween || scaleTween) break;
-        drawNewData(newData.shift())
+        drawNewData(newData.shift(),now)
 
         calculateAxis();
         //break;
@@ -852,7 +852,7 @@ function processScale() {
         if (newTween || zoomTween) return;
         let newScale = rescaleData.shift();
         let oldScale = { origin: Factory.axisYConfig.origin, stepY: Factory.axisYConfig.stepY };
-        scaleTween = new TWEEN.Tween(oldScale).to(newScale, 100).onUpdate(function (current) {
+        scaleTween = new TWEEN.Tween(oldScale).to(newScale, 200).onUpdate(function (current) {
             Factory.axisYConfig.origin = current.origin;
             Factory.axisYConfig.stepY = current.stepY;
         }).easing(TWEEN.Easing.Quadratic.Out)
@@ -863,16 +863,16 @@ function processScale() {
 }
 
 function animate() {
+    let now = Date.now();
 
     TWEEN.update();
 
-    processNewData()
+    processNewData(now)
 
     processZoom()
 
     processScale();
 
-    let now = Date.now();
 
     if (last == 0) {
         last = Date.now();
