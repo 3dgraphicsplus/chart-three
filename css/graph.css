@@ -53,7 +53,7 @@ body {
     position: absolute;
     right: 0px;
     top: 74px;
-    margin-top:40px;
+    margin-top: 40px;
     overflow: hidden;
     font-size: 1em;
     color: #dddddd
@@ -98,7 +98,8 @@ body {
     color: white
 }
 
-#plus, #minus {
+#plus,
+#minus {
     background-color: #363A53;
     border: 1px solid #363A53;
     padding: 4px 3px 4px 3px;
@@ -117,10 +118,45 @@ body {
     border-bottom-right-radius: 4px;
 }
 
+#totalcredit {
+    display: none;
+    position: absolute;
+    left: 1700px;
+    top: 28px;
+    z-index: 300;
+    font-size: 150%;
+    color: #f27303;
+    cursor: pointer;
+}
+
+.triangle-down {
+    display: none;
+    position: absolute;
+	width: 0;
+	height: 0;
+	border-left: 5px solid transparent;
+	border-right: 5px solid transparent;
+	border-top: 7px solid;
+    color: #f27303;
+    left: 1790px;
+    top: 40px;
+}
+
+#totalcredit:hover {
+    color: #9f561c;
+}
+
+.triangle-down:hover {
+    color: #9f561c;
+}
+
+.credits:hover totalcredit {color: #9f561c;}
+.credits:hover .triangle-down {color: #9f561c;}
+
 .line-pickr-container {
     display: none;
     position: absolute;
-    left: 1750px;
+    left: 1850px;
     top: 600px;
     z-index: 300;
 }
@@ -128,7 +164,7 @@ body {
 .fill-pickr-container {
     display: none;
     position: absolute;
-    left: 1750px;
+    left: 1850px;
     top: 670px;
     z-index: 300;
 }

@@ -110,7 +110,7 @@ function getMedium(points, start, end) {
 
 function init() {
 
-    //initColorPicker();
+    initColorPicker();
 
     drawCount = dataClient.input_value.length;
     beginViewingIndex = drawCount - Factory.currentZoom();
@@ -922,6 +922,8 @@ function animate() {
 
 function showOverlay() {
     document.getElementById("overlay").style.display = "block";
+    document.getElementById("totalcredit").style.display = "block";
+    document.getElementById("triangle").style.display = "block";
     //setup gui event
     let step = parseFloat($("#price").val()) * 0.01;//TODO upon specs
     $("#plus").click(function (e) {
