@@ -263,7 +263,7 @@ function initScene(drawingGroup) {
 
     //animate green infinity
     const start = 30;
-    const end = 90;
+    const end = Factory.GREEN_GLOW_SCALE;
     const duration = 1000;
     let forward = new TWEEN.Tween({ val: start }).to({ val: end }, duration).onUpdate(function (size) {
         activePriceStatusObjs[0].greenGlow.scale.set(size.val, size.val, 1)

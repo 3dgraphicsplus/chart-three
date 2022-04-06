@@ -22,6 +22,7 @@ let HIGHER_BUTTON_COLOR = 0x2cac40;
 let HIGHER_BUTTON_COLOR_ENABLE = 0x238933;
 let LOWER_BUTTON_COLOR = 0xdb4931;
 let LOWER_BUTTON_COLOR_ENABLE = 0xad4235;
+let GREEN_GLOW_SCALE = 60
 
 // Line Width
 const DATA_LINE_WIDTH = 1.0
@@ -651,7 +652,7 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
         });
     let greenGlow = new THREE.Sprite(spriteMaterial);
 
-    greenGlow.scale.set(90, 90, 1.0);//FIXME
+    greenGlow.scale.set(GREEN_GLOW_SCALE, GREEN_GLOW_SCALE, 1.0);//FIXME
     greenDot.add(greenGlow);
 
     let lowerAreaShape = new THREE.Shape();
@@ -1547,5 +1548,6 @@ export {
     minZoom,
     convert,
     convertBack,
-    NUMBER_OF_YGRID_OFFSET
+    NUMBER_OF_YGRID_OFFSET,
+    GREEN_GLOW_SCALE
 }
