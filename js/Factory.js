@@ -593,21 +593,28 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     let priceShape = new THREE.Mesh(geomShape, matShape);
     priceShape.renderOrder = 30;
 
-    let currentValue = dataClient.input_value[dataClient.currentIndex() - 1].price;
-    prevValue = dataClient.input_value[dataClient.currentIndex() - 2].price;
+    let currentValue = parseFloat(dataClient.input_value[dataClient.input_value.length - 1].price).toFixed(2);
+    prevValue = parseFloat(dataClient.input_value[dataClient.input_value.length - 2].price).toFixed(2);
 
     const isChanged = Math.round((currentValue - prevValue) * 1e2) / 1e2;
+
+    // Extract the exact diff between current and prev, then highlight only that part
+    // For example: 45370.01 with diffValue is +1.23 then display 45371.23 with 1.23 is highlighted
+    let diffValue = Math.abs(currentValue - prevValue).toFixed(2)
+    let diffValueStr = ('' + diffValue)
+    let truncatedPriceText = ('' + Math.trunc(parseFloat(currentValue))).slice(0, (currentValue + '').length - diffValueStr.length)
 
     let priceText = new Text()
     priceText.renderOrder = 50;
     // activeGroup.add(priceText);
 
     // Set properties to configure:
-    priceText.text = '' + (currentValue).toFixed(0)
+    priceText.text = truncatedPriceText
     //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
-    priceText.fontSize = 12
+    priceText.fontSize = 15
     priceText.position.z = 0
-    priceText.position.x = gridRightBound - 200 + 22
+    priceText.position.x = gridRightBound - 200 + 50
+    priceText.anchorX = 'right'
     priceText.position.y = + 7
     priceText.color = 0x000000
     if (enableHigherActive == true || enableLowerActive == true) {
@@ -623,12 +630,13 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
 
     // Set properties to configure:
 
-    priceActiveText.text = '' + Math.abs(currentValue - prevValue)
+    priceActiveText.text = diffValueStr
     //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
-    priceActiveText.fontSize = 18
+    priceActiveText.fontSize = 15
     priceActiveText.position.z = 0
-    priceActiveText.position.x = gridRightBound - 200 + 60
-    priceActiveText.position.y = + 12
+    priceActiveText.position.x = gridRightBound - 200 + 51
+    priceActiveText.anchorX = 'left'
+    priceActiveText.position.y = + 7
     priceActiveText.color = (currentValue - prevValue) >= 0 ? GREEN_COLOR : 'red'
     if (enableHigherActive == true || enableLowerActive == true) {
         priceActiveText.color = "white"
@@ -765,17 +773,22 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
     activePriceStatusObjs[0].line.computeLineDistances();
     activePriceStatusObjs[0].line.geometry.attributes.position.needsUpdate = true;
 
-    let currentValue = dataClient.input_value[dataClient.input_value.length - 1].price;
-    prevValue = dataClient.input_value[dataClient.input_value.length - 2].price;
+    let currentValue = parseFloat(dataClient.input_value[dataClient.input_value.length - 1].price).toFixed(2);
+    prevValue = parseFloat(dataClient.input_value[dataClient.input_value.length - 2].price).toFixed(2);
 
+    // Extract the exact diff between current and prev, then highlight only that part
+    // For example: 45370.01 with diffValue is +1.23 then display 45371.23 with 1.23 is highlighted
     const isChanged = Math.round((currentValue - prevValue) * 1e2) / 1e2;
+    let diffValue = Math.abs(currentValue - prevValue).toFixed(2)
+    let diffValueStr = ('' + diffValue)
+    let truncatedPriceText = ('' + Math.trunc(parseFloat(currentValue))).slice(0, (currentValue + '').length - diffValueStr.length)
     //if (isChanged != 0) 
     {
-        activePriceStatusObjs[0].priceText.text = '' + (currentValue).toFixed(0)
+        activePriceStatusObjs[0].priceText.text = truncatedPriceText
         //if (enableHigherActive == true || enableLowerActive == true) {
         //    activePriceStatusObjs[0].priceText.color = "white"
         //} else {
-        activePriceStatusObjs[0].priceText.color = isChanged == 0 ? 0x000000 : (isChanged >= 0 ? GREEN_COLOR : 'red');
+        // activePriceStatusObjs[0].priceText.color = isChanged == 0 ? 0x000000 : (isChanged >= 0 ? GREEN_COLOR : 'red');
         //}
 
         // Update the rendering:
@@ -791,10 +804,14 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
         activePriceStatusObjs[0].priceActiveText.color = isChanged == 0 ? 0x000000 : (isChanged >= 0 ? GREEN_COLOR : 'red');
         //}
 
-        activePriceStatusObjs[0].priceActiveText.text = ('' + Math.abs(currentValue - prevValue).toFixed(2)).substr(2)
+        activePriceStatusObjs[0].priceActiveText.text = ('' + diffValue)
         // Update the rendering:
         activePriceStatusObjs[0].priceActiveText.sync()
     }
+    // console.log("price:", currentValue)
+    // console.log("priceText:", activePriceStatusObjs[0].priceText.text)
+    // console.log("priceActive Value:", Math.abs(currentValue - prevValue).toFixed(2))
+    // console.log("priceActiveText:", activePriceStatusObjs[0].priceActiveText.text)
 
     activePriceStatusObjs[0].upArrow.position.x = circlePos[0][0] + 10 + movedDistance;
     activePriceStatusObjs[0].downArrow.position.x = circlePos[0][0] + 10 + movedDistance;

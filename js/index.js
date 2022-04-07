@@ -101,7 +101,6 @@ function getMedium(points, start, end) {
         sum += points[i].price;
     }
 
-
     let center = sum / (end - start + 1);
 
     //let center = points[end].price;
