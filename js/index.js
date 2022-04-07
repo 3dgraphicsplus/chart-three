@@ -97,7 +97,7 @@ function getRange(points, start, end) {
 function getMedium(points, start, end) {
     console.log("start, end ", start, end)
     let sum = 0;
-    for (let i = start; i <= end; i++){
+    for (let i = start; i <= end; i++) {
         sum += points[i].price;
     }
 
@@ -110,6 +110,7 @@ function getMedium(points, start, end) {
 function init() {
 
     initColorPicker();
+    currentRound();
 
     drawCount = dataClient.input_value.length;
     beginViewingIndex = drawCount - Factory.currentZoom();
@@ -193,8 +194,8 @@ function calculateAxis(forced) {
     let minY = Factory.convertBack(0, 30, 0)[1];
     let maxY = Factory.convertBack(0, container.clientHeight - 30, 0)[1];
 
-    if (rescaleData.length == 0 && (Math.abs(newOrigin - Factory.axisYConfig.origin)*Factory.axisYConfig.stepY > 10 || minY > newRange[0] || maxY < newRange[1])) {//TODO
-        console.log("Medium: ",newOrigin)
+    if (rescaleData.length == 0 && (Math.abs(newOrigin - Factory.axisYConfig.origin) * Factory.axisYConfig.stepY > 10 || minY > newRange[0] || maxY < newRange[1])) {//TODO
+        console.log("Medium: ", newOrigin)
         rescaleData.push({ origin: newOrigin, stepY: Factory.axisYConfig.stepY })
         //Factory.axisYConfig.origin = newOrigin;
         //Factory.axisYConfig.stepY = newY;
@@ -322,7 +323,7 @@ function x2DataIndex(x) {
     return Math.floor(x / Factory.axisXConfig.stepX) + beginViewingIndex
 }
 
-function recalculate(){
+function recalculate() {
     for (let i = cachedBegin; i <= cacheEnd; i++) {
         points[i] = Factory.convert(dataClient.input_value[i], i); // move the left points of the zoom line to the left, right points of the zoom line to right
         //points[i][0] -= offset
@@ -486,20 +487,22 @@ function handleHigherButtonClick(invest) {
         .start();
 }
 
-function higherButtonClickCallback(value, price) {
-    console.log("Callback when click on HigherButton with ", value)
+function placeOrder(amount, price, lowhigh, timestamp) {
     document.getElementById('audio').play();
-    let url = 'http://localhost:10000/bets/'
-    let amount = document.getElementById('price').value;
-    let currentTimeStamp = Date.now();
+    let url = 'http://localhost:10000/orders/'
     let betContent = JSON.stringify({
-        "bets": {
+        "mode": "raw",
+        "raw": {
             "amount": amount,
-            "point": price,
-            "type": "above",
-            "time": currentTimeStamp
+            "price": price,
+            "type": lowhigh,
+            "time": timestamp
         },
-        "round": round
+        "options": {
+            "raw": {
+                "language": "json"
+            }
+        }
     })
     let xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
@@ -513,8 +516,62 @@ function higherButtonClickCallback(value, price) {
     console.log(betContent)
 }
 
+function endRound() {
+    let url = 'http://localhost:10000/rounds/results'
+    let xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState == 4 && xhr.status == 201) {
+            console.log(xhr.responseText); // Another callback here
+        }
+    };
+    xhr.open("GET", url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send();
+
+    xhr.onload = function () {
+        if (xhr.status != 200) { // analyze HTTP status of the response
+            console.log(`Error ${xhr.status}: ${xhr.statusText}`); // e.g. 404: Not Found
+        } else { // show the result
+            console.log(`Done, got ${xhr.response.length} bytes`); // response is the server response
+        }
+    };
+}
+
+function currentRound() {
+    let url = 'http://localhost:10000/rounds'
+    let xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState == 4 && xhr.status == 201) {
+            console.log(xhr.responseText); // Another callback here
+        }
+    };
+    xhr.open("GET", url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send();
+
+    xhr.onload = function () {
+        if (xhr.status != 200) { // analyze HTTP status of the response
+            console.log(`Error ${xhr.status}: ${xhr.statusText}`); // e.g. 404: Not Found
+        } else { // show the result
+            console.log(`Done, got ${xhr.response.length} bytes`); // response is the server response
+        }
+    };
+}
+
+function higherButtonClickCallback(value, price) {
+    console.log("Callback when click on HigherButton with ", value)
+    document.getElementById('audio').play();
+    let amount = document.getElementById('price').value;
+    let currentTimeStamp = Date.now();
+    placeOrder(amount, price, "higher", currentTimeStamp)
+}
+
 function lowerButtonClickCallback(value, price) {
-    higherButtonClickCallback(value, price);
+    console.log("Callback when click on LowerButton with ", value)
+    document.getElementById('audio').play();
+    let amount = document.getElementById('price').value;
+    let currentTimeStamp = Date.now();
+    placeOrder(amount, price, "lower", currentTimeStamp)
 }
 
 function handleLowerButtonClick(invest) {
@@ -598,7 +655,7 @@ function updateListOfViewingIndex() {
     let newEnd = points.length - 1;
 
     //new end default is latest point, but if moving further than right side, newEnd is smaller
-    let xLeft = Math.min(0,activePoligonObjs.position.x);
+    let xLeft = Math.min(0, activePoligonObjs.position.x);
     newEnd = points.length - Math.ceil((points[newEnd][0] + xLeft - container.clientWidth) / Factory.axisXConfig.stepX);
 
     newEnd = Math.min(points.length - 1, newEnd);
@@ -607,7 +664,7 @@ function updateListOfViewingIndex() {
 
     newBegin = Math.max(newBegin, 0);
 
-    if(newBegin > newEnd){
+    if (newBegin > newEnd) {
         console.log(newBegin, " ", newEnd);
         debugger;
     }
@@ -690,6 +747,7 @@ function updateActiveGroup(now, last) {
 
 function triggerAtFinishingTime(value) {
     console.log("Reach finishing time with ", value)
+    endRound()
 }
 
 //FIXME????
@@ -734,7 +792,7 @@ var lastAdding = 0;
 // Fetch new data from input and draw it with animation
 let newTween = undefined;
 function drawNewData(newPrice, now) {
-    if (mouseDown || (lastAdding && now < lastAdding + 500) ) {
+    if (mouseDown || (lastAdding && now < lastAdding + 500)) {
         //not animate, just add points
         points.push(Factory.convert(newPrice, points.length));
         lastAdding = now;
