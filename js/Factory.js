@@ -1458,29 +1458,15 @@ function setXStepCount(val) {
     XStepCount = val;
 }
 
-function changeDataLineColor(dataLines, color, width, height) {
+function changeDataLineColor(dataLines, color) {
     DATA_LINE_CORLOR = "#" + color
-    matLine = new LineMaterial({
-        color: new THREE.Color(DATA_LINE_CORLOR),
-        vertexColors: false,
-        linewidth: DATA_LINE_WIDTH, // in world units with size attenuation, pixels otherwise
-        resolution: new THREE.Vector2(width, height),//FIXME we need to update, not new material
-        //resolution:  // to be set by renderer, eventually
-        dashed: false,
-        alphaToCoverage: true,
-        transparent: true,
-        opacity: 1.0,
-    });
-    for (let i = 0; i < dataLines.length; i++) {
-        dataLines[i].material.dispose();
-        dataLines[i].material = matLine;
-        dataLines[i].material.needsUpdate = true;
-    }
+    dataLines.material.color = new THREE.Color(DATA_LINE_CORLOR)
+    dataLines.material.needsUpdate = true
 }
 
 function changePolygonColor(poligons, color) {
     GRADIENT_DATALINE_COLOR = "#" + color
-    polygonMaterial = new THREE.ShaderMaterial({
+    let newPolygonMaterial = new THREE.ShaderMaterial({
         uniforms: {
             color: { value: new THREE.Color(GRADIENT_DATALINE_COLOR) }
         },
@@ -1489,11 +1475,10 @@ function changePolygonColor(poligons, color) {
         transparent: true,
         opacity: 0.4
     });
-    for (let i = 0; i < poligons.length; i++) {
-        poligons[i].material.dispose();
-        poligons[i].material = polygonMaterial;
-        poligons[i].material.needsUpdate = true;
-    }
+
+    poligons.material.dispose();
+    poligons.material = newPolygonMaterial;
+    poligons.material.needsUpdate = true;
 }
 
 function convert(point, index) {

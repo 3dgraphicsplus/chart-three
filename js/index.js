@@ -209,7 +209,7 @@ function initScene(drawingGroup) {
     //rescale(Factory.axisYConfig.stepY, beginViewingIndex, endViewingIndex, Factory.axisYConfig.initialValueY);
 
     activeGroup.add(activePoligonObjs);
-    Factory.addPolygon(activePoligonObjs, points, beginViewingIndex);
+    Factory.addPolygon(activePoligonObjs, activePoligonObjs, points, beginViewingIndex);
     //FIXME - other feature
     const point = points[points.length - 1];
     if (point[0] > Factory.GRID_RIGHTMOST_LINE / 2) {
@@ -1038,13 +1038,13 @@ function initColorPicker() {
         if (color != undefined && color != null) {
             // console.log('Event: "save"', color.toHEXA(), instance);
             let arrayColor = color.toHEXA().slice(0, -1);
-            // console.log(arrayColor.join(""))
-            Factory.changeDataLineColor(activeDataLineObjs, arrayColor.join(""), container.clientWidth, container.clientHeight);
+            console.log(arrayColor.join(""))
+            Factory.changeDataLineColor(activePoligonObjs.children[1], arrayColor.join(""));
         }
 
     }).on('clear', instance => {
         console.log('Event: "clear"', instance);
-        Factory.changeDataLineColor(activeDataLineObjs, "f27303", container.clientWidth, container.clientHeight);
+        Factory.changeDataLineColor(activePoligonObjs.children[1], "f27303");
     })
 
     let fillPickr = null;
@@ -1063,12 +1063,12 @@ function initColorPicker() {
         if (color != undefined && color != null) {
             let arrayColor = color.toHEXA().slice(0, -1);
             console.log(arrayColor.join(""))
-            Factory.changePolygonColor(activePoligonObjs, arrayColor.join(""));
+            Factory.changePolygonColor(activePoligonObjs.children[0], arrayColor.join(""));
         }
 
     }).on('clear', instance => {
         console.log('Event: "clear"', instance);
-        Factory.changePolygonColor(activePoligonObjs, "9f561c");
+        Factory.changePolygonColor(activePoligonObjs.children[0], "9f561c");
     })
 }
 
