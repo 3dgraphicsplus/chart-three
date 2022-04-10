@@ -487,7 +487,7 @@ function handleHigherButtonClick(invest) {
         .start();
 }
 
-function sendGETRequest(url) {
+function sendGETRequest(url, callback) {
     let xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
         if (xhr.readyState == 4 && xhr.status == 201) {
@@ -504,9 +504,18 @@ function sendGETRequest(url) {
         if (xhr.status != 200) { // analyze HTTP status of the response
             console.log(`Error ${xhr.status}: ${xhr.statusText}`); // e.g. 404: Not Found
         } else { // show the result
+            if (typeof callback == "function") {
+                callback(JSON.parse(xhr.response))
+            }
             console.log(`Done, got ${xhr.response.length} bytes with data is ${xhr.response}`); // response is the server response
         }
     };
+}
+
+function updateResultCallback(result) {
+    document.getElementById('profit-per').textContent = result.summaryProfitPercent.length == 0 ? "0" : result.summaryProfitPercent.length
+    document.getElementById('price').value = result.credit
+    document.getElementById('profit-val').innerHTML = '+' + result.profit + '$'
 }
 
 function sendPOSTRequest(url, betContent) {
@@ -564,7 +573,7 @@ function createResultRound() {
 
 function endRound() {
     let url = 'https://wrk-graph-price-api-vg56rovkka-as.a.run.app/rounds/results'
-    sendGETRequest(url);
+    sendGETRequest(url, updateResultCallback);
 }
 
 function currentRound() {
@@ -577,6 +586,7 @@ function higherButtonClickCallback(value, price) {
     document.getElementById('audio').play();
     let amount = document.getElementById('price').value;
     let currentTimeStamp = Date.now();
+    // endRound()
     getPriceLength();
     placeOrder(amount, price, "higher", currentTimeStamp);
 }
