@@ -553,8 +553,9 @@ function getPriceLength() {
 
 function placeOrder(amount, price, lowhigh, timestamp) {
     document.getElementById('audio').play();
+    console.log(timestamp)
     let url = 'https://wrk-graph-price-api-vg56rovkka-as.a.run.app/orders'
-    Date.prototype.toJSON = function(){ return moment(this).format(); }
+    // Date.prototype.toJSON = function(){ return moment(this).format(); }
     let d = new Date(timestamp);
     let betContent = JSON.stringify({
         "price": '' + price,
@@ -581,21 +582,19 @@ function currentRound() {
     sendGETRequest(url);
 }
 
-function higherButtonClickCallback(value, price) {
+function higherButtonClickCallback(value, price, currentTimeStamp) {
     console.log("Callback when click on HigherButton with ", value)
     document.getElementById('audio').play();
     let amount = document.getElementById('price').value;
-    let currentTimeStamp = Date.now();
     // endRound()
     getPriceLength();
     placeOrder(amount, price, "high", currentTimeStamp);
 }
 
-function lowerButtonClickCallback(value, price) {
+function lowerButtonClickCallback(value, price, currentTimeStamp) {
     console.log("Callback when click on LowerButton with ", value)
     document.getElementById('audio').play();
     let amount = document.getElementById('price').value;
-    let currentTimeStamp = Date.now();
     getPriceLength();
     placeOrder(amount, price, "low", currentTimeStamp);
 }
@@ -641,12 +640,12 @@ function onPointerDown(event) {
             // intersects2[0].object.scale.setScalar(0.8);
             if (higherButton == intersects2[0].object) {
                 handleHigherButtonClick($("#price").val());
-                higherButtonClickCallback($("#price").val(), dataClient.input_value[dataClient.input_value.length - 1].price);
+                higherButtonClickCallback($("#price").val(), dataClient.input_value[dataClient.input_value.length - 1].price, dataClient.input_value[dataClient.input_value.length - 1].origin_time);
             }
 
             if (lowerButton == intersects2[0].object) {
                 handleLowerButtonClick($("#price").val());
-                lowerButtonClickCallback($("#price").val(), dataClient.input_value[dataClient.input_value.length - 1].price);
+                lowerButtonClickCallback($("#price").val(), dataClient.input_value[dataClient.input_value.length - 1].price, dataClient.input_value[dataClient.input_value.length - 1].origin_time);
             }
         }
     }

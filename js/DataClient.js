@@ -102,7 +102,8 @@ export default class DataClient {
         let input_object = {
             price: priceTested,// / 100000),
             date: date,
-            time: time
+            time: time,
+            origin_time: value.C
         }
         this.input_value.push(input_object);
         this._internalIndex++;
