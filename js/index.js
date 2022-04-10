@@ -588,7 +588,7 @@ function higherButtonClickCallback(value, price) {
     let currentTimeStamp = Date.now();
     // endRound()
     getPriceLength();
-    placeOrder(amount, price, "higher", currentTimeStamp);
+    placeOrder(amount, price, "high", currentTimeStamp);
 }
 
 function lowerButtonClickCallback(value, price) {
@@ -597,7 +597,7 @@ function lowerButtonClickCallback(value, price) {
     let amount = document.getElementById('price').value;
     let currentTimeStamp = Date.now();
     getPriceLength();
-    placeOrder(amount, price, "lower", currentTimeStamp);
+    placeOrder(amount, price, "low", currentTimeStamp);
 }
 
 function handleLowerButtonClick(invest) {
