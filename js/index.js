@@ -489,20 +489,18 @@ function handleHigherButtonClick(invest) {
 
 function placeOrder(amount, price, lowhigh, timestamp) {
     document.getElementById('audio').play();
-    let url = 'http://localhost:10000/orders/'
+    Date.prototype.toJSON = function(){ return moment(this).format(); }
+    let d = new Date(timestamp);
+    // let datetime = new Date(d.getTime() - d.getTimezoneOffset() * 60 * 1000).toISOString().substring(0, 19).replace('T', ' ');
+    // // console.log(datetime)
+    // let date = datetime.substring(0, 11)
+    // let time = datetime.substring(11, datetime.length)
+    let url = 'https://wrk-graph-price-api-vg56rovkka-as.a.run.app/orders'
     let betContent = JSON.stringify({
-        "mode": "raw",
-        "raw": {
-            "amount": amount,
-            "price": price,
-            "type": lowhigh,
-            "time": timestamp
-        },
-        "options": {
-            "raw": {
-                "language": "json"
-            }
-        }
+        "price": '' + price,
+        "type": lowhigh,
+        "amount": parseFloat(amount),
+        "time": d
     })
     let xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
@@ -512,12 +510,23 @@ function placeOrder(amount, price, lowhigh, timestamp) {
     };
     xhr.open("POST", url, true);
     xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('Authorization', 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJiYWxhbmNlIjo1MDAwLCJleHAiOjI2NDg4MDM1MzgsImdhbWVJRCI6MSwicGFydG5lcklEIjoxLCJwbGF5ZXJJRCI6MywicmVmcmVzaFRva2VuIjoiZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SmlZV3hoYm1ObElqbzFNREF3TENKbGVIQWlPakUyTkRjNU16WTFOVFVzSW1kaGJXVkpSQ0k2TVN3aWNHRnlkRzVsY2tsRUlqb3hMQ0p3YkdGNVpYSkpSQ0k2TXl3aWRYTmxjbTVoYldVaU9pSm5iMllpZlEuRXpQb3ZIaFA4NUlHMFFfNVlQRHVUX3dzT3FqWk1MZnRpdjhxdWVqNDJRVSIsInVzZXJuYW1lIjoiZ29mIn0.AdP4nL2tLuz3PLMci8Cty0IhSKg7nTCm3VGGQ1kOl7A');
+    xhr.setRequestHeader('x-api-key', '1F736AE85A8EEE14B7CBBDF7E9E77D1D2372C45752F3B1DFFBD0BB746056FB6F');
     xhr.send(betContent);
+
+    xhr.onload = function () {
+        if (xhr.status != 200) { // analyze HTTP status of the response
+            console.log(`Error ${xhr.status}: ${xhr.response}`); // e.g. 404: Not Found
+        } else { // show the result
+            console.log(`Done, got ${xhr.response.length} bytes with data is ${xhr.response}`); // response is the server response
+        }
+    };
     console.log(betContent)
+    // o.d.toJSON = function(){ return moment(this).format(); }
 }
 
 function endRound() {
-    let url = 'http://localhost:10000/rounds/results'
+    let url = 'https://wrk-graph-price-api-vg56rovkka-as.a.run.app/rounds/results'
     let xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
         if (xhr.readyState == 4 && xhr.status == 201) {
@@ -526,19 +535,21 @@ function endRound() {
     };
     xhr.open("GET", url, true);
     xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('Authorization', 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJiYWxhbmNlIjo1MDAwLCJleHAiOjI2NDg4MDM1MzgsImdhbWVJRCI6MSwicGFydG5lcklEIjoxLCJwbGF5ZXJJRCI6MywicmVmcmVzaFRva2VuIjoiZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SmlZV3hoYm1ObElqbzFNREF3TENKbGVIQWlPakUyTkRjNU16WTFOVFVzSW1kaGJXVkpSQ0k2TVN3aWNHRnlkRzVsY2tsRUlqb3hMQ0p3YkdGNVpYSkpSQ0k2TXl3aWRYTmxjbTVoYldVaU9pSm5iMllpZlEuRXpQb3ZIaFA4NUlHMFFfNVlQRHVUX3dzT3FqWk1MZnRpdjhxdWVqNDJRVSIsInVzZXJuYW1lIjoiZ29mIn0.AdP4nL2tLuz3PLMci8Cty0IhSKg7nTCm3VGGQ1kOl7A');
+    xhr.setRequestHeader('x-api-key', '1F736AE85A8EEE14B7CBBDF7E9E77D1D2372C45752F3B1DFFBD0BB746056FB6F');
     xhr.send();
 
     xhr.onload = function () {
         if (xhr.status != 200) { // analyze HTTP status of the response
             console.log(`Error ${xhr.status}: ${xhr.statusText}`); // e.g. 404: Not Found
         } else { // show the result
-            console.log(`Done, got ${xhr.response.length} bytes`); // response is the server response
+            console.log(`Done, got ${xhr.response.length} bytes with data is ${xhr.response}`); // response is the server response
         }
     };
 }
 
 function currentRound() {
-    let url = 'http://localhost:10000/rounds'
+    let url = 'https://wrk-graph-price-api-vg56rovkka-as.a.run.app/rounds'
     let xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
         if (xhr.readyState == 4 && xhr.status == 201) {
@@ -547,13 +558,15 @@ function currentRound() {
     };
     xhr.open("GET", url, true);
     xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('Authorization', 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJiYWxhbmNlIjo1MDAwLCJleHAiOjI2NDg4MDM1MzgsImdhbWVJRCI6MSwicGFydG5lcklEIjoxLCJwbGF5ZXJJRCI6MywicmVmcmVzaFRva2VuIjoiZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SmlZV3hoYm1ObElqbzFNREF3TENKbGVIQWlPakUyTkRjNU16WTFOVFVzSW1kaGJXVkpSQ0k2TVN3aWNHRnlkRzVsY2tsRUlqb3hMQ0p3YkdGNVpYSkpSQ0k2TXl3aWRYTmxjbTVoYldVaU9pSm5iMllpZlEuRXpQb3ZIaFA4NUlHMFFfNVlQRHVUX3dzT3FqWk1MZnRpdjhxdWVqNDJRVSIsInVzZXJuYW1lIjoiZ29mIn0.AdP4nL2tLuz3PLMci8Cty0IhSKg7nTCm3VGGQ1kOl7A');
+    xhr.setRequestHeader('x-api-key', '1F736AE85A8EEE14B7CBBDF7E9E77D1D2372C45752F3B1DFFBD0BB746056FB6F');
     xhr.send();
 
     xhr.onload = function () {
         if (xhr.status != 200) { // analyze HTTP status of the response
             console.log(`Error ${xhr.status}: ${xhr.statusText}`); // e.g. 404: Not Found
         } else { // show the result
-            console.log(`Done, got ${xhr.response.length} bytes`); // response is the server response
+            console.log(`Done, got ${xhr.response.length} bytes with data is ${xhr.response}`); // response is the server response
         }
     };
 }

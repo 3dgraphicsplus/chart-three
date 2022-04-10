@@ -21,7 +21,7 @@ export default class DataClient {
         // this.input_value = TEST_DATA;
         this.last = undefined;
         let websocket;
-        const socket = io("wss://grypto-price-3a6ks.ondigitalocean.app");
+        const socket = io("wss://wrk-graph-price-5cqsj.ondigitalocean.app");
         //const socket = io("wss://wrk-graph-price-5cqsj.ondigitalocean.app");
         //wss://wrk-graph-price-5cqsj.ondigitalocean.app
         // get only first message to historical data
@@ -128,7 +128,7 @@ export default class DataClient {
 
     getHistoricalData(totalData) {
         return;
-        const socket = io("wss://grypto-price-3a6ks.ondigitalocean.app");
+        const socket = io("wss://wrk-graph-price-5cqsj.ondigitalocean.app");
         // get only first message to historical data
         socket.on('message', async (msg) => {
             // console.info(msg);
