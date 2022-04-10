@@ -402,7 +402,7 @@ function onPointerMove(event) {
             return;
         }
         activePoligonObjs.position.x += deltaX;
-
+        getPriceBackward();
         //if (points.length)//only run (for updating, not init
         //   updateListOfViewingIndex();
 
@@ -487,21 +487,29 @@ function handleHigherButtonClick(invest) {
         .start();
 }
 
-function placeOrder(amount, price, lowhigh, timestamp) {
-    document.getElementById('audio').play();
-    Date.prototype.toJSON = function(){ return moment(this).format(); }
-    let d = new Date(timestamp);
-    // let datetime = new Date(d.getTime() - d.getTimezoneOffset() * 60 * 1000).toISOString().substring(0, 19).replace('T', ' ');
-    // // console.log(datetime)
-    // let date = datetime.substring(0, 11)
-    // let time = datetime.substring(11, datetime.length)
-    let url = 'https://wrk-graph-price-api-vg56rovkka-as.a.run.app/orders'
-    let betContent = JSON.stringify({
-        "price": '' + price,
-        "type": lowhigh,
-        "amount": parseFloat(amount),
-        "time": d
-    })
+function sendGETRequest(url) {
+    let xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState == 4 && xhr.status == 201) {
+            console.log(xhr.responseText); // Another callback here
+        }
+    };
+    xhr.open("GET", url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('Authorization', 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJiYWxhbmNlIjo1MDAwLCJleHAiOjI2NDg4MDM1MzgsImdhbWVJRCI6MSwicGFydG5lcklEIjoxLCJwbGF5ZXJJRCI6MywicmVmcmVzaFRva2VuIjoiZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SmlZV3hoYm1ObElqbzFNREF3TENKbGVIQWlPakUyTkRjNU16WTFOVFVzSW1kaGJXVkpSQ0k2TVN3aWNHRnlkRzVsY2tsRUlqb3hMQ0p3YkdGNVpYSkpSQ0k2TXl3aWRYTmxjbTVoYldVaU9pSm5iMllpZlEuRXpQb3ZIaFA4NUlHMFFfNVlQRHVUX3dzT3FqWk1MZnRpdjhxdWVqNDJRVSIsInVzZXJuYW1lIjoiZ29mIn0.AdP4nL2tLuz3PLMci8Cty0IhSKg7nTCm3VGGQ1kOl7A');
+    xhr.setRequestHeader('x-api-key', '1F736AE85A8EEE14B7CBBDF7E9E77D1D2372C45752F3B1DFFBD0BB746056FB6F');
+    xhr.send();
+
+    xhr.onload = function () {
+        if (xhr.status != 200) { // analyze HTTP status of the response
+            console.log(`Error ${xhr.status}: ${xhr.statusText}`); // e.g. 404: Not Found
+        } else { // show the result
+            console.log(`Done, got ${xhr.response.length} bytes with data is ${xhr.response}`); // response is the server response
+        }
+    };
+}
+
+function sendPOSTRequest(url, betContent) {
     let xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
         if (xhr.readyState == 4 && xhr.status == 201) {
@@ -522,53 +530,46 @@ function placeOrder(amount, price, lowhigh, timestamp) {
         }
     };
     console.log(betContent)
+}
+
+function getPriceBackward() {
+    let url = 'https://wrk-graph-price-api-vg56rovkka-as.a.run.app/prices/backward?d=5'
+    sendGETRequest(url);
+}
+
+function getPriceLength() {
+    let url = 'https://wrk-graph-price-api-vg56rovkka-as.a.run.app/prices/length?st=1646757174510&sp=1646757473566'
+    sendGETRequest(url);
+}
+
+function placeOrder(amount, price, lowhigh, timestamp) {
+    document.getElementById('audio').play();
+    let url = 'https://wrk-graph-price-api-vg56rovkka-as.a.run.app/orders'
+    Date.prototype.toJSON = function(){ return moment(this).format(); }
+    let d = new Date(timestamp);
+    let betContent = JSON.stringify({
+        "price": '' + price,
+        "type": lowhigh,
+        "amount": parseFloat(amount),
+        "time": d
+    })
+    sendPOSTRequest(url, betContent)
     // o.d.toJSON = function(){ return moment(this).format(); }
+}
+
+function createResultRound() {
+    let url = 'https://wrk-graph-price-api-vg56rovkka-as.a.run.app/rounds/results/6247d9b7f84ce5bc376efcfa'
+    sendPOSTRequest(url, '')
 }
 
 function endRound() {
     let url = 'https://wrk-graph-price-api-vg56rovkka-as.a.run.app/rounds/results'
-    let xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState == 4 && xhr.status == 201) {
-            console.log(xhr.responseText); // Another callback here
-        }
-    };
-    xhr.open("GET", url, true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.setRequestHeader('Authorization', 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJiYWxhbmNlIjo1MDAwLCJleHAiOjI2NDg4MDM1MzgsImdhbWVJRCI6MSwicGFydG5lcklEIjoxLCJwbGF5ZXJJRCI6MywicmVmcmVzaFRva2VuIjoiZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SmlZV3hoYm1ObElqbzFNREF3TENKbGVIQWlPakUyTkRjNU16WTFOVFVzSW1kaGJXVkpSQ0k2TVN3aWNHRnlkRzVsY2tsRUlqb3hMQ0p3YkdGNVpYSkpSQ0k2TXl3aWRYTmxjbTVoYldVaU9pSm5iMllpZlEuRXpQb3ZIaFA4NUlHMFFfNVlQRHVUX3dzT3FqWk1MZnRpdjhxdWVqNDJRVSIsInVzZXJuYW1lIjoiZ29mIn0.AdP4nL2tLuz3PLMci8Cty0IhSKg7nTCm3VGGQ1kOl7A');
-    xhr.setRequestHeader('x-api-key', '1F736AE85A8EEE14B7CBBDF7E9E77D1D2372C45752F3B1DFFBD0BB746056FB6F');
-    xhr.send();
-
-    xhr.onload = function () {
-        if (xhr.status != 200) { // analyze HTTP status of the response
-            console.log(`Error ${xhr.status}: ${xhr.statusText}`); // e.g. 404: Not Found
-        } else { // show the result
-            console.log(`Done, got ${xhr.response.length} bytes with data is ${xhr.response}`); // response is the server response
-        }
-    };
+    sendGETRequest(url);
 }
 
 function currentRound() {
     let url = 'https://wrk-graph-price-api-vg56rovkka-as.a.run.app/rounds'
-    let xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState == 4 && xhr.status == 201) {
-            console.log(xhr.responseText); // Another callback here
-        }
-    };
-    xhr.open("GET", url, true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.setRequestHeader('Authorization', 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJiYWxhbmNlIjo1MDAwLCJleHAiOjI2NDg4MDM1MzgsImdhbWVJRCI6MSwicGFydG5lcklEIjoxLCJwbGF5ZXJJRCI6MywicmVmcmVzaFRva2VuIjoiZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SmlZV3hoYm1ObElqbzFNREF3TENKbGVIQWlPakUyTkRjNU16WTFOVFVzSW1kaGJXVkpSQ0k2TVN3aWNHRnlkRzVsY2tsRUlqb3hMQ0p3YkdGNVpYSkpSQ0k2TXl3aWRYTmxjbTVoYldVaU9pSm5iMllpZlEuRXpQb3ZIaFA4NUlHMFFfNVlQRHVUX3dzT3FqWk1MZnRpdjhxdWVqNDJRVSIsInVzZXJuYW1lIjoiZ29mIn0.AdP4nL2tLuz3PLMci8Cty0IhSKg7nTCm3VGGQ1kOl7A');
-    xhr.setRequestHeader('x-api-key', '1F736AE85A8EEE14B7CBBDF7E9E77D1D2372C45752F3B1DFFBD0BB746056FB6F');
-    xhr.send();
-
-    xhr.onload = function () {
-        if (xhr.status != 200) { // analyze HTTP status of the response
-            console.log(`Error ${xhr.status}: ${xhr.statusText}`); // e.g. 404: Not Found
-        } else { // show the result
-            console.log(`Done, got ${xhr.response.length} bytes with data is ${xhr.response}`); // response is the server response
-        }
-    };
+    sendGETRequest(url);
 }
 
 function higherButtonClickCallback(value, price) {
@@ -576,7 +577,8 @@ function higherButtonClickCallback(value, price) {
     document.getElementById('audio').play();
     let amount = document.getElementById('price').value;
     let currentTimeStamp = Date.now();
-    placeOrder(amount, price, "higher", currentTimeStamp)
+    getPriceLength();
+    placeOrder(amount, price, "higher", currentTimeStamp);
 }
 
 function lowerButtonClickCallback(value, price) {
@@ -584,7 +586,8 @@ function lowerButtonClickCallback(value, price) {
     document.getElementById('audio').play();
     let amount = document.getElementById('price').value;
     let currentTimeStamp = Date.now();
-    placeOrder(amount, price, "lower", currentTimeStamp)
+    getPriceLength();
+    placeOrder(amount, price, "lower", currentTimeStamp);
 }
 
 function handleLowerButtonClick(invest) {
@@ -760,6 +763,7 @@ function updateActiveGroup(now, last) {
 
 function triggerAtFinishingTime(value) {
     console.log("Reach finishing time with ", value)
+    createResultRound()
     endRound()
 }
 
