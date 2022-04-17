@@ -399,10 +399,11 @@ function onPointerMove(event) {
         }
         //right side is most right
         else if (deltaX > 0 && points[0][0] + activePoligonObjs.position.x + activeGroup.position.x >= 0) {
+            getPriceBackward(loadBackData);
             return;
         }
+
         activePoligonObjs.position.x += deltaX;
-        getPriceBackward();
         //if (points.length)//only run (for updating, not init
         //   updateListOfViewingIndex();
 
@@ -487,6 +488,15 @@ function handleHigherButtonClick(invest) {
         .start();
 }
 
+function loadBackData(objects) {
+    Object.entries(objects).forEach((obj) => {
+        const [key, value] = obj;
+        console.log("Adding ", value)
+        dataClient.addValueToBeginning(value);
+    });
+
+}
+
 function sendGETRequest(url, callback) {
     let xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
@@ -541,9 +551,9 @@ function sendPOSTRequest(url, betContent) {
     console.log(betContent)
 }
 
-function getPriceBackward() {
-    let url = 'https://wrk-graph-price-api-vg56rovkka-as.a.run.app/prices/backward?d=5'
-    sendGETRequest(url);
+function getPriceBackward(callback) {
+    let url = 'https://wrk-graph-price-api-vg56rovkka-as.a.run.app/prices/backward?d=1'
+    sendGETRequest(url, callback);
 }
 
 function getPriceLength() {

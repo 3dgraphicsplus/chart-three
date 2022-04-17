@@ -123,6 +123,48 @@ export default class DataClient {
         //console.log("new data ",input_object.time ,": ",input_object.price )
     }
 
+    addValueToBeginning(value) {
+        //validate date
+        let d = new Date(value[0] | value.E);
+        let isDate = true;//this.validateDate(d)//assume it is always correct
+        if (!isDate) {
+            console.warn("Wrong data format " + JSON.stringify(value));
+            return;
+        }
+        let priceTested = parseFloat((value[1]?parseFloat(value[1]):parseFloat(value.c)).toFixed(2));
+        if(isNaN(priceTested)){
+            console.error("broken data ",value);
+            return;
+        }
+
+        let datetime = new Date(d.getTime() - d.getTimezoneOffset() * 60 * 1000).toISOString().substring(0, 19).replace('T', ' ');
+        // console.log(datetime)
+        let date = datetime.substring(0, 11)
+        let time = datetime.substring(11, datetime.length)
+        let input_object = {
+            price: priceTested,// / 100000),
+            date: date,
+            time: time,
+            origin_time: value.C
+        }
+        this.input_value.unshift(input_object);
+        this._internalIndex++;
+
+        //limit cache
+        if (this.input_value.length > 5000) {
+            this.input_value.shift();
+            this._internalIndex--;
+        }
+
+        if(this.loadingDone && this.onNew){
+            this.onNew(input_object)
+        }
+
+
+        //console.log("new data message ",value.E ,": ",value.c )
+        //console.log("new data ",input_object.time ,": ",input_object.price )
+    }
+
     shift() {
         this.input_value.shift();
     }
