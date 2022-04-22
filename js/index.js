@@ -400,7 +400,6 @@ function onPointerMove(event) {
         //right side is most right
         else if (deltaX > 0 && points[0][0] + activePoligonObjs.position.x + activeGroup.position.x >= 0) {
             getPriceBackward(loadBackData);
-            return;
         }
 
         activePoligonObjs.position.x += deltaX;
@@ -493,8 +492,10 @@ function loadBackData(objects) {
         const [key, value] = obj;
         console.log("Adding ", value)
         dataClient.addValueToBeginning(value);
+        // Draw data from back
+        console.log("Drawing ", dataClient.input_value[0])
+        drawHistoricalData(dataClient.input_value[0].price)
     });
-
 }
 
 function sendGETRequest(url, callback) {
@@ -517,7 +518,7 @@ function sendGETRequest(url, callback) {
             if (typeof callback == "function") {
                 callback(JSON.parse(xhr.response))
             }
-            console.log(`Done, got ${xhr.response.length} bytes with data is ${xhr.response}`); // response is the server response
+            // console.log(`Done, got ${xhr.response.length} bytes with data is ${xhr.response}`); // response is the server response
         }
     };
 }
@@ -871,6 +872,10 @@ function drawNewData(newPrice, now) {
     //Factory.updateNewLine(newLine, points);
 
     //updateOtherStuff(triggerAtPurchaseTime, triggerAtFinishingTime);
+}
+
+function drawHistoricalData(newPrice) {
+    points.unshift(Factory.convert(newPrice, points.length));
 }
 
 function updateGeometries(beginIndex, endIndex) {
