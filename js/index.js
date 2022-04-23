@@ -67,6 +67,9 @@ let round = 1;
 // let originIndex = 0;
 let totalMouseMovement = 0;
 
+//loading history
+let isLoadding = false;
+
 let newData = [];
 function onAddNewData(newVal) {
     newData.push(newVal)
@@ -374,6 +377,9 @@ function zoomWithEffect(zoomValue, isButton) {
 
 // Event triggered when zoom
 function onWheel(event) {
+
+    if(isLoadding)return;
+
     let pivotPoint = { x: event.clientX, y: event.clientY }
     // Find the intersect point to detect the data index where the zoom happens
     //pivotPoint.x = event.clientX;
@@ -387,6 +393,8 @@ function onWheel(event) {
 // Event mouse move, use this for both drag and drawing the line at the mouse cursor
 function onPointerMove(event) {
     //event.preventDefault();
+    
+    if(isLoadding)return;
 
     // If mouse is down, then it is drag
     if (mouseDown == true) {
@@ -399,7 +407,11 @@ function onPointerMove(event) {
         }
         //right side is most right
         else if (deltaX > 0 && points[0][0] + activePoligonObjs.position.x + activeGroup.position.x >= 0) {
-            getPriceBackward(loadBackData);
+
+            if(!isLoadding){
+                isLoadding = true;
+                dataClient.getPriceBackward(loadBackData);
+            }
         }
 
         activePoligonObjs.position.x += deltaX;
@@ -487,40 +499,19 @@ function handleHigherButtonClick(invest) {
         .start();
 }
 
-function loadBackData(objects) {
-    Object.entries(objects).forEach((obj) => {
-        const [key, value] = obj;
-        console.log("Adding ", value)
-        dataClient.addValueToBeginning(value);
-        // Draw data from back
-        console.log("Drawing ", dataClient.input_value[0])
-        drawHistoricalData(dataClient.input_value[0].price)
-    });
-}
+function loadBackData(len) {
 
-function sendGETRequest(url, callback) {
-    let xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState == 4 && xhr.status == 201) {
-            console.log(xhr.responseText); // Another callback here
-        }
-    };
-    xhr.open("GET", url, true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.setRequestHeader('Authorization', 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJiYWxhbmNlIjo1MDAwLCJleHAiOjI2NDg4MDM1MzgsImdhbWVJRCI6MSwicGFydG5lcklEIjoxLCJwbGF5ZXJJRCI6MywicmVmcmVzaFRva2VuIjoiZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SmlZV3hoYm1ObElqbzFNREF3TENKbGVIQWlPakUyTkRjNU16WTFOVFVzSW1kaGJXVkpSQ0k2TVN3aWNHRnlkRzVsY2tsRUlqb3hMQ0p3YkdGNVpYSkpSQ0k2TXl3aWRYTmxjbTVoYldVaU9pSm5iMllpZlEuRXpQb3ZIaFA4NUlHMFFfNVlQRHVUX3dzT3FqWk1MZnRpdjhxdWVqNDJRVSIsInVzZXJuYW1lIjoiZ29mIn0.AdP4nL2tLuz3PLMci8Cty0IhSKg7nTCm3VGGQ1kOl7A');
-    xhr.setRequestHeader('x-api-key', '1F736AE85A8EEE14B7CBBDF7E9E77D1D2372C45752F3B1DFFBD0BB746056FB6F');
-    xhr.send();
+    cachedBegin = 0;
+    cacheEnd = dataClient.length()-1;
 
-    xhr.onload = function () {
-        if (xhr.status != 200) { // analyze HTTP status of the response
-            console.log(`Error ${xhr.status}: ${xhr.statusText}`); // e.g. 404: Not Found
-        } else { // show the result
-            if (typeof callback == "function") {
-                callback(JSON.parse(xhr.response))
-            }
-            // console.log(`Done, got ${xhr.response.length} bytes with data is ${xhr.response}`); // response is the server response
-        }
-    };
+    recalculate();
+
+    calculateAxis();
+
+    console.log("Data size " + points.length);
+    updateView();
+    isLoadding = false;
+    
 }
 
 function updateResultCallback(result) {
@@ -529,37 +520,10 @@ function updateResultCallback(result) {
     document.getElementById('profit-val').innerHTML = '+' + result.profit + '$'
 }
 
-function sendPOSTRequest(url, betContent) {
-    let xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState == 4 && xhr.status == 201) {
-            console.log(xhr.responseText); // Another callback here
-        }
-    };
-    xhr.open("POST", url, true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.setRequestHeader('Authorization', 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJiYWxhbmNlIjo1MDAwLCJleHAiOjI2NDg4MDM1MzgsImdhbWVJRCI6MSwicGFydG5lcklEIjoxLCJwbGF5ZXJJRCI6MywicmVmcmVzaFRva2VuIjoiZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SmlZV3hoYm1ObElqbzFNREF3TENKbGVIQWlPakUyTkRjNU16WTFOVFVzSW1kaGJXVkpSQ0k2TVN3aWNHRnlkRzVsY2tsRUlqb3hMQ0p3YkdGNVpYSkpSQ0k2TXl3aWRYTmxjbTVoYldVaU9pSm5iMllpZlEuRXpQb3ZIaFA4NUlHMFFfNVlQRHVUX3dzT3FqWk1MZnRpdjhxdWVqNDJRVSIsInVzZXJuYW1lIjoiZ29mIn0.AdP4nL2tLuz3PLMci8Cty0IhSKg7nTCm3VGGQ1kOl7A');
-    xhr.setRequestHeader('x-api-key', '1F736AE85A8EEE14B7CBBDF7E9E77D1D2372C45752F3B1DFFBD0BB746056FB6F');
-    xhr.send(betContent);
-
-    xhr.onload = function () {
-        if (xhr.status != 200) { // analyze HTTP status of the response
-            console.log(`Error ${xhr.status}: ${xhr.response}`); // e.g. 404: Not Found
-        } else { // show the result
-            console.log(`Done, got ${xhr.response.length} bytes with data is ${xhr.response}`); // response is the server response
-        }
-    };
-    console.log(betContent)
-}
-
-function getPriceBackward(callback) {
-    let url = 'https://wrk-graph-price-api-vg56rovkka-as.a.run.app/prices/backward?d=1'
-    sendGETRequest(url, callback);
-}
 
 function getPriceLength() {
     let url = 'https://wrk-graph-price-api-vg56rovkka-as.a.run.app/prices/length?st=1646757174510&sp=1646757473566'
-    sendGETRequest(url);
+    dataClient.sendGETRequest(url);
 }
 
 function placeOrder(amount, price, lowhigh, timestamp) {
@@ -574,23 +538,23 @@ function placeOrder(amount, price, lowhigh, timestamp) {
         "amount": parseFloat(amount),
         "time": d
     })
-    sendPOSTRequest(url, betContent)
+    dataClient.sendPOSTRequest(url, betContent)
     // o.d.toJSON = function(){ return moment(this).format(); }
 }
 
 function createResultRound() {
     let url = 'https://wrk-graph-price-api-vg56rovkka-as.a.run.app/rounds/results/6247d9b7f84ce5bc376efcfa'
-    sendPOSTRequest(url, '')
+    dataClient.sendPOSTRequest(url, '')
 }
 
 function endRound() {
     let url = 'https://wrk-graph-price-api-vg56rovkka-as.a.run.app/rounds/results'
-    sendGETRequest(url, updateResultCallback);
+    dataClient.sendGETRequest(url, updateResultCallback);
 }
 
 function currentRound() {
     let url = 'https://wrk-graph-price-api-vg56rovkka-as.a.run.app/rounds'
-    sendGETRequest(url);
+    dataClient.sendGETRequest(url);
 }
 
 function higherButtonClickCallback(value, price, currentTimeStamp) {
@@ -747,8 +711,10 @@ function updateView(now) {
 
 
     //update purchase line and goal line lifetime
-    countDownTimer = PURCHASE_DURATION - Math.floor((now - purchaseTime) / 1000);
-    finishTimer = PURCHASE_DURATION + GOAL_DURATION - Math.floor((now - goalTime) / 1000);
+    if(now){
+        countDownTimer = PURCHASE_DURATION - Math.floor((now - purchaseTime) / 1000);
+        finishTimer = PURCHASE_DURATION + GOAL_DURATION - Math.floor((now - goalTime) / 1000);
+    }
 
 }
 
@@ -874,9 +840,6 @@ function drawNewData(newPrice, now) {
     //updateOtherStuff(triggerAtPurchaseTime, triggerAtFinishingTime);
 }
 
-function drawHistoricalData(newPrice) {
-    points.unshift(Factory.convert(newPrice, points.length));
-}
 
 function updateGeometries(beginIndex, endIndex) {
     // Update the data line, note that two points make one data line
