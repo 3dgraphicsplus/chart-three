@@ -73,7 +73,7 @@
     varying vec3 vPosition;
 
     void main() {
-        float opacity = -vPosition.y* 0.5 + 0.45;
+        float opacity = -vPosition.y* 0.5 + 0.30;
         gl_FragColor = vec4(vColor, opacity );
 
     }
@@ -104,7 +104,7 @@
     varying vec3 vPosition;
 
     void main() {
-        float opacity = vPosition.y* 0.5 + 0.45;
+        float opacity = vPosition.y* 0.5 + 0.30;
         gl_FragColor = vec4(vColor, opacity );
 
     }
@@ -163,11 +163,15 @@
                             <tbody>
                                 <tr id="l1">
                                     <th>Amount</th>
-                                    <th><img id="helpicon" src="img/help.png" /></th>
+                                    <th><div id="helpicon">
+                                        <img id="helpicon-image" src="img/help.png"/>
+                                            <span id="helpicon-text">placeholder</span>
+                                          </div>
+                                    </th>
                                 </tr>
                                 <tr id="l2">
                                     <th>
-                                        $ <input id="price" type="text" value="40000" />
+                                        $ <input id="price" type="text" value="1" />
                                     </th>
                                 </tr>
                             </tbody>

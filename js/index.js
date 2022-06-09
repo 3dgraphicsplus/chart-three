@@ -986,18 +986,23 @@ function showOverlay() {
     document.getElementById("totalcredit").style.display = "block";
     document.getElementById("triangle").style.display = "block";
     //setup gui event
-    let step = parseFloat($("#price").val()) * 0.01;//TODO upon specs
+    // let step = parseFloat($("#price").val()) * 0.01;//TODO upon specs
     $("#plus").click(function (e) {
-        let step = parseFloat($("#price").val()) * 0.01;
-        $("#price").val((parseFloat($("#price").val()) + step).toFixed(1));
+        let step = 1;
+        let newVal = parseInt($("#price").val()) + step;
+        if (newVal < 1) newVal = 1;
+        $("#price").val(newVal);
         console.log("Plus " + $("#price").val())
     })
     $("#minus").click(function (e) {
-        let step = parseFloat($("#price").val()) * 0.01;
-        $("#price").val((parseFloat($("#price").val()) - step).toFixed(1));
+        let step = 1;
+        let newVal = parseInt($("#price").val()) - step;
+        if (newVal < 1) newVal = 1;
+        $("#price").val(newVal);
         console.log("minus " + $("#price").val())
     })
     $("#price").change(function (e) {
+        if (($("#price").val() < 1)|| isNaN($("#price").val()))  $("#price").val(1);
         console.log("price " + $("#price").val())
     })
 }
