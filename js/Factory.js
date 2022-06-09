@@ -10,8 +10,8 @@ let mouseTimeLineGeo, mousePriceLineGeo;
 
 // GUI Constants
 // Colors
-let DATA_LINE_CORLOR = 0xf27303
-let GRADIENT_DATALINE_COLOR = 0x9f561c
+let DATA_LINE_CORLOR = 0xffffff
+let GRADIENT_DATALINE_COLOR = 0xffffff
 let BACKGROUND_COLOR = 0x191f2d
 let TIME_TEXT_COLOR = 0x524f56
 let HORIZONTAL_PRICE_TEXT_COLOR = 0x9ca0aa
@@ -42,8 +42,8 @@ var GRID_TOPLINE, GRID_RIGHTMOST_LINE;
 //if max zoom is 2min: 64,32,16,8,4,2
 //DEPRECATED
 const DEFAULT_ZOOM_LEVEL = [5, 10, 15, 30, 60, 120, 300, 900, 1800, 3600, 7200, 3600 * 4, 3600 * 6, 3600 * 12]
-const MIN_ZOOM_LEVEL = 240;//120s
-const MAX_ZOOM_LEVEL = MIN_ZOOM_LEVEL * Math.pow(2, 4);
+const MIN_ZOOM_LEVEL = 150;//120s
+const MAX_ZOOM_LEVEL = MIN_ZOOM_LEVEL * Math.pow(2, 5);
 
 var currentZoomLevel = MIN_ZOOM_LEVEL;
 
@@ -133,7 +133,7 @@ function drawHigherButton(scene, gridRightBound) {
     higherText.text = "HIGHER"
     //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
     higherText.fontSize = 18
-    higherText.position.z = 0
+    higherText.position.z = 1
     higherText.position.x = gridRightBound - 150 - 35;
     higherText.position.y = initY - 70;
     higherText.color = "white"
@@ -180,7 +180,7 @@ function drawLowerButton(scene, gridRightBound) {
     lowerText.text = "LOWER"
     //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
     lowerText.fontSize = 18
-    lowerText.position.z = 0
+    lowerText.position.z = 1
     lowerText.position.x = gridRightBound - 150 - 35;
     lowerText.position.y = initY - 70;
     lowerText.color = "white"
@@ -344,7 +344,7 @@ function updateMouseMoveLine(scene, posX, posY, timestamp, priceValue) {
         mousePriceText.renderOrder = 100;
         mousePriceText.color = 'white'
     }
-    mousePriceText.text = '' + priceValue.toFixed(2);
+    mousePriceText.text = '' + priceValue.toFixed(8);
     mousePriceText.sync()
 }
 
@@ -407,7 +407,7 @@ function drawHorizontalGrid(group, horizontalGrids, gridTopBound, gridRightBound
         let priceText = new Text()
         // console.log(priceValue)
         // Set properties to configure:
-        priceText.text = priceValue.toFixed(2);
+        priceText.text = priceValue.toFixed(8);
         //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
         priceText.fontSize = 12
         priceText.position.z = 0
@@ -439,7 +439,7 @@ function updateHorizontalGrid(horizontalGrids) {
         //let yValue = j*stepY;
         let priceValue = stepPrice * j + minY;
 
-        horizontalGrids[j].children[1].text = priceValue.toFixed(2);
+        horizontalGrids[j].children[1].text = priceValue.toFixed(8);
         horizontalGrids[j].children[1].sync();
     }
 }
@@ -593,8 +593,8 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     let priceShape = new THREE.Mesh(geomShape, matShape);
     priceShape.renderOrder = 30;
 
-    let currentValue = parseFloat(dataClient.input_value[dataClient.input_value.length - 1].price).toFixed(2);
-    prevValue = parseFloat(dataClient.input_value[dataClient.input_value.length - 2].price).toFixed(2);
+    let currentValue = parseFloat(dataClient.input_value[dataClient.input_value.length - 1].price).toFixed(8);
+    prevValue = parseFloat(dataClient.input_value[dataClient.input_value.length - 2].price).toFixed(8);
 
     const isChanged = Math.round((currentValue - prevValue) * 1e2) / 1e2;
 
@@ -676,7 +676,7 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
         vertexShader: document.getElementById('vertexshaderlower').textContent,
         fragmentShader: document.getElementById('fragmentshaderlower').textContent,
         transparent: true,
-        opacity: 0.4
+        opacity: 0.6
     });
     let lowerArea = new THREE.Mesh(lowerAreaGeo, lowerAreaMaterial);
     lowerArea.scale.y = 0
@@ -773,13 +773,13 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
     activePriceStatusObjs[0].line.computeLineDistances();
     activePriceStatusObjs[0].line.geometry.attributes.position.needsUpdate = true;
 
-    let currentValue = parseFloat(dataClient.input_value[dataClient.input_value.length - 1].price).toFixed(2);
-    prevValue = parseFloat(dataClient.input_value[dataClient.input_value.length - 2].price).toFixed(2);
+    let currentValue = parseFloat(dataClient.input_value[dataClient.input_value.length - 1].price).toFixed(8);
+    prevValue = parseFloat(dataClient.input_value[dataClient.input_value.length - 2].price).toFixed(8);
 
     // Extract the exact diff between current and prev, then highlight only that part
     // For example: 45370.01 with diffValue is +1.23 then display 45371.23 with 1.23 is highlighted
     const isChanged = Math.round((currentValue - prevValue) * 1e2) / 1e2;
-    let diffValue = Math.abs(currentValue - prevValue).toFixed(2)
+    let diffValue = Math.abs(currentValue - prevValue).toFixed(8)
     let diffValueStr = ('' + diffValue)
     let truncatedPriceText = ('' + Math.trunc(parseFloat(currentValue))).slice(0, (currentValue + '').length - diffValueStr.length)
     //if (isChanged != 0) 
@@ -1133,15 +1133,16 @@ function updatePurchaseLine(purchaseLineObjs, countDownTimer, currentX) {
 
     //console.log(countDownTimer)
     let countDownText = purchaseLineObjs.countDownText
-    countDownText.text = (countDownTimer == 60 ? '01:00' : (countDownTimer < 10 ? '00:' + '0' + countDownTimer : '00:' + countDownTimer))
+    if (countDownTimer >=0)
+        countDownText.text = (countDownTimer == 60 ? '01:00' : (countDownTimer < 10 ? '00:' + '0' + countDownTimer : '00:' + countDownTimer))
     // Update the rendering:
     countDownText.sync()
 
-    //blink effect
-    if (countDownTimer <= 3) {
-        const blinkSpeed = 500;
-        countDownText.visible = !(Date.now() % blinkSpeed < blinkSpeed / 2);//hide each blinkSpeed ms
-    }
+    // //blink effect
+    // if (countDownTimer <= 3) {
+    //     const blinkSpeed = 500;
+    //     countDownText.visible = !(Date.now() % blinkSpeed < blinkSpeed / 2);//hide each blinkSpeed ms
+    // }
     countDownText.parent.visible = countDownTimer >= 0
 
     if (currentX != undefined)
@@ -1258,7 +1259,7 @@ function drawMark(drawingGroup, markObjs, circlePos, isLower, index, gridRightBo
 
     let priceText = new Text()
     priceText.renderOrder = 60
-    priceText.text = '' + parseFloat(dataClient.input_value[index].price).toFixed(2);// * 100000
+    priceText.text = '' + parseFloat(dataClient.input_value[index].price).toFixed(8);// * 100000
     priceText.font = "https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
     priceText.fontSize = 11
     priceText.position.z = 0

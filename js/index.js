@@ -110,6 +110,14 @@ function getMedium(points, start, end) {
     return center;
 }
 
+function getMax(points, start, end) {
+    let tmp = [];
+    for (let i = start; i <= end; i++) {
+        tmp.push(points[i].price);
+    }
+    return Math.max(...tmp);
+}
+
 function init() {
 
     initColorPicker();
@@ -187,7 +195,9 @@ function calculateAxis(forced) {
 
     Factory.axisXConfig.stepX = container.clientWidth / Factory.currentZoom();//2mins
     Factory.axisYConfig.initialValueY = initialCameraPos.y + (container.clientHeight) / 2;
-    Factory.axisYConfig.stepY = container.clientHeight / Factory.currentZoom();///2;
+    // Factory.axisYConfig.stepY = container.clientHeight / Factory.currentZoom();///2;
+    Factory.axisYConfig.stepY = ((container.clientHeight - 30 - Factory.axisYConfig.initialValueY) - 2*(30 -Factory.axisYConfig.initialValueY))
+                                /(5*(getMax(dataClient.input_value, beginViewingIndex, endViewingIndex) - Factory.axisYConfig.origin));
     if (forced) {
         Factory.axisYConfig.origin = newOrigin;
         return;
