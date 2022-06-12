@@ -734,11 +734,41 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     let higherText = new Text()
     higherText.renderOrder = 200;
 
+    let resultPL = new THREE.Group();
+    let resultPLText = new Text()
+    resultPLText.renderOrder = 200;
+    resultPLText.text = "RESULT(P/L)"
+    resultPLText.fontSize = 15
+    resultPLText.position.z = 1;
+    resultPLText.color = "white" ;
+    resultPLText.position.x = -40;
+    resultPLText.position.y = 20;
+    resultPLText.sync();
+
+    let resultPLValueText = new Text()
+    resultPLValueText.renderOrder = 200;
+    resultPLValueText.text = "+85$"
+    resultPLValueText.fontSize = 15
+    resultPLValueText.color = "white" ;
+    resultPLValueText.position.x = -20;
+    resultPLValueText.position.y = 0;
+    resultPLValueText.position.z = 1;
+    resultPLValueText.sync();
+
+    let resultPLGeomShape = new THREE.BoxGeometry(100, 60, 1);
+    let resultPLMatShape = new THREE.MeshBasicMaterial({ color: HIGHER_BUTTON_COLOR, transparent: true, opacity: 1.0 });
+    let resultPLMesh = new THREE.Mesh(resultPLGeomShape, resultPLMatShape);
+    resultPLMesh.renderOrder = 10;
+
+    resultPL.add(resultPLMesh);
+    resultPL.add(resultPLText);
+    resultPL.add(resultPLValueText);
+
     let obj = {
         dashedLine: verdashedLine, line: verLine, priceShape: priceShape,
         priceText: priceText, priceActiveText: priceActiveText, greenDot: greenDot,
         greenGlow: greenGlow, lowerArea: lowerArea, higherArea: higherArea,
-        upArrow: upMesh2, downArrow: downMesh2
+        upArrow: upMesh2, downArrow: downMesh2, resultPL: resultPL
     }
 
     for (const key in obj) {
@@ -1143,7 +1173,7 @@ function updatePurchaseLine(purchaseLineObjs, countDownTimer, currentX) {
     //     const blinkSpeed = 500;
     //     countDownText.visible = !(Date.now() % blinkSpeed < blinkSpeed / 2);//hide each blinkSpeed ms
     // }
-    countDownText.parent.visible = countDownTimer >= 0
+    // countDownText.parent.visible = countDownTimer >= 0
 
     if (currentX != undefined)
         countDownText.parent.parent.position.x = currentX + countDownTimer * axisXConfig.stepX;

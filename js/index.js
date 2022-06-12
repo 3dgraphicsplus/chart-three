@@ -266,6 +266,7 @@ function initScene(drawingGroup) {
 
     drawingGroup.add(activePriceView);
     activePoligonObjs.add(activePriceStatusObjs[0].greenDot)//FIXME
+    activePoligonObjs.add(activePriceStatusObjs[0].resultPL)
 
     //drawingGroup.add(newbkg)
     //bkgObjs.push(newbkg)
@@ -528,6 +529,16 @@ function updateResultCallback(result) {
     document.getElementById('profit-per').textContent = result.summaryProfitPercent.length == 0 ? "0" : result.summaryProfitPercent.length
     document.getElementById('price').value = result.credit
     document.getElementById('profit-val').innerHTML = '+' + result.profit + '$'
+    activePriceStatusObjs[0].resultPL.children[2].text = '+' + result.profit + '$';
+    if (result.profit < 0) {
+        activePriceStatusObjs[0].resultPL.children[0].material.color.set(Factory.LOWER_BUTTON_COLOR);
+    }
+    else {
+        activePriceStatusObjs[0].resultPL.children[0].material.color.set(Factory.HIGHER_BUTTON_COLOR);
+    }
+    // Display resultP/L
+    activePriceStatusObjs[0].resultPL.position.x = points[points.length - 1][0];
+    activePriceStatusObjs[0].resultPL.position.y = points[points.length - 1][1];
 }
 
 
