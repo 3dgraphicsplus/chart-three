@@ -66,6 +66,7 @@ let enablePriceMark = true;
 let round = 1;
 // let originIndex = 0;
 let totalMouseMovement = 0;
+let lastIndexPointResultPL = 0;
 
 //loading history
 let isLoadding = false;
@@ -527,7 +528,8 @@ function loadBackData(len) {
 
 function updateResultCallback(result) {
     document.getElementById('profit-per').textContent = result.summaryProfitPercent.length == 0 ? "0" : result.summaryProfitPercent.length
-    document.getElementById('price').value = result.credit
+    if (result.credit < 1) document.getElementById('price').value = 1;
+    else document.getElementById('price').value = result.credit;
     document.getElementById('profit-val').innerHTML = '+' + result.profit + '$'
     activePriceStatusObjs[0].resultPL.children[2].text = '+' + result.profit + '$';
     if (result.profit < 0) {
@@ -537,8 +539,9 @@ function updateResultCallback(result) {
         activePriceStatusObjs[0].resultPL.children[0].material.color.set(Factory.HIGHER_BUTTON_COLOR);
     }
     // Display resultP/L
-    activePriceStatusObjs[0].resultPL.position.x = points[points.length - 1][0];
-    activePriceStatusObjs[0].resultPL.position.y = points[points.length - 1][1];
+    lastIndexPointResultPL = points.length - 1;
+    activePriceStatusObjs[0].resultPL.position.x = points[lastIndexPointResultPL][0];
+    activePriceStatusObjs[0].resultPL.position.y = points[lastIndexPointResultPL][1];
 }
 
 
@@ -707,7 +710,8 @@ function updateListOfViewingIndex() {
     const currentX = points[points.length - 1][0] + activePoligonObjs.position.x;
     Factory.updateVerticalGrid(activePoligonObjs, Factory.GRID_TOPLINE, beginX, currentX, mouseDown || zoomTween);
 
-
+    activePriceStatusObjs[0].resultPL.position.x = points[lastIndexPointResultPL][0];
+    activePriceStatusObjs[0].resultPL.position.y = points[lastIndexPointResultPL][1];
 
 
 }
