@@ -73,17 +73,20 @@ function minZoom() {
 }
 
 function drawHigherButton(scene, gridRightBound) {
-    let initY = 500;
+    // let initY = 500;
+    let sizeBase = container.clientWidth;
+    if (container.clientHeight > container.clientWidth)
+        sizeBase = container.clientHeight
 
     // shape
-    let geomShape = new THREE.BoxGeometry(110, 110, 1);
+    let geomShape = new THREE.BoxGeometry(0.075*sizeBase, 0.075*sizeBase, 1);
     let matShape = new THREE.MeshBasicMaterial({ color: HIGHER_BUTTON_COLOR, transparent: true, opacity: 1.0 });
     let higherButton = new THREE.Mesh(geomShape, matShape);
     higherButton.renderOrder = 10;
-    higherButton.position.x = gridRightBound - 150;
-    higherButton.position.y = initY - 50;
+    higherButton.position.x = gridRightBound - 0.095*sizeBase;
+    higherButton.position.y = container.clientHeight/2 + 0.04*sizeBase;
 
-    let upGeo = new THREE.BoxGeometry(110, 110, 1);
+    let upGeo = new THREE.BoxGeometry(0.075*sizeBase, 0.075*sizeBase, 1);
     let upMesh = new THREE.Mesh(upGeo, new THREE.MeshBasicMaterial(
         {
             map: new THREE.TextureLoader().load("/img/up.png", map => {
@@ -93,11 +96,11 @@ function drawHigherButton(scene, gridRightBound) {
             opacity: 1.0,
             color: 0xffffff,
         }));
-    upMesh.position.x = gridRightBound - 150;
-    upMesh.position.y = initY - 50;
+    upMesh.position.x = gridRightBound - 0.095*sizeBase;
+    upMesh.position.y = container.clientHeight/2 + 0.04*sizeBase;
     upMesh.renderOrder = 100;
 
-    let upGeo2 = new THREE.BoxGeometry(110, 110, 1);
+    let upGeo2 = new THREE.BoxGeometry(0.075*sizeBase, 0.075*sizeBase, 1);
     let upMesh2 = new THREE.Mesh(upGeo2, new THREE.MeshBasicMaterial(
         {
             map: new THREE.TextureLoader().load("/img/upArrow.png", map => {
@@ -107,11 +110,11 @@ function drawHigherButton(scene, gridRightBound) {
             opacity: 1.0,
             color: HIGHER_BUTTON_COLOR,
         }));
-    upMesh2.position.x = gridRightBound - 150;
-    upMesh2.position.y = initY + 50;
+    upMesh2.position.x = gridRightBound - 0.095*sizeBase;
+    upMesh2.position.y = container.clientHeight/2 + 0.04*sizeBase;
     upMesh2.renderOrder = 200;
 
-    let downGeo2 = new THREE.BoxGeometry(110, 110, 1);
+    let downGeo2 = new THREE.BoxGeometry(0.075*sizeBase, 0.075*sizeBase, 1);
     let downMesh2 = new THREE.Mesh(downGeo2, new THREE.MeshBasicMaterial(
         {
             map: new THREE.TextureLoader().load("/img/downArrow.png", map => {
@@ -121,8 +124,8 @@ function drawHigherButton(scene, gridRightBound) {
             opacity: 1.0,
             color: LOWER_BUTTON_COLOR,
         }));
-    downMesh2.position.x = gridRightBound - 150;
-    downMesh2.position.y = initY - 50;
+    downMesh2.position.x = gridRightBound - 0.095*sizeBase;
+    downMesh2.position.y = container.clientHeight/2 + 0.04*sizeBase;
     downMesh2.renderOrder = 200;
 
     let higherText = new Text()
@@ -132,10 +135,10 @@ function drawHigherButton(scene, gridRightBound) {
     // Set properties to configure:
     higherText.text = "HIGHER"
     //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
-    higherText.fontSize = 18
+    higherText.fontSize = 0.0125*sizeBase
     higherText.position.z = 1
-    higherText.position.x = gridRightBound - 150 - 35;
-    higherText.position.y = initY - 70;
+    higherText.position.x = gridRightBound - 0.115*sizeBase;
+    higherText.position.y = container.clientHeight/2 + 0.03*sizeBase;
     higherText.color = "white"
     // Update the rendering:
     higherText.sync()
@@ -149,16 +152,19 @@ function drawHigherButton(scene, gridRightBound) {
 
 function drawLowerButton(scene, gridRightBound) {
     let initY = 382;
+    let sizeBase = container.clientWidth;
+    if (container.clientHeight > container.clientWidth)
+        sizeBase = container.clientHeight
     // shape
     // let geomShape = new THREE.ShapeBufferGeometry(new THREE.Shape(coordinatesList));
-    let geomShape = new THREE.BoxGeometry(110, 110, 1);
+    let geomShape = new THREE.BoxGeometry(0.075*sizeBase, 0.075*sizeBase, 1);
     let matShape = new THREE.MeshBasicMaterial({ color: LOWER_BUTTON_COLOR, transparent: true, opacity: 1.0 });
     let lowerButton = new THREE.Mesh(geomShape, matShape);
     lowerButton.renderOrder = 10;
-    lowerButton.position.x = gridRightBound - 150;
-    lowerButton.position.y = initY - 50;
+    lowerButton.position.x = gridRightBound - 0.095*sizeBase;
+    lowerButton.position.y = container.clientHeight/2 - 0.04*sizeBase;
 
-    let downGeo = new THREE.BoxGeometry(110, 110, 1);
+    let downGeo = new THREE.BoxGeometry(0.075*sizeBase, 0.075*sizeBase, 1);
     let downMesh = new THREE.Mesh(downGeo, new THREE.MeshBasicMaterial(
         {
             map: new THREE.TextureLoader().load("/img/down.png", map => {
@@ -168,8 +174,8 @@ function drawLowerButton(scene, gridRightBound) {
             opacity: 1.0,
             color: 0xffffff,
         }));
-    downMesh.position.x = gridRightBound - 150;
-    downMesh.position.y = initY - 50;
+    downMesh.position.x = gridRightBound - 0.095*sizeBase;
+    downMesh.position.y = container.clientHeight/2 - 0.04*sizeBase;
     downMesh.renderOrder = 200;
 
     let lowerText = new Text()
@@ -179,10 +185,10 @@ function drawLowerButton(scene, gridRightBound) {
     // Set properties to configure:
     lowerText.text = "LOWER"
     //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
-    lowerText.fontSize = 18
+    lowerText.fontSize = 0.0125*sizeBase
     lowerText.position.z = 1
-    lowerText.position.x = gridRightBound - 150 - 35;
-    lowerText.position.y = initY - 70;
+    lowerText.position.x = gridRightBound - 0.115*sizeBase;
+    lowerText.position.y = container.clientHeight/2 - 0.05*sizeBase;
     lowerText.color = "white"
     // Update the rendering:
     lowerText.sync()
@@ -745,24 +751,34 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     resultPLText.position.y = 20;
     resultPLText.sync();
 
-    let resultPLValueText = new Text()
-    resultPLValueText.renderOrder = 200;
-    resultPLValueText.text = "+85$"
-    resultPLValueText.fontSize = 15
-    resultPLValueText.color = "white" ;
-    resultPLValueText.position.x = -20;
-    resultPLValueText.position.y = 0;
-    resultPLValueText.position.z = 1;
+    let resultPLValueText = resultPL;
+    resultPLValueText.text = "+0.85$"
     resultPLValueText.sync();
 
-    let resultPLGeomShape = new THREE.BoxGeometry(100, 60, 1);
+    let resultPLGeomShape = new THREE.BoxGeometry(100, 70, 1);
     let resultPLMatShape = new THREE.MeshBasicMaterial({ color: HIGHER_BUTTON_COLOR, transparent: true, opacity: 1.0 });
     let resultPLMesh = new THREE.Mesh(resultPLGeomShape, resultPLMatShape);
     resultPLMesh.renderOrder = 10;
 
+    let upGeo = new THREE.BoxGeometry(75, 75, 1);
+    let closePLbutton = new THREE.Mesh(upGeo, new THREE.MeshBasicMaterial(
+        {
+            map: new THREE.TextureLoader().load("/img/close.png", map => {
+                closePLbutton.scale.set(map.image.width * 0.001, map.image.height * 0.001);
+            }),
+            transparent: true,
+            opacity: 1.0,
+            color: 0xffffff,
+        }));
+    closePLbutton.position.x = 45;
+    closePLbutton.position.y = 30;
+    closePLbutton.renderOrder = 100;
+
     resultPL.add(resultPLMesh);
     resultPL.add(resultPLText);
     resultPL.add(resultPLValueText);
+    resultPL.add(closePLbutton);
+    resultPL.visible = true;
 
     let obj = {
         dashedLine: verdashedLine, line: verLine, priceShape: priceShape,

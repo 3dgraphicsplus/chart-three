@@ -3,6 +3,7 @@ body {
     color: #444;
     overflow: hidden;
     font-family: Montserrat, Calibri, sans-serif;
+    -webkit-text-size-adjust: none;
 }
 
 #container {
@@ -16,8 +17,8 @@ body {
     filter: brightness(100%);
     /* filter: constrast(120%); */
     position: absolute;
-    width: 1513px;
-    height: 770px;
+    width: 90%;
+    height: 80%;
     right: 0px;
     top: 74px;
     overflow: hidden;
@@ -184,16 +185,32 @@ body {
 .line-pickr-container {
     display: none;
     position: absolute;
-    left: 1850px;
-    top: 600px;
+    left: 95%;
+    top: 65%;
+    z-index: 300;
+}
+
+_::-webkit-full-page-media, _:future, :root .line-pickr-container {
+    display: none;
+    position: absolute;
+    left: 86%;
+    top: 60%;
     z-index: 300;
 }
 
 .fill-pickr-container {
     display: none;
     position: absolute;
-    left: 1850px;
-    top: 670px;
+    left: 95%;
+    top: 75%;
+    z-index: 300;
+}
+
+_::-webkit-full-page-media, _:future, :root .fill-pickr-container {
+    display: none;
+    position: absolute;
+    left: 86%;
+    top: 72%;
     z-index: 300;
 }
 
@@ -222,6 +239,15 @@ body {
     text-align: center;
 }
 
+_::-webkit-full-page-media, _:future, :root #centergroup {
+    /* padding-top: 10px; */
+    width: 100%;
+    left: 35px;
+    top: -15px;
+    position: relative;
+    text-align: center;
+}
+
 #zoombuttons {
     display: none;
     position: relative;
@@ -235,10 +261,22 @@ body {
     font-size: 2.5em
 }
 
+_::-webkit-full-page-media, _:future, :root #profit-per {
+    padding-top: 10px;
+    padding-bottom: 5px;
+    font-size: 23px;
+}
+
 #profit-val {
     padding-top: 5px;
     padding-bottom: 10px;
     font-size: 1.2em
+}
+
+_::-webkit-full-page-media, _:future, :root #profit-val {
+    padding-top: 5px;
+    padding-bottom: 10px;
+    font-size: 13px;
 }
 
 .green {

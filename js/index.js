@@ -146,7 +146,7 @@ function init() {
     //MAX_VIEW_Y = container.clientHeight;
     camera.position.set(initialCameraPos.x, initialCameraPos.y, initialCameraPos.z);
 
-    Factory.setGrid(container.clientHeight, container.clientWidth + 100);//FIXME ,fack number
+    Factory.setGrid(container.clientHeight, container.clientWidth + 0.05*container.clientWidth);//FIXME ,fack number
     calculateAxis(true);
 
     scene = new THREE.Scene();
@@ -539,6 +539,7 @@ function updateResultCallback(result) {
         activePriceStatusObjs[0].resultPL.children[0].material.color.set(Factory.HIGHER_BUTTON_COLOR);
     }
     // Display resultP/L
+    activePriceStatusObjs[0].resultPL.visible = true;
     lastIndexPointResultPL = points.length - 1;
     activePriceStatusObjs[0].resultPL.position.x = points[lastIndexPointResultPL][0];
     activePriceStatusObjs[0].resultPL.position.y = points[lastIndexPointResultPL][1];
@@ -646,6 +647,10 @@ function onPointerDown(event) {
                 handleLowerButtonClick($("#price").val());
                 lowerButtonClickCallback($("#price").val(), dataClient.input_value[dataClient.input_value.length - 1].price, dataClient.input_value[dataClient.input_value.length - 1].origin_time);
             }
+        }
+        let closeIntersect = raycaster.intersectObjects([activePriceStatusObjs[0].resultPL.children[3]])
+        if (closeIntersect.length > 0) {
+            activePriceStatusObjs[0].resultPL.visible = false;
         }
     }
 }
