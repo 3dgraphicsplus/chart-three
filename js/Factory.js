@@ -751,8 +751,10 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     resultPLText.position.y = 20;
     resultPLText.sync();
 
-    let resultPLValueText = resultPL;
-    resultPLValueText.text = "+0.85$"
+    let resultPLValueText = resultPLText.clone();
+    resultPLValueText.text = "+0.85$";
+    resultPLValueText.position.x = -20;
+    resultPLValueText.position.y = 0;
     resultPLValueText.sync();
 
     let resultPLGeomShape = new THREE.BoxGeometry(100, 70, 1);
