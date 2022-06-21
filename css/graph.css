@@ -3,7 +3,6 @@ body {
     color: #444;
     overflow: hidden;
     font-family: Montserrat, Calibri, sans-serif;
-    -webkit-text-size-adjust: none;
 }
 
 #container {
@@ -20,10 +19,19 @@ body {
     width: 90%;
     height: 80%;
     right: 0px;
-    top: 74px;
+    top: 5%;
     overflow: hidden;
 }
 
+@media only screen and (orientation:portrait){
+    body {
+        transform-origin: top right;
+        width: 90vh;
+        height: 55vh;
+        transform: translateX(-100%) rotate(-90deg);
+        overflow-y: hidden;
+    }
+}
 #container:after {
     opacity: 0.5;
     overflow: hidden;
@@ -53,8 +61,18 @@ body {
     display: none;
     position: absolute;
     right: 0px;
-    top: 74px;
-    margin-top: 40px;
+    top: 5%;
+    margin-top: 3%;
+    overflow: hidden;
+    font-size: 1em;
+    color: #dddddd
+}
+
+_::-webkit-full-page-media, _:future, :root #overlay {
+    display: none;
+    position: absolute;
+    right: 0px;
+    margin-top: -3%;
     overflow: hidden;
     font-size: 1em;
     color: #dddddd
@@ -210,7 +228,7 @@ _::-webkit-full-page-media, _:future, :root .fill-pickr-container {
     display: none;
     position: absolute;
     left: 86%;
-    top: 72%;
+    top: 80%;
     z-index: 300;
 }
 
@@ -242,8 +260,8 @@ _::-webkit-full-page-media, _:future, :root .fill-pickr-container {
 _::-webkit-full-page-media, _:future, :root #centergroup {
     /* padding-top: 10px; */
     width: 100%;
-    left: 35px;
-    top: -15px;
+    left: -13%;
+    top: -13%;
     position: relative;
     text-align: center;
 }

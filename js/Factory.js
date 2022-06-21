@@ -780,7 +780,7 @@ function drawActiveLines(activePriceStatusObjs, circlePos, gridRightBound, moved
     resultPL.add(resultPLText);
     resultPL.add(resultPLValueText);
     resultPL.add(closePLbutton);
-    resultPL.visible = true;
+    resultPL.visible = false;
 
     let obj = {
         dashedLine: verdashedLine, line: verLine, priceShape: priceShape,
