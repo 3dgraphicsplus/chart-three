@@ -840,7 +840,7 @@ function drawNewData(newPrice, now) {
     let target = { x: newPoint[0], y: newPoint[1] };
     points.push([source.x, source.y, 0]);
 
-    const maxSpeed = 200;//ms
+    const maxSpeed = 500;//ms
     let duration = maxSpeed + Math.abs(target.y - source.y);
     let lastX = source.x;
     let lastY = source.y;
@@ -964,7 +964,7 @@ function processScale() {
         if (zoomTween) return;
         let newScale = rescaleData.shift();
         let oldScale = { origin: Factory.axisYConfig.origin, stepY: Factory.axisYConfig.stepY };
-        scaleTween = new TWEEN.Tween(oldScale).to(newScale, 200).onUpdate(function (current) {
+        scaleTween = new TWEEN.Tween(oldScale).to(newScale, 500).onUpdate(function (current) {
             Factory.axisYConfig.origin = current.origin;
             //Factory.axisYConfig.stepY = current.stepY;
             recalculate();
