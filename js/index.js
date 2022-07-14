@@ -208,7 +208,7 @@ function calculateAxis(forced) {
     let minY = Factory.convertBack(0, 30, 0)[1];
     let maxY = Factory.convertBack(0, container.clientHeight - 30, 0)[1];
 
-    if (rescaleData.length == 0 && (Math.abs(newOrigin - Factory.axisYConfig.origin) * Factory.axisYConfig.stepY > 10 || minY > newRange[0] || maxY < newRange[1])) {//TODO
+    if (rescaleData.length == 0 && (Math.abs(newOrigin - Factory.axisYConfig.origin) * Factory.axisYConfig.stepY > 25 || minY > newRange[0] || maxY < newRange[1])) {//TODO
         console.log("Medium: ", newOrigin)
         rescaleData.push({ origin: newOrigin, stepY: Factory.axisYConfig.stepY })
         //Factory.axisYConfig.origin = newOrigin;
