@@ -79,11 +79,11 @@ function drawHigherButton(scene, gridRightBound) {
         sizeBase = container.clientHeight
 
     // shape
-    let geomShape = new THREE.BoxGeometry(0.075*sizeBase, 0.075*sizeBase, 1);
+    let geomShape = new THREE.BoxGeometry(0.065*sizeBase, 0.065*sizeBase, 1);
     let matShape = new THREE.MeshBasicMaterial({ color: HIGHER_BUTTON_COLOR, transparent: true, opacity: 1.0 });
     let higherButton = new THREE.Mesh(geomShape, matShape);
     higherButton.renderOrder = 10;
-    higherButton.position.x = gridRightBound - 0.095*sizeBase;
+    higherButton.position.x = gridRightBound - 0.08*sizeBase;
     higherButton.position.y = container.clientHeight/2 + 0.04*sizeBase;
 
     let upGeo = new THREE.BoxGeometry(0.075*sizeBase, 0.075*sizeBase, 1);
@@ -96,11 +96,11 @@ function drawHigherButton(scene, gridRightBound) {
             opacity: 1.0,
             color: 0xffffff,
         }));
-    upMesh.position.x = gridRightBound - 0.095*sizeBase;
-    upMesh.position.y = container.clientHeight/2 + 0.04*sizeBase;
+    upMesh.position.x = gridRightBound - 0.08*sizeBase;
+    upMesh.position.y = container.clientHeight/2 + 0.045*sizeBase;
     upMesh.renderOrder = 100;
 
-    let upGeo2 = new THREE.BoxGeometry(0.075*sizeBase, 0.075*sizeBase, 1);
+    let upGeo2 = new THREE.BoxGeometry(0.065*sizeBase, 0.065*sizeBase, 1);
     let upMesh2 = new THREE.Mesh(upGeo2, new THREE.MeshBasicMaterial(
         {
             map: new THREE.TextureLoader().load("/img/upArrow.png", map => {
@@ -110,8 +110,8 @@ function drawHigherButton(scene, gridRightBound) {
             opacity: 1.0,
             color: HIGHER_BUTTON_COLOR,
         }));
-    upMesh2.position.x = gridRightBound - 0.095*sizeBase;
-    upMesh2.position.y = container.clientHeight/2 + 0.04*sizeBase;
+    upMesh2.position.x = gridRightBound - 0.08*sizeBase;
+    upMesh2.position.y = container.clientHeight/2 + 0.045*sizeBase;
     upMesh2.renderOrder = 200;
 
     let downGeo2 = new THREE.BoxGeometry(0.075*sizeBase, 0.075*sizeBase, 1);
@@ -124,8 +124,8 @@ function drawHigherButton(scene, gridRightBound) {
             opacity: 1.0,
             color: LOWER_BUTTON_COLOR,
         }));
-    downMesh2.position.x = gridRightBound - 0.095*sizeBase;
-    downMesh2.position.y = container.clientHeight/2 + 0.04*sizeBase;
+    downMesh2.position.x = gridRightBound - 0.08*sizeBase;
+    downMesh2.position.y = container.clientHeight/2 + 0.045*sizeBase;
     downMesh2.renderOrder = 200;
 
     let higherText = new Text()
@@ -137,8 +137,8 @@ function drawHigherButton(scene, gridRightBound) {
     //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
     higherText.fontSize = 0.0125*sizeBase
     higherText.position.z = 1
-    higherText.position.x = gridRightBound - 0.115*sizeBase;
-    higherText.position.y = container.clientHeight/2 + 0.03*sizeBase;
+    higherText.position.x = gridRightBound - 0.1*sizeBase;
+    higherText.position.y = container.clientHeight/2 + 0.035*sizeBase;
     higherText.color = "white"
     // Update the rendering:
     higherText.sync()
@@ -157,11 +157,11 @@ function drawLowerButton(scene, gridRightBound) {
         sizeBase = container.clientHeight
     // shape
     // let geomShape = new THREE.ShapeBufferGeometry(new THREE.Shape(coordinatesList));
-    let geomShape = new THREE.BoxGeometry(0.075*sizeBase, 0.075*sizeBase, 1);
+    let geomShape = new THREE.BoxGeometry(0.065*sizeBase, 0.065*sizeBase, 1);
     let matShape = new THREE.MeshBasicMaterial({ color: LOWER_BUTTON_COLOR, transparent: true, opacity: 1.0 });
     let lowerButton = new THREE.Mesh(geomShape, matShape);
     lowerButton.renderOrder = 10;
-    lowerButton.position.x = gridRightBound - 0.095*sizeBase;
+    lowerButton.position.x = gridRightBound - 0.08*sizeBase;
     lowerButton.position.y = container.clientHeight/2 - 0.04*sizeBase;
 
     let downGeo = new THREE.BoxGeometry(0.075*sizeBase, 0.075*sizeBase, 1);
@@ -174,8 +174,8 @@ function drawLowerButton(scene, gridRightBound) {
             opacity: 1.0,
             color: 0xffffff,
         }));
-    downMesh.position.x = gridRightBound - 0.095*sizeBase;
-    downMesh.position.y = container.clientHeight/2 - 0.04*sizeBase;
+    downMesh.position.x = gridRightBound - 0.08*sizeBase;
+    downMesh.position.y = container.clientHeight/2 - 0.035*sizeBase;
     downMesh.renderOrder = 200;
 
     let lowerText = new Text()
@@ -187,8 +187,8 @@ function drawLowerButton(scene, gridRightBound) {
     //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
     lowerText.fontSize = 0.0125*sizeBase
     lowerText.position.z = 1
-    lowerText.position.x = gridRightBound - 0.115*sizeBase;
-    lowerText.position.y = container.clientHeight/2 - 0.05*sizeBase;
+    lowerText.position.x = gridRightBound - 0.1*sizeBase;
+    lowerText.position.y = container.clientHeight/2 - 0.045*sizeBase;
     lowerText.color = "white"
     // Update the rendering:
     lowerText.sync()
@@ -350,7 +350,7 @@ function updateMouseMoveLine(scene, posX, posY, timestamp, priceValue) {
         mousePriceText.renderOrder = 100;
         mousePriceText.color = 'white'
     }
-    mousePriceText.text = '' + priceValue.toFixed(8);
+    mousePriceText.text = '' + priceValue.toFixed(2);
     mousePriceText.sync()
 }
 
@@ -413,7 +413,7 @@ function drawHorizontalGrid(group, horizontalGrids, gridTopBound, gridRightBound
         let priceText = new Text()
         // console.log(priceValue)
         // Set properties to configure:
-        priceText.text = priceValue.toFixed(8);
+        priceText.text = priceValue.toFixed(2);
         //myText.font ="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
         priceText.fontSize = 12
         priceText.position.z = 0
@@ -445,7 +445,7 @@ function updateHorizontalGrid(horizontalGrids) {
         //let yValue = j*stepY;
         let priceValue = stepPrice * j + minY;
 
-        horizontalGrids[j].children[1].text = priceValue.toFixed(8);
+        horizontalGrids[j].children[1].text = priceValue.toFixed(2);
         horizontalGrids[j].children[1].sync();
     }
 }
@@ -827,7 +827,7 @@ function updateActiveLines(activePriceStatusObjs, circlePos, gridRightBound, mov
     // Extract the exact diff between current and prev, then highlight only that part
     // For example: 45370.01 with diffValue is +1.23 then display 45371.23 with 1.23 is highlighted
     const isChanged = Math.round((currentValue - prevValue) * 1e2) / 1e2;
-    let diffValue = Math.abs(currentValue - prevValue).toFixed(8)
+    let diffValue = Math.abs(currentValue - prevValue).toFixed(2)
     let diffValueStr = ('' + diffValue)
     let truncatedPriceText = ('' + Math.trunc(parseFloat(currentValue))).slice(0, (currentValue + '').length - diffValueStr.length)
     //if (isChanged != 0) 
