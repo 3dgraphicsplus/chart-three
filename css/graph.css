@@ -310,7 +310,7 @@ _::-webkit-full-page-media, _:future, :root #profit-val {
         display: none;
         position: absolute;
         right: 0px;
-        margin-top: 0%;
+        margin-top: -2%;
         overflow: hidden;
         font-size: 1em;
         color: #dddddd
@@ -353,7 +353,7 @@ _::-webkit-full-page-media, _:future, :root #profit-val {
         display: none;
         position: absolute;
         right: 0px;
-        margin-top: 10%;
+        margin-top: 8%;
         overflow: hidden;
         font-size: 1em;
         color: #dddddd
