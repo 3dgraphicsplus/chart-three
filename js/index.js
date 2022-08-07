@@ -111,14 +111,6 @@ function getMedium(points, start, end) {
     return center;
 }
 
-function getMax(points, start, end) {
-    let tmp = [];
-    for (let i = start; i <= end; i++) {
-        tmp.push(points[i].price);
-    }
-    return Math.max(...tmp);
-}
-
 function init() {
 
     initColorPicker();
@@ -198,7 +190,7 @@ function calculateAxis(forced) {
     Factory.axisYConfig.initialValueY = initialCameraPos.y + (container.clientHeight) / 2;
     // Factory.axisYConfig.stepY = container.clientHeight / Factory.currentZoom();///2;
     Factory.axisYConfig.stepY = ((container.clientHeight - 30 - Factory.axisYConfig.initialValueY) - 2*(30 -Factory.axisYConfig.initialValueY))
-                                /(5*(getMax(dataClient.input_value, beginViewingIndex, endViewingIndex) - Factory.axisYConfig.origin));
+                                /(5*(newRange[1] - Factory.axisYConfig.origin));
     if (forced) {
         Factory.axisYConfig.origin = newOrigin;
         return;
@@ -206,6 +198,11 @@ function calculateAxis(forced) {
     //let newY = container.clientHeight / Factory.currentZoom() / 2
 
     let minY = Factory.convertBack(0, 30, 0)[1];
+    if (minY > newRange[0]) //Avoid 
+    {
+        Factory.axisYConfig.stepY = (30 - Factory.axisYConfig.initialValueY)/(newRange[0] - Factory.axisYConfig.origin);
+        minY = Factory.convertBack(0, 30, 0)[1];
+    }
     let maxY = Factory.convertBack(0, container.clientHeight - 30, 0)[1];
 
     if (rescaleData.length == 0 && (Math.abs(newOrigin - Factory.axisYConfig.origin) * Factory.axisYConfig.stepY > 25 || minY > newRange[0] || maxY < newRange[1])) {//TODO
@@ -964,7 +961,7 @@ function processScale() {
         if (zoomTween) return;
         let newScale = rescaleData.shift();
         let oldScale = { origin: Factory.axisYConfig.origin, stepY: Factory.axisYConfig.stepY };
-        scaleTween = new TWEEN.Tween(oldScale).to(newScale, 500).onUpdate(function (current) {
+        scaleTween = new TWEEN.Tween(oldScale).to(newScale, 200).onUpdate(function (current) {
             Factory.axisYConfig.origin = current.origin;
             //Factory.axisYConfig.stepY = current.stepY;
             recalculate();
