@@ -70,6 +70,7 @@ let lastIndexPointResultPL = 0;
 
 //loading history
 let isLoadding = false;
+let isLoadBackData = false;
 
 let newData = [];
 function onAddNewData(newVal) {
@@ -417,8 +418,9 @@ function onPointerMove(event) {
         //right side is most right
         else if (deltaX > 0 && points[0][0] + activePoligonObjs.position.x + activeGroup.position.x >= 0) {
 
-            if(!isLoadding){
+            if(!isLoadding && !isLoadBackData){
                 isLoadding = true;
+                isLoadBackData = true;
                 dataClient.getPriceBackward(loadBackData);
             }
         }
