@@ -182,6 +182,8 @@ function init() {
 let rescaleData = []
 
 function calculateAxis(forced) {
+    if (points.length)//only run for updating, not init
+        updateListOfViewingIndex();
     //in fact, just use lastest point as origin
     let newRange = getRange(dataClient.input_value, beginViewingIndex, endViewingIndex);
     let newOrigin = getMedium(dataClient.input_value, beginViewingIndex, endViewingIndex);;//newRange[0] / 2 + newRange[1] / 2
@@ -211,8 +213,6 @@ function calculateAxis(forced) {
         //Factory.axisYConfig.origin = newOrigin;
         //Factory.axisYConfig.stepY = newY;
     }
-    if (points.length)//only run for updating, not init
-        updateListOfViewingIndex();
 }
 
 function initScene(drawingGroup) {
